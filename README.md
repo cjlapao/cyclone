@@ -11,12 +11,24 @@ a single binary for Linux, macOS and Windows.
 ## Build & run
 
 ```sh
+make          # = make run: launch with sound (sets the ALSA shim up first)
+make release  # optimized binary in target/release/
+make test lint fmt sfx clean   # the rest
+```
+
+Plain cargo works too:
+
+```sh
 cargo run            # debug
 cargo build --release && ./target/release/cyclone-rescue
 ```
 
-Linux build dependencies (Debian/Ubuntu names): `libasound2-dev libx11-dev
-libxi-dev libgl1-mesa-dev` — only needed for the windowing/audio layer.
+Linux build dependencies (Debian/Ubuntu names): `libx11-dev libxi-dev
+libgl1-mesa-dev`, plus `libasound2-dev` **or** the sudo-free shim: if the
+system has only the runtime `libasound.so.2`, `make setup` symlinks it to
+`vendor/alsa/libasound.so` and `.cargo/config.toml` points the linker there,
+so `cargo run` still links with sound. (`make run-silent` /
+`--no-default-features` skips the audio backend entirely instead.)
 
 macOS: the release binary is unsigned and un-notarised; right-click → Open the
 first time you run it.

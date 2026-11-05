@@ -1,0 +1,7 @@
+# On Linux distros without the libasound2-dev package, quad-snd's `-lasound`
+# still resolves: `make setup` (or make run) symlinks the runtime
+# libasound.so.2 into vendor/alsa as libasound.so. Machines that have the
+# dev package simply never need this search path (ld ignores missing -L dirs),
+# and macOS/Windows builds are untouched.
+[target.x86_64-unknown-linux-gnu]
+rustflags = ["-L", "native=vendor/alsa"]

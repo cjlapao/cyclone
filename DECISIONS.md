@@ -81,3 +81,12 @@ option closest to the 1984 original's feel, record it, move on).
 - Screen shake (crash only) offsets the projected scene centre by a decaying
   ~2 px sine; the tile loop already draws a tile beyond the viewport, so no
   black edges appear.
+
+## Linking ALSA without sudo (Linux dev boxes)
+
+- quad-snd links `-lasound`, which needs the dev symlink `libasound.so`;
+  Ubuntu's runtime package ships only `libasound.so.2`. `make setup`
+  symlinks the runtime lib into `vendor/alsa/` (git-ignored) and
+  `.cargo/config.toml` adds `-L native=vendor/alsa` for the linux target.
+  Machines with the real dev package ignore the missing dir; macOS/Windows
+  configs untouched. Full sound, no root.
