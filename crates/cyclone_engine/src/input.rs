@@ -5,6 +5,7 @@ use std::collections::BTreeSet;
 
 use bevy::input::gamepad::GamepadButton;
 use bevy::input::keyboard::KeyCode;
+use bevy::input::keyboard::KeyboardInput;
 use bevy::prelude::*;
 
 use crate::settings::Settings;
@@ -97,19 +98,28 @@ fn rebuild_bindings(settings: Res<Settings>, mut bindings: ResMut<ActionBindings
 
 fn update_actions(
     kb: Res<ButtonInput<KeyCode>>,
-    gp: Res<ButtonInput<GamepadButton>>,
+    gp: Option<Res<ButtonInput<GamepadButton>>>,
     bindings: Res<ActionBindings>,
     mut actions: ResMut<Actions>,
 ) {
     actions.pressed.clear();
     actions.just_pressed.clear();
     actions.just_released.clear();
+    // ButtonInput<GamepadButton> only exists with gilrs; gamepad input is
+    // treated as optional everywhere (spec 00).
+    let pad = |g: &ButtonInput<GamepadButton>, b: GamepadButton| {
+        (g.pressed(b), g.just_pressed(b), g.just_released(b))
+    };
     for (action, keys, pads) in &bindings.by_action {
-        let down = keys.iter().any(|k| kb.pressed(*k)) || pads.iter().any(|b| gp.pressed(*b));
-        let jp =
-            keys.iter().any(|k| kb.just_pressed(*k)) || pads.iter().any(|b| gp.just_pressed(*b));
-        let jr =
-            keys.iter().any(|k| kb.just_released(*k)) || pads.iter().any(|b| gp.just_released(*b));
+        let (pd, pjp, pjr): (bool, bool, bool) = pads
+            .iter()
+            .map(|b| gp.as_ref().map_or((false, false, false), |g| pad(g, *b)))
+            .fold((false, false, false), |a, v| {
+                (a.0 || v.0, a.1 || v.1, a.2 || v.2)
+            });
+        let down = keys.iter().any(|k| kb.pressed(*k)) || pd;
+        let jp = keys.iter().any(|k| kb.just_pressed(*k)) || pjp;
+        let jr = keys.iter().any(|k| kb.just_released(*k)) || pjr;
         if down {
             actions.pressed.insert(*action);
         }
@@ -122,10 +132,18 @@ fn update_actions(
     }
 }
 
-pub struct InputPlugin;
+/// Actions layer on top of `bevy_input::InputPlugin`.
+pub struct ActionsPlugin;
 
-impl Plugin for InputPlugin {
+impl Plugin for ActionsPlugin {
     fn build(&self, app: &mut App) {
+        // The Bevy plugin owns the message resources (KeyboardInput,
+        // MouseWheel, …) and the ButtonInput resources the actions read;
+        // DefaultPlugins normally provides it, so only add it if missing.
+        use bevy::ecs::message::Messages;
+        if !app.world().contains_resource::<Messages<KeyboardInput>>() {
+            app.add_plugins(bevy::input::InputPlugin);
+        }
         app.init_resource::<ActionBindings>();
         app.init_resource::<Actions>();
         app.add_systems(Update, rebuild_bindings);

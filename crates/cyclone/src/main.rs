@@ -1,7 +1,6 @@
 //! Cyclone Rescue — wires plugins together, nothing else (spec 00).
 
 use bevy::{prelude::*, window::WindowResolution};
-use cyclone_engine::CycloneEnginePlugin;
 use cyclone_game::CycloneGamePlugin;
 use cyclone_render::WorldBuilderPlugin;
 use cyclone_ui::CycloneUiPlugin;
@@ -18,11 +17,7 @@ fn main() {
             }),
             ..default()
         }))
-        .add_plugins((
-            CycloneEnginePlugin,
-            WorldBuilderPlugin,
-            CycloneUiPlugin,
-            CycloneGamePlugin,
-        ))
+        // CycloneGamePlugin wires the engine layer itself.
+        .add_plugins((WorldBuilderPlugin, CycloneUiPlugin, CycloneGamePlugin))
         .run();
 }

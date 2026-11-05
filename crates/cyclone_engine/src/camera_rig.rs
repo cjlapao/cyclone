@@ -207,12 +207,29 @@ fn rig_update(
         {
             pos = gt.translation();
         }
-        // Keep the view over the world (spec: clamp bounds).
+        // Keep the view over the world (spec: clamp bounds). When the
+        // viewport is wider than the world (small menu backdrop at high
+        // zoom) clamping is meaningless — centre instead, or clamp() panics
+        // on min > max.
         let half = rig.view * 0.5;
         let (bmin, bmax) = (bounds.min, bounds.max);
         if bmax.x > bmin.x {
-            pos.x = pos.x.clamp(bmin.x + half * 0.4, bmax.x - half * 0.4);
-            pos.y = pos.y.clamp(bmin.y + half * 0.7, bmax.y - half * 0.7);
+            let pad_x = half * 0.4;
+            let lo_x = bmin.x + pad_x;
+            let hi_x = bmax.x - pad_x;
+            pos.x = if lo_x > hi_x {
+                (bmin.x + bmax.x) * 0.5
+            } else {
+                pos.x.clamp(lo_x, hi_x)
+            };
+            let pad_y = half * 0.7;
+            let lo_y = bmin.y + pad_y;
+            let hi_y = bmax.y - pad_y;
+            pos.y = if lo_y > hi_y {
+                (bmin.y + bmax.y) * 0.5
+            } else {
+                pos.y.clamp(lo_y, hi_y)
+            };
         }
 
         let rot = Quat::from_euler(EulerRot::YXZ, rig.yaw.to_radians(), -PITCH, 0.0);

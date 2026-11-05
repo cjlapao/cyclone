@@ -163,8 +163,12 @@ fn button_visuals(
     }
 }
 
-fn theme_scale(mut theme: ResMut<Theme>, windows: Single<&Window>) {
-    let h = windows.resolution.physical_height().max(1) as f32;
+fn theme_scale(mut theme: ResMut<Theme>, windows: Query<&Window>) {
+    // Query, not Single: headless tests run without a window (DECISIONS.md).
+    let Ok(window) = windows.single() else {
+        return;
+    };
+    let h = window.resolution.physical_height().max(1) as f32;
     let s = (h / 800.0).clamp(0.6, 2.5);
     if (theme.scale - s).abs() > 0.01 {
         theme.scale = s;
@@ -188,6 +192,7 @@ impl Plugin for CycloneUiPlugin {
             scale: 1.0,
         });
         app.init_resource::<MenuFocus>();
+        app.add_message::<Activated>();
         app.add_systems(Update, (theme_scale, focus_nav, button_visuals).chain());
     }
 }

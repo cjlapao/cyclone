@@ -51,10 +51,12 @@ pub struct CycloneEnginePlugin;
 
 impl Plugin for CycloneEnginePlugin {
     fn build(&self, app: &mut App) {
-        app.init_state::<AppState>();
+        // Headless tests skip DefaultPlugins; own the state plumbing anyway.
+        app.add_plugins(bevy::state::app::StatesPlugin)
+            .init_state::<AppState>();
         app.add_plugins((
             settings::SettingsPlugin,
-            input::InputPlugin,
+            input::ActionsPlugin,
             camera_rig::CameraRigPlugin,
             rng::RngPlugin,
         ));

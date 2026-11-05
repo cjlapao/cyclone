@@ -103,11 +103,16 @@ struct MenuScreen {
     error_label: Entity,
 }
 
-fn menu_bg_config() -> WorldGenConfig {
+/// Small world for the menu/preview backdrop; every knob stays inside
+/// the generator's validator (helipads ≤ islands−2, …).
+pub fn menu_bg_config() -> WorldGenConfig {
     WorldGenConfig {
         size: (88, 88),
-        island_count: 4,
+        island_count: 6,
+        island_radius: (6, 12),
+        base_radius: (8, 11),
         crates: 2,
+        helipads_extra: (2, 3),
         ..default()
     }
 }
@@ -387,7 +392,7 @@ fn gen_start(
     }
 
     let mut stage_label = Entity::PLACEHOLDER;
-    let mut fill = Entity::PLACEHOLDER;
+    let mut track = Entity::PLACEHOLDER;
     let mut error_label = Entity::PLACEHOLDER;
     commands
         .spawn((
@@ -407,7 +412,7 @@ fn gen_start(
                 Color::srgb(0.98, 0.93, 0.80),
                 26.0,
             ));
-            let track = mid
+            track = mid
                 .spawn((
                     Node {
                         width: Val::Px(420.0),
@@ -418,24 +423,24 @@ fn gen_start(
                     BackgroundColor(Color::srgba(0.10, 0.13, 0.18, 0.9)),
                 ))
                 .id();
-            fill = mid
-                .spawn((
-                    Node {
-                        width: Val::Px(0.0),
-                        height: Val::Px(10.0),
-                        position_type: PositionType::Absolute,
-                        left: Val::Px(0.0),
-                        ..default()
-                    },
-                    BackgroundColor(Color::srgb(0.91, 0.55, 0.13)),
-                    ChildOf(track),
-                ))
-                .id();
+            // Progress fill: spawned after the closure and parented with
+            // ChildOf explicitly (the spawner would force it onto `mid`).
             stage_label = mid.spawn(label_tuple("", Color::WHITE, 18.0)).id();
             error_label = mid
                 .spawn(label_tuple("", Color::srgb(0.95, 0.35, 0.30), 20.0))
                 .id();
         });
+    let fill = commands
+        .spawn((
+            Node {
+                width: Val::Px(0.0),
+                height: Val::Px(10.0),
+                ..default()
+            },
+            BackgroundColor(Color::srgb(0.91, 0.55, 0.13)),
+            ChildOf(track),
+        ))
+        .id();
 
     commands.insert_resource(GenRunning {
         slot,
