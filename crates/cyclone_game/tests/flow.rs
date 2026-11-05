@@ -119,10 +119,19 @@ fn full_flow_offscreen() {
     assert!((lh - WorldGenConfig::default().level_height).abs() < f32::EPSILON);
 
     // Enter (injected) → InGame; same world stays loaded.
+    // Spec 01 C7: a state's DespawnOnExit entities must be gone once we
+    // leave it — no menu screen bleeding into the game.
+    let stale_in_preview = leftovers(&mut app, AppState::MainMenu);
+    assert_eq!(
+        stale_in_preview, 0,
+        "no MainMenu entities survive in preview"
+    );
     wait_for(&mut app, "InGame", Duration::from_secs(30), |a| {
         state(a) == AppState::InGame
     });
     assert_eq!(app.world().resource::<CurrentWorld>().0.seed, preview.seed);
+    let stale_in_game = leftovers(&mut app, AppState::WorldPreview);
+    assert_eq!(stale_in_game, 0, "no preview entities survive in InGame");
     let mut texts = app.world_mut().query::<&Text>();
     assert!(
         texts.iter(app.world()).count() >= 3,
@@ -208,4 +217,13 @@ fn menu_backdrop_always_generates() {
         let cfg = cyclone_game::screens::menu_bg_config();
         generate(seed, 1, &cfg, &ProgressNoop).unwrap_or_else(|e| panic!("seed {seed}: {e}"));
     }
+}
+
+/// Entities still alive that were scheduled to die on exiting `st`.
+fn leftovers(app: &mut App, st: AppState) -> usize {
+    app.world_mut()
+        .query::<&DespawnOnExit<AppState>>()
+        .iter(app.world())
+        .filter(|d| d.0 == st)
+        .count()
 }
