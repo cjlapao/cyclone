@@ -1,26 +1,15 @@
 //! Window config, fixed-step main loop, top-level state machine.
 
-// Milestones 2..7 wire these up one by one; remove this allow in the polish pass.
-#![allow(dead_code)]
-
-mod cyclone;
-mod font;
-mod game;
-mod heli;
-mod hud;
-mod iso;
-mod map;
-mod planes;
-mod render;
-mod state;
-mod tuning;
-mod world;
-mod worldgen;
-
-use game::{Game, Inputs};
+use cyclone_rescue::audio::Audio;
+use cyclone_rescue::game;
+use cyclone_rescue::game::{Game, Inputs};
+use cyclone_rescue::hud;
+use cyclone_rescue::iso;
+use cyclone_rescue::map;
+use cyclone_rescue::render;
+use cyclone_rescue::state::{self, GameState, PlayCmd};
+use cyclone_rescue::tuning::*;
 use macroquad::prelude::*;
-use state::{GameState, PlayCmd};
-use tuning::*;
 
 /// Table of key bindings — remap by editing this one place (spec: Controls).
 mod keys {
@@ -34,9 +23,9 @@ mod keys {
     pub const DESCEND: &[K] = &[K::LeftShift, K::Z];
     pub const FLIP: &[K] = &[K::V, K::Tab];
     pub const WINCH: &[K] = &[K::E, K::Enter];
+    pub const MUTE: &[K] = &[K::K];
     pub const MAP: &[K] = &[K::M];
     pub const PAUSE: &[K] = &[K::P, K::Escape];
-    pub const CONFIRM: &[K] = &[K::Enter, K::Space];
     pub const FULLSCREEN: &[K] = &[K::F11];
     pub const FULLSCREEN_ALT: &[K] = &[K::Enter]; // with Alt held
 }
@@ -63,11 +52,12 @@ fn any_pressed(keys: &[macroquad::input::KeyCode]) -> bool {
 async fn main() {
     let gfx = render::Gfx::new();
     let mut state = GameState::Title;
-    let high: Vec<(String, u32)> = Vec::new(); // filled in M7
     let mut acc = 0.0f32;
     let mut t = 0.0f32;
     let mut fullscreen = false;
     let mut game: Option<Game> = None;
+    let mut audio = Some(Audio::load().await);
+    let mut high = load_high();
 
     loop {
         let dt = get_frame_time().min(0.25);
@@ -76,6 +66,22 @@ async fn main() {
         while acc >= PHYSICS_DT {
             step(&mut state, game.as_mut());
             acc -= PHYSICS_DT;
+        }
+
+        // audio: drain queued cues, keep rotor hum alive, mute toggle
+        if any_pressed(keys::MUTE) {
+            if let Some(a) = audio.as_mut() {
+                a.toggle_mute();
+            }
+        }
+        if let (Some(a), Some(g)) = (audio.as_mut(), game.as_mut()) {
+            for e in g.fx.drain(..) {
+                a.play(e);
+            }
+            let flying = g.phase == game::Phase::Flying;
+            a.rotor(flying, g.speed() / HELI_MAX_SPEED);
+        } else if let Some(a) = audio.as_mut() {
+            a.rotor(false, 0.0);
         }
 
         // Fullscreen toggles (window-level, any state).
@@ -89,10 +95,21 @@ async fn main() {
         // simulation events end the play session
         if let Some(g) = game.as_mut() {
             if let Some(ev) = g.event.take() {
-                state = match ev {
-                    game::GameEvent::RoundComplete => GameState::RoundComplete,
-                    game::GameEvent::GameOver => GameState::GameOver,
-                };
+                match ev {
+                    game::GameEvent::RoundComplete => {
+                        if let Some(a) = audio.as_mut() {
+                            a.play(game::Sfx::Round);
+                        }
+                        state = GameState::RoundComplete;
+                    }
+                    game::GameEvent::GameOver => {
+                        if let Some(a) = audio.as_mut() {
+                            a.play(game::Sfx::Over);
+                        }
+                        record_high(&mut high, g.score, g.round, g.seed);
+                        state = GameState::GameOver;
+                    }
+                }
             }
         }
 
@@ -186,6 +203,62 @@ fn col_sea() -> Color {
     render::col(1)
 }
 
+fn hi_path() -> std::path::PathBuf {
+    let home = std::env::var_os("HOME")
+        .or_else(|| std::env::var_os("USERPROFILE"))
+        .or_else(|| std::env::var_os("APPDATA"))
+        .map(std::path::PathBuf::from)
+        .unwrap_or_else(|| std::path::PathBuf::from("."));
+    home.join(".cyclone_rescue_highscores")
+}
+
+/// One stored line: "score|round|seed".
+struct Hi {
+    score: u32,
+    round: u32,
+    seed: u64,
+}
+
+fn load_high() -> Vec<(String, u32)> {
+    let mut v: Vec<Hi> = std::fs::read_to_string(hi_path())
+        .unwrap_or_default()
+        .lines()
+        .filter_map(|l| {
+            let mut it = l.split('|');
+            Some(Hi {
+                score: it.next()?.parse().ok()?,
+                round: it.next()?.parse().ok()?,
+                seed: it.next()?.parse().ok()?,
+            })
+        })
+        .collect();
+    v.sort_by_key(|h| std::cmp::Reverse(h.score));
+    v.truncate(HIGH_SCORES);
+    v.into_iter()
+        .map(|h| (format!("R{} S{}", h.round, h.seed), h.score))
+        .collect()
+}
+
+fn record_high(high: &mut Vec<(String, u32)>, score: u32, round: u32, seed: u64) {
+    high.push((format!("R{round} S{seed}"), score));
+    high.sort_by_key(|h| std::cmp::Reverse(h.1));
+    high.truncate(HIGH_SCORES);
+    let txt: String = high
+        .iter()
+        .map(|(tag, s)| {
+            // tag is "R<round> S<seed>" — rebuild the numeric line from it
+            let round = tag[1..].split(' ').next().unwrap_or("1");
+            let seed = tag
+                .split(' ')
+                .nth(1)
+                .and_then(|t| t.strip_prefix('S'))
+                .unwrap_or("0");
+            format!("{s}|{round}|{seed}\n")
+        })
+        .collect();
+    let _ = std::fs::write(hi_path(), txt);
+}
+
 fn iso_hud_pos(g: &Game) -> Vec2 {
     let (sx, sy) = iso::project(g.heli.x, g.heli.y, g.heli.z, g.cam, g.view);
     vec2(game::PLAY_W * 0.5 + sx, game::PLAY_H * 0.5 + sy)
@@ -207,17 +280,15 @@ fn read_inputs() -> Inputs {
 
 /// Fixed-rate edge-triggered state transitions from input (spec: Game states).
 fn step(state: &mut GameState, game: Option<&mut Game>) {
-    let cmd = if is_key_pressed(KeyCode::Escape) {
+    let cmd = if any_pressed(keys::PAUSE) {
         match *state {
             GameState::Paused => Some(PlayCmd::QuitToTitle),
             GameState::Map => Some(PlayCmd::CloseMap),
             _ => Some(PlayCmd::TogglePause),
         }
-    } else if is_key_pressed(KeyCode::P) {
-        Some(PlayCmd::TogglePause)
-    } else if is_key_pressed(KeyCode::M) {
+    } else if any_pressed(keys::MAP) {
         Some(PlayCmd::OpenMap)
-    } else if is_key_pressed(KeyCode::V) || is_key_pressed(KeyCode::Tab) {
+    } else if any_pressed(keys::FLIP) {
         Some(PlayCmd::FlipView)
     } else {
         None

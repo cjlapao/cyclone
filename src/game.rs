@@ -9,6 +9,20 @@ use crate::tuning::*;
 use crate::world::*;
 use crate::worldgen::*;
 
+/// One-shot sounds the shell plays this frame.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Sfx {
+    Flip,
+    Pickup,
+    Deliver,
+    Crash,
+    Warn,
+    Land,
+    Refuel,
+    Round,
+    Over,
+}
+
 /// Things the simulation tells the shell to act on.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum GameEvent {
@@ -69,6 +83,8 @@ pub struct Game {
     pub delivered_refs: u32,
     score_f: f32,
     pub event: Option<GameEvent>,
+    pub fx: Vec<Sfx>,
+    prev_planes: crate::planes::PlaneState,
 }
 
 impl Game {
@@ -119,6 +135,8 @@ impl Game {
             delivered_refs: 0,
             score_f: 0.0,
             event: None,
+            fx: Vec::new(),
+            prev_planes: crate::planes::PlaneState::Idle,
         }
     }
 
@@ -143,10 +161,12 @@ impl Game {
 
     /// One fixed physics tick.
     pub fn step(&mut self, dt: f32, inp: &Inputs) {
+        let prev = self.phase;
         // view flip with fade
         if inp.flip && self.flip_t == 0.0 {
             self.view = self.view.flipped();
             self.flip_t = FLIP_FADE;
+            self.fx.push(Sfx::Flip);
         }
         if self.flip_t > 0.0 {
             self.flip_t = (self.flip_t - dt).max(0.0);
@@ -198,8 +218,22 @@ impl Game {
             self.heli.dead = true;
         }
         self.planes.step(dt, &self.world, &mut self.rng);
+        if self.planes.state == crate::planes::PlaneState::Warning
+            && self.prev_planes != crate::planes::PlaneState::Warning
+        {
+            self.fx.push(Sfx::Warn);
+        }
+        self.prev_planes = self.planes.state;
         if self.planes.hits(self.heli.x, self.heli.y, self.heli.z) {
             self.heli.dead = true;
+        }
+
+        // touch-down & refuel-complete cues
+        if prev == Phase::Flying && matches!(self.phase, Phase::Landed | Phase::Refuelling) {
+            self.fx.push(Sfx::Land);
+        }
+        if prev == Phase::Refuelling && self.phase == Phase::Landed && self.heli.fuel >= 1.0 {
+            self.fx.push(Sfx::Refuel);
         }
 
         // a dead airframe triggers the life loop
@@ -257,10 +291,12 @@ impl Game {
                     true if self.carried_crates < NUM_CRATES => {
                         self.crates.swap_remove(idx);
                         self.carried_crates += 1;
+                        self.fx.push(Sfx::Pickup);
                     }
                     false if self.carried_refs < 8 => {
                         self.refugees.swap_remove(idx);
                         self.carried_refs += 1;
+                        self.fx.push(Sfx::Pickup);
                     }
                     _ => {}
                 }
@@ -306,6 +342,7 @@ impl Game {
             return;
         }
         self.score += self.carried_crates * SCORE_CRATE + self.carried_refs * SCORE_REFUGEE;
+        self.fx.push(Sfx::Deliver);
         self.delivered_crates += self.carried_crates;
         self.delivered_refs += self.carried_refs;
         self.carried_crates = 0;
@@ -333,6 +370,7 @@ impl Game {
         }
         self.phase = Phase::Crashed;
         self.crash_t = CRASH_PAUSE;
+        self.fx.push(Sfx::Crash);
         self.winch_target = None;
         self.winch_t = 0.0;
         self.lives = self.lives.saturating_sub(1);

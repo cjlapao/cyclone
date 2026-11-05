@@ -226,6 +226,24 @@ impl World {
 }
 
 /// Does any object hide the ground spot (x,y) of ground height `h` from the
+
+// ---------------------------------------------------------------- round items
+#[derive(Debug, Clone, Copy)]
+pub struct Crate {
+    pub x: f32,
+    pub y: f32,
+    pub island: usize,
+    /// Which view direction cannot see it (the side it is hidden behind).
+    pub hidden_by: Option<View>,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct Refugee {
+    pub x: f32,
+    pub y: f32,
+}
+
+/// Does any object hide the ground spot (x,y) of ground height `h` from the
 /// given view? Iso camera axis: north occludes toward +x+y, south toward −x−y.
 pub fn blocking_obj(w: &World, x: f32, y: f32, h: u8, view: View) -> Option<&Obj> {
     let sgn = match view {
@@ -264,30 +282,6 @@ pub(crate) fn flat_3x3(w: &World, tx: u32, ty: u32, h: u8) -> bool {
         }
     }
     true
-}
-
-pub(crate) fn no_object_near(w: &World, tx: u32, ty: u32, tiles: f32) -> bool {
-    let wx = (tx as f32 + 0.5) * TILE;
-    let wy = (ty as f32 + 0.5) * TILE;
-    !w.objects
-        .iter()
-        .any(|o| (o.x - wx).abs() + (o.y - wy).abs() < tiles * TILE)
-}
-
-// ---------------------------------------------------------------- round items
-#[derive(Debug, Clone, Copy)]
-pub struct Crate {
-    pub x: f32,
-    pub y: f32,
-    pub island: usize,
-    /// Which view direction cannot see it (the side it is hidden behind).
-    pub hidden_by: Option<View>,
-}
-
-#[derive(Debug, Clone, Copy)]
-pub struct Refugee {
-    pub x: f32,
-    pub y: f32,
 }
 
 #[cfg(test)]

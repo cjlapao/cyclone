@@ -28,19 +28,43 @@ first time you run it.
 | Move | Arrows | W A S D |
 | Climb | Space | Q |
 | Descend | Left Shift | Z |
+| Winch (lift cargo / people when low, land on pads) | E | Enter |
 | Flip view (N/S) | V | Tab |
 | Map | M | |
+| Mute sound | K | |
 | Pause | P | Esc |
 | Quit to title | Esc (while paused) | |
 | Fullscreen | F11 | Alt+Enter |
 
+Movement is *screen-relative*: Up always means "away from the camera", so
+after flipping to the South view the stick inverts with the world, exactly as
+in the original.
+
+## Sound
+
+All effects and the rotor hum are synthesised from scratch by
+`tools/gen_sfx.rs`; the resulting WAVs in `assets/` are embedded in the
+binary with `include_bytes!` — there is no runtime data folder.
+
+Audio is the `audio` cargo feature (on by default). On machines without the
+ALSA development headers, build without it:
+
+```sh
+cargo build --no-default-features   # silent but otherwise identical game
+```
+
 ## Development
 
 ```sh
-cargo test          # pure-logic unit tests (no rendering)
-cargo clippy --all-targets -- -D warnings
+cargo test --no-default-features          # logic + acceptance tests
+cargo clippy --no-default-features --all-targets -- -D warnings
 cargo fmt --check
+rustc -O tools/gen_sfx.rs -o target/gen_sfx && ./target/gen_sfx   # regen SFX
 ```
+
+The crate is a lib + thin bin split, so `tests/` drives the exact same
+fixed-step simulation the binary runs (`tests/physics.rs` proves identical
+results at 30/60/144 fps).
 
 Gameplay constants live in `src/tuning.rs`. Design deviations are recorded in
 `DECISIONS.md`.

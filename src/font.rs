@@ -169,3 +169,9 @@ impl Font {
         self.draw(text, cx - w * 0.5, y, scale, color);
     }
 }
+
+impl Default for Font {
+    fn default() -> Self {
+        Self::new()
+    }
+}

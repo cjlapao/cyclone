@@ -201,10 +201,16 @@ fn diamond(p: Vec2, hw: f32, hh: f32, col: Color) {
 }
 
 pub fn draw_scene(g: &Game, t: f32) {
+    // brief camera shake on crash (visual only; sim untouched)
+    let shake = if g.phase == crate::game::Phase::Crashed {
+        (g.crash_t / CRASH_PAUSE).min(1.0)
+    } else {
+        0.0
+    };
     let view = g.view;
     let (cf0, cf1) = flip_xy(g.cam.0, g.cam.1, view);
-    let pcx = PLAY_W * 0.5;
-    let pcy = PLAY_H * 0.5;
+    let pcx = PLAY_W * 0.5 + shake * (t * 79.0).sin() * 2.5;
+    let pcy = PLAY_H * 0.5 + shake * (t * 97.0).cos() * 2.0;
     clear_background(col(1));
 
     let wtiles = WORLD_TILES as i32;
@@ -689,4 +695,10 @@ pub fn heli_occluded(g: &Game) -> bool {
             && (o.x - g.heli.x).abs() < TILE * 1.2
             && (o.y - g.heli.y).abs() < TILE * 1.2
     })
+}
+
+impl Default for Gfx {
+    fn default() -> Self {
+        Self::new()
+    }
 }

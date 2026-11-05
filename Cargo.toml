@@ -5,9 +5,17 @@ edition = "2021"
 description = "Rescue-helicopter archipelago game — a faithful-in-spirit remake of a 1984 classic, all-new assets"
 license = "MIT"
 
+[lib]
+name = "cyclone_rescue"
+path = "src/lib.rs"
+
 [[bin]]
 name = "cyclone-rescue"
 path = "src/main.rs"
+
+[features]
+default = ["audio"]
+audio = ["macroquad/audio"]
 
 [dependencies]
 macroquad = "0.4"

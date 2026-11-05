@@ -51,3 +51,33 @@ option closest to the 1984 original's feel, record it, move on).
 - macroquad 0.4.16 drift: `draw_ellipse(x,y,w,h,rotation,color)` (no segment
   count), `draw_line` is 6 scalars, no `Color::darken`, new clippy wants
   `u32::is_multiple_of`. All original art is drawn with these primitives.
+
+## M6–M7 (HUD, map, sound, polish)
+
+- HUD is drawn from the shell side (`hud.rs`/`map.rs`) reading `&Game`; the
+  simulation never touches it. Wind compass shows the screen-space bearing to
+  the cyclone eye so a flip rotates the arrow with the world (it reads the
+  same way the player looks).
+- Chart screen (`M`) shows *all* crates including hidden ones — the planning
+  map is honest even when the side view hides a crate behind a hill.
+- Crate delivery is scored on landing on the base pad, never mid-air.
+- SFX: `game.step` only pushes into a `fx: Vec<Sfx>` queue (keeps the sim
+  macroquad-free); the shell drains it each frame. The cyclone/planes
+  warning sound is edge-triggered on `Warning` entry, matching the 2 s rule.
+- Rotor "pitch" is three pre-baked loops (slow/med/fast chop, seamless
+  0.62 s WAVs) cross-faded by stopping/starting on bucket change —
+  macroquad's PlaySoundParams has no pitch field, and switching samples is
+  both cheaper and truer to 8-bit machines.
+- High scores persist to `~/.cyclone_rescue_highscores` (HOME/USERPROFILE/
+  APPDATA fallback "."): lines `score|round|seed`, top 10, shown on title.
+- lib/bin split: `src/lib.rs` re-exports all modules so `tests/` integration
+  tests import `cyclone_rescue::*`; `main.rs` is now just window + loop +
+  input mapping. `#![allow(dead_code)]` is gone; tree is warning-free.
+- Audio is the default `audio` cargo feature. Without libasound2-dev the
+  linker fails, so `--no-default-features` compiles the same game with
+  macroquad's silent dummy audio — CI/release builds keep sound.
+- Acceptance `tests/physics.rs` equalises *physics step count* (not wall
+  time) across 30/60/144 fps before comparing bit patterns.
+- Screen shake (crash only) offsets the projected scene centre by a decaying
+  ~2 px sine; the tile loop already draws a tile beyond the viewport, so no
+  black edges appear.
