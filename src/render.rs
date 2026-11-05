@@ -231,7 +231,7 @@ pub fn draw_scene(g: &Game, t: f32) {
     // sea background wash + shimmer happens under tiles (tiles only cover land)
     let frame = (t * 2.5) as u32;
     for fty in (ccty - r_tiles)..=(ccty + r_tiles) {
-        for ftx in (cctx - r_tiles)..=(ccty + r_tiles) {
+        for ftx in (cctx - r_tiles)..=(cctx + r_tiles) {
             if fh(ftx, fty) != 0 {
                 continue;
             }
@@ -257,7 +257,7 @@ pub fn draw_scene(g: &Game, t: f32) {
     // depth-sorted land tiles, objects, crates, refugees
     let mut items: Vec<(i32, u8, u32)> = Vec::with_capacity(2500);
     for fty in (ccty - r_tiles)..=(ccty + r_tiles) {
-        for ftx in (cctx - r_tiles)..=(ccty + r_tiles) {
+        for ftx in (cctx - r_tiles)..=(cctx + r_tiles) {
             if fh(ftx, fty) == 0 {
                 continue;
             }

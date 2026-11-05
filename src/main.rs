@@ -29,6 +29,7 @@ mod keys {
     pub const CLIMB: &[K] = &[K::Space, K::Q];
     pub const DESCEND: &[K] = &[K::LeftShift, K::Z];
     pub const FLIP: &[K] = &[K::V, K::Tab];
+    pub const WINCH: &[K] = &[K::E, K::Enter];
     pub const MAP: &[K] = &[K::M];
     pub const PAUSE: &[K] = &[K::P, K::Escape];
     pub const CONFIRM: &[K] = &[K::Enter, K::Space];
@@ -81,6 +82,16 @@ async fn main() {
             set_fullscreen(fullscreen);
         }
 
+        // simulation events end the play session
+        if let Some(g) = game.as_mut() {
+            if let Some(ev) = g.event.take() {
+                state = match ev {
+                    game::GameEvent::RoundComplete => GameState::RoundComplete,
+                    game::GameEvent::GameOver => GameState::GameOver,
+                };
+            }
+        }
+
         gfx.begin_scene();
         match state {
             GameState::Title => {
@@ -105,6 +116,47 @@ async fn main() {
                     GameState::Paused => gfx.draw_paused(),
                     GameState::Map => gfx.draw_placeholder_play(), // real map screen in M6
                     _ => {}
+                }
+            }
+            GameState::RoundComplete | GameState::GameOver => {
+                if let Some(g) = &game {
+                    render::draw_scene(g, t);
+                }
+                gfx.draw_frame();
+                let dim = Color { a: 0.55, ..BLACK };
+                draw_rectangle(0.0, 0.0, game::PLAY_W, game::PLAY_H, dim);
+                let (msg, sub) = if state == GameState::RoundComplete {
+                    let g = game.as_ref().unwrap();
+                    (
+                        "MISSION COMPLETE",
+                        format!("SCORE {}  TIME LEFT {}s", g.score, g.time_left as i32),
+                    )
+                } else {
+                    let sc = game.as_ref().map(|g| g.score).unwrap_or(0);
+                    ("GAME OVER", format!("SCORE {sc}  SEED {BASE_SEED}"))
+                };
+                gfx.font
+                    .draw_centered(msg, game::PLAY_W * 0.5, 80.0, 3.0, render::col(11));
+                gfx.font
+                    .draw_centered(&sub, game::PLAY_W * 0.5, 110.0, 1.0, render::col(8));
+                let hint = if state == GameState::RoundComplete {
+                    "PRESS ENTER FOR NEXT ROUND"
+                } else {
+                    "PRESS ENTER"
+                };
+                if (t * 2.0) as i32 % 2 == 0 {
+                    gfx.font
+                        .draw_centered(hint, game::PLAY_W * 0.5, 150.0, 1.0, WHITE);
+                }
+                if !get_keys_pressed().is_empty() && t > 0.2 {
+                    if state == GameState::RoundComplete {
+                        game = game.as_ref().map(|g| g.advance_round());
+                        state = GameState::Playing;
+                    } else {
+                        game = None;
+                        state = GameState::Title;
+                    }
+                    t = 0.0;
                 }
             }
             _ => {
@@ -137,6 +189,7 @@ fn read_inputs() -> Inputs {
         climb: any_of(keys::CLIMB),
         descend: any_of(keys::DESCEND),
         flip: any_pressed(keys::FLIP),
+        winch: any_pressed(keys::WINCH),
     }
 }
 
