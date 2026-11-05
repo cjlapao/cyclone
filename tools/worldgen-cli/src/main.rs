@@ -290,16 +290,41 @@ fn write_world(out: &Path, map: &WorldMap, font: &FontArc) -> Result<()> {
     Ok(())
 }
 
-fn surface_rgba(s: Surface, height: u8, max_h: u8) -> Rgba<u8> {
-    let base: [f32; 3] = match s {
+fn surface_base(s: Surface) -> [f32; 3] {
+    match s {
         Surface::Sea => [18.0, 44.0, 82.0],
         Surface::Shallow => [40.0, 104.0, 148.0],
         Surface::Sand => [214.0, 196.0, 140.0],
+        // Grass picks up an elevation tint (low green → high amber-grey).
         Surface::Grass => [82.0, 148.0, 74.0],
         Surface::Rock => [136.0, 132.0, 128.0],
-    };
-    // Darker in the shallows/lowlands, brighter toward the peaks.
-    let shade = 0.45 + 0.55 * (height as f32 / max_h.max(1) as f32);
+    }
+}
+
+/// Tile colour with NW-sun hillshade: relief is what makes archetypes and
+/// level bands readable, so multiply by a slope-derived light term.
+fn tile_color(map: &WorldMap, x: u32, y: u32, max_h: u8) -> Rgba<u8> {
+    let h0 = map.height.raw(x, y);
+    let mut base = surface_base(map.surface.raw(x, y));
+    if map.surface.raw(x, y) == Surface::Grass {
+        let t = (h0.min(max_h) as f32 / max_h.max(1) as f32).clamp(0.0, 1.0);
+        base = [
+            base[0] + (196.0 - base[0]) * t * 0.45,
+            base[1] + (168.0 - base[1]) * t * 0.35,
+            base[2] + (96.0 - base[2]) * t * 0.35,
+        ];
+    }
+    // Slope toward NW: positive when the NW faces are lit by the sun.
+    let hl = map.height.raw(x.saturating_sub(1), y);
+    let hr = map.height.raw((x + 1).min(map.size.0 - 1), y);
+    let hu = map.height.raw(x, y.saturating_sub(1));
+    let hd = map.height.raw(x, (y + 1).min(map.size.1 - 1));
+    let slope = (hl as f32 - hr as f32 + hu as f32 - hd as f32) / 4.0;
+    let mut shade = 0.82 + 0.32 * slope;
+    if h0 == 0 {
+        shade = 1.0; // water gets no relief
+    }
+    shade = shade.clamp(0.45, 1.22);
     Rgba([
         (base[0] * shade).min(255.0) as u8,
         (base[1] * shade).min(255.0) as u8,
@@ -320,7 +345,7 @@ fn render_png(map: &WorldMap, font: &FontArc) -> Result<RgbaImage> {
 
     for y in 0..h {
         for x in 0..w {
-            let c = surface_rgba(map.surface.raw(x, y), map.height.raw(x, y), max_h);
+            let c = tile_color(map, x, y, max_h);
             for dy in 0..PX {
                 for dx in 0..PX {
                     put(&mut img, x * PX + dx, y * PX + dy, c);
@@ -468,11 +493,7 @@ fn contact_sheet(path: &Path, maps: &[&WorldMap], font: &FontArc) -> Result<()> 
             for tx in 0..THUMB {
                 let x = ((tx as f32 * sx) as u32).min(w - 1);
                 let y = ((ty as f32 * sy) as u32).min(h - 1);
-                sheet.put_pixel(
-                    gx + tx,
-                    gy + ty,
-                    surface_rgba(m.surface.raw(x, y), m.height.raw(x, y), max_h),
-                );
+                sheet.put_pixel(gx + tx, gy + ty, tile_color(m, x, y, max_h));
             }
         }
         let seed = m.seed.to_string();
