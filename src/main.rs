@@ -7,7 +7,9 @@ mod cyclone;
 mod font;
 mod game;
 mod heli;
+mod hud;
 mod iso;
+mod map;
 mod planes;
 mod render;
 mod state;
@@ -106,18 +108,26 @@ async fn main() {
             }
             GameState::Playing | GameState::Paused | GameState::Map => {
                 if let Some(g) = &game {
-                    render::draw_scene(g, t);
-                    if render::heli_occluded(g) {
-                        // keep the airframe findable behind tall objects
-                        let p = iso_hud_pos(g);
-                        draw_circle_lines(p.x, p.y - 4.0, 9.0, 1.0, WHITE);
+                    if state == GameState::Map {
+                        map::draw_map(&gfx.font, g, t);
+                    } else {
+                        render::draw_scene(g, t);
+                        if render::heli_occluded(g) {
+                            // keep the airframe findable behind tall objects
+                            let p = iso_hud_pos(g);
+                            draw_circle_lines(p.x, p.y - 4.0, 9.0, 1.0, WHITE);
+                        }
                     }
                 }
                 gfx.draw_frame();
-                match state {
-                    GameState::Paused => gfx.draw_paused(),
-                    GameState::Map => gfx.draw_placeholder_play(), // real map screen in M6
-                    _ => {}
+                if let Some(g) = &game {
+                    if state != GameState::Map {
+                        hud::draw_panel(&gfx.font, g, t);
+                    }
+                    hud::draw_bar(&gfx.font, g);
+                }
+                if state == GameState::Paused {
+                    gfx.draw_paused();
                 }
             }
             GameState::RoundComplete | GameState::GameOver => {
