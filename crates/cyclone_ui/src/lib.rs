@@ -76,6 +76,10 @@ const BG_HOVER: Color = Color::srgba(0.20, 0.36, 0.52, 0.92);
 const BG_FOCUS: Color = Color::srgb(0.91, 0.55, 0.13); // accent
 
 /// Spawn a themed menu button returning the root Entity.
+#[expect(
+    deprecated,
+    reason = "classic Interaction until the picking::hover migration (DECISIONS.md)"
+)]
 pub fn menu_button(
     parent: &mut ChildSpawnerCommands,
     theme: &Theme,
@@ -95,6 +99,11 @@ pub fn menu_button(
             },
             BackgroundColor(BG_NORMAL),
             FocusPolicy::Block,
+            // 0.20 ui_focus_system only WRITES Interaction where the
+            // component already exists — it never inserts. Without this,
+            // the whole mouse layer silently no-ops (the bug that hid
+            // until DECISIONS.md round 20).
+            Interaction::default(),
             MenuButton { id },
         ))
         .with_child((
@@ -209,5 +218,68 @@ impl Plugin for CycloneUiPlugin {
             )
                 .chain(),
         );
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[derive(Resource, Default)]
+    struct Collected(Vec<u32>);
+
+    fn harvest(mut rx: MessageReader<Activated>, mut out: ResMut<Collected>) {
+        for m in rx.read() {
+            out.0.push(m.0);
+        }
+    }
+
+    /// The mouse layer only works because menu buttons CARRY Interaction
+    /// (0.20's ui_focus_system never inserts it — verified in focus.rs).
+    /// Regression test for the round-20 discovery: press edge must write
+    /// Activated once per click, not per held frame.
+    #[expect(
+        deprecated,
+        reason = "classic Interaction until the picking::hover migration"
+    )]
+    #[test]
+    fn pressed_edge_writes_activated_once() {
+        let mut app = App::new();
+        app.add_plugins((MinimalPlugins, AssetPlugin::default()));
+        app.init_asset::<bevy::text::Font>();
+        app.add_plugins((cyclone_engine::CycloneEnginePlugin, CycloneUiPlugin));
+        app.init_resource::<Collected>();
+        app.add_systems(Last, harvest);
+        let e = app
+            .world_mut()
+            .spawn((
+                MenuButton { id: 7 },
+                BackgroundColor(Color::NONE),
+                Interaction::default(),
+            ))
+            .id();
+
+        // Fresh press → one Activated(7).
+        *app.world_mut().get_mut::<Interaction>(e).unwrap() = Interaction::Pressed;
+        app.update();
+        {
+            let got = std::mem::take(&mut app.world_mut().resource_mut::<Collected>().0);
+            assert_eq!(got, vec![7], "press edge fires once");
+        }
+
+        // Held for another frame → no repeat.
+        app.update();
+        assert!(
+            app.world().resource::<Collected>().0.is_empty(),
+            "no auto-repeat"
+        );
+
+        // Release + press again → new edge fires again.
+        *app.world_mut().get_mut::<Interaction>(e).unwrap() = Interaction::None;
+        app.update();
+        *app.world_mut().get_mut::<Interaction>(e).unwrap() = Interaction::Pressed;
+        app.update();
+        let got = std::mem::take(&mut app.world_mut().resource_mut::<Collected>().0);
+        assert_eq!(got, vec![7], "second click counts");
     }
 }

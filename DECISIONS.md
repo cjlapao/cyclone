@@ -284,16 +284,25 @@ save on close" had no in-app path at all. Added as `menu → Settings`:
   spawner panics with duplicate `ChildOf` — deferred value texts are
   spawned via plain `commands.spawn((ChildOf(label), …))` instead.
 
-## 0.20 classic `Interaction` lives on every UI node — rows are clickable
+## 0.20 `Interaction` is NEVER auto-inserted — the menu mouse layer was dead (round 20)
 
-While making settings rows mouse-adjustable: Bevy 0.20's
-`ui_focus_system` (bevy_ui `focus.rs` `NodeQuery`) writes
-`Interaction` on *any* visible UI node that has the component — no
-`Button` widget required, and `bevy_ui` inserts it automatically. So
-rows carry just `Interaction + FocusPolicy::Block + MenuButton{id}`
-and the existing `button_visuals` pressed-edge → `Activated` wiring
-gives click handling for free. Clicking a row moves ▶ to it and
-adjusts +1 (spec 01 C2, mouse-only complete for the panel).
-`cyclone_ui::button_visuals` also recolours rows every frame
-(`BG_NORMAL` idle) — rows read as button bars, consistent with the
-main menu.
+Round-19 note claimed bevy_ui auto-inserts `Interaction` on nodes.
+**Wrong** — corrected with source proof: `ui_focus_system`
+(`bevy_ui/src/focus.rs` `NodeQuery`) only *writes*
+`Option<&mut Interaction>` where the component already exists, and
+the `Button` widget pulls it via `#[require]`; nothing inserts it
+otherwise. Our `menu_button` spawned neither → `ui_focus_system`
+could not press it and `button_visuals`'s `&Interaction` query never
+matched → **mouse hover/click never worked on the main menu** (only
+ever exercised by keyboard tests). Latent since spec 01.
+
+Fix: `menu_button` now carries `Interaction::default()` (settings
+rows already do, round 19). Facts banked:
+- `FocusPolicy::DEFAULT` is `Pass`, so plain text children do NOT
+  block the pointer from reaching a `Block` parent underneath.
+- Headless (no window): `ui_focus_system` resets any injected
+  `Interaction` every PreUpdate — tests must not fake hover by
+  writing the component between frames; cyclone_ui's regression test
+  drives `button_visuals` through the real message reader instead.
+- Press-edge dedup (`prev_pressed` Local) now has a test: one
+  `Activated` per click, none while held, again on re-click.
