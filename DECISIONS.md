@@ -226,3 +226,23 @@ Contact sheets read as "identical discs" — three fixes, all spec-justified:
    stay calm — A5.6 needs flat 3×3 pads): interior cliffs and rocky spots.
 Goldens regenerated with `golden --update` per spec. The first genuine
 round of the "generate → judge → tune" loop the specs designed around.
+
+### Free camera replaces the isometric rig (user instruction, supersedes spec 00 rig)
+"Move the camera freely and aim it with the mouse" — CameraRig is now a
+perspective free camera: position + yaw/pitch, right-mouse-drag aim,
+WASD fly along the view, Space/Shift altitude, Ctrl boost, wheel = FOV
+(25°–80°), generous padded bounds so the player cannot get lost.
+- Menus/preview keep the slow orbit (auto_orbit) — scripted in the same
+  rig; orbit radius auto-frames from WorldBounds.
+- Q/E 90° snaps stay, and CameraHeading now tracks the *nearest quadrant
+  of the free yaw every frame*, so spec-02 crate occlusion demos live.
+- MouseMotion.delta.y is positive DOWN on XInput2 (winit "unspecified
+  units"); we negate for screen-space look. Right-drag (not pointer grab)
+  because this winit build lacks the cursor-grab feature.
+- Actions gains Boost (Ctrl, serde-defaulted so old settings.ron parses).
+- Engine add_message attempt removed: ActionsPlugin's "add InputPlugin
+  only if Messages<KeyboardInput> missing" guard must see reality —
+  registering messages without ButtonInput poisoned it (caught by the
+  flow tests).
+- tests/freecam.rs: live headless proof — W flies, RMB+motion aims,
+  wheel zooms FOV, heading follows yaw, bounds clamp.

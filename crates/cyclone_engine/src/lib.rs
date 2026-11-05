@@ -9,7 +9,7 @@ mod input;
 mod rng;
 mod settings;
 
-pub use camera_rig::{CAMERA_VIEWS, CameraHeading, CameraRig, RigFollow, RigTarget, WorldBounds};
+pub use camera_rig::{CameraHeading, CameraRig, RigFollow, RigTarget, WorldBounds};
 pub use input::{Action, Actions};
 pub use rng::{GameSeed, random_seed};
 pub use settings::{KeyBindings, Settings};

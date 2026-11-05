@@ -29,6 +29,8 @@ pub enum Action {
     Reroll,
     CopySeed,
     TopDown,
+    /// Free-camera fly boost.
+    Boost,
 }
 
 /// Compiled key bindings per action (from Settings).
@@ -64,6 +66,7 @@ impl ActionBindings {
                 (Action::Reroll, "reroll"),
                 (Action::CopySeed, "copy_seed"),
                 (Action::TopDown, "topdown"),
+                (Action::Boost, "boost"),
             ]),
         }
     }

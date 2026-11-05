@@ -14,9 +14,12 @@ Menu → **New Game** → generating screen (live progress) → world preview
 
 | Key | Action |
 | --- | --- |
-| `W A S D` | pan the view (view-relative) |
-| `Q` / `E` | rotate 90° (tweened) |
-| wheel | zoom (island / squad / archipelago) |
+| `W A S D` | fly along the view (free camera) |
+| `Space` / `Shift` | climb / descend |
+| `Ctrl` | fly boost |
+| **hold right mouse** + move | aim the camera |
+| wheel | zoom (FOV) |
+| `Q` / `E` | snap-turn 90° (crates re-hide as you turn) |
 | `Enter` | confirm / start flying |
 | `R` | reroll a new world (preview) |
 | `C` | copy seed to clipboard (preview) |

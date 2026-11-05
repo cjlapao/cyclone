@@ -83,7 +83,13 @@ fn boot(mut commands: Commands, mut next: ResMut<NextState<AppState>>) {
     commands.spawn((
         Camera3d::default(),
         CameraRig::new(),
-        Projection::Orthographic(OrthographicProjection::default_3d()),
+        Projection::Perspective(PerspectiveProjection {
+            fov: 50.0_f32.to_radians(),
+            aspect_ratio: 16.0 / 9.0,
+            near: 0.35,
+            far: 3000.0,
+            ..default()
+        }),
         bevy::light::AmbientLight {
             color: Color::srgb(0.75, 0.85, 1.0),
             brightness: 600.0,
@@ -136,7 +142,7 @@ fn menu_build(
             rig_target.position = centre;
             rig_target.auto_orbit = 6.0; // one turn per minute (spec 01)
             for mut cam in &mut rigs {
-                cam.set_zoom(0);
+                cam.set_fov(50.0);
             }
         }
         Err(err) => error!("menu background generation failed: {err}"),
@@ -611,10 +617,10 @@ fn preview_build(
     let (w, h) = map.size;
     let s = theme.scale;
 
-    // Fit the whole archipelago and orbit it slowly (spec 01).
+    // Fit the whole archipelago and orbit it slowly (spec 01); the orbit
+    // radius auto-frames from WorldBounds.
     for mut rig in &mut rigs {
-        rig.zoom = 2;
-        rig.view = (w.max(h) as f32) * 1.10;
+        rig.set_fov(48.0);
     }
     rig_target.position = Vec3::new(w as f32 * 0.5, 0.0, h as f32 * 0.5);
     rig_target.auto_orbit = 6.0;
@@ -696,10 +702,19 @@ fn preview_keys(
 
 // ------------------------------------------------------------- In game ----
 
-fn ingame_build(mut rig_target: ResMut<RigTarget>, mut rigs: Query<&mut CameraRig>) {
-    rig_target.auto_orbit = 0.0;
+fn ingame_build(
+    world: Res<CurrentWorld>,
+    mut rig_target: ResMut<RigTarget>,
+    mut rigs: Query<&mut CameraRig>,
+) {
+    rig_target.auto_orbit = 0.0; // free fly (was: static iso view)
+    let (w, h) = world.0.size;
     for mut rig in &mut rigs {
-        rig.set_zoom(1);
+        // Start off the south edge, archipelago ahead (heading 0).
+        rig.position = Vec3::new(w as f32 * 0.5, 58.0, h as f32 + 42.0);
+        rig.yaw = 0.0;
+        rig.pitch = -25.0;
+        rig.set_fov(52.0);
     }
 }
 

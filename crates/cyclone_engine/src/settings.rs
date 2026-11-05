@@ -11,6 +11,7 @@ use serde::{Deserialize, Serialize};
 /// Default keyboard bindings, stored as key names so Settings can serialise
 /// (KeyCode itself is not serde-friendly).
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(default)]
 pub struct KeyBindings {
     pub up: Vec<String>,
     pub down: Vec<String>,
@@ -27,6 +28,7 @@ pub struct KeyBindings {
     pub reroll: Vec<String>,
     pub copy_seed: Vec<String>,
     pub topdown: Vec<String>,
+    pub boost: Vec<String>,
 }
 
 impl Default for KeyBindings {
@@ -48,6 +50,7 @@ impl Default for KeyBindings {
             reroll: k(&["KeyR"]),
             copy_seed: k(&["KeyC"]),
             topdown: k(&["Tab"]),
+            boost: k(&["ControlLeft", "ControlRight"]),
         }
     }
 }
@@ -76,6 +79,8 @@ pub fn parse_key(name: &str) -> Option<KeyCode> {
         "Tab" => KeyCode::Tab,
         "ShiftLeft" => KeyCode::ShiftLeft,
         "ShiftRight" => KeyCode::ShiftRight,
+        "ControlLeft" => KeyCode::ControlLeft,
+        "ControlRight" => KeyCode::ControlRight,
         _ => return None,
     })
 }
@@ -152,6 +157,7 @@ impl Settings {
             ("reroll", &self.keys.reroll),
             ("copy_seed", &self.keys.copy_seed),
             ("topdown", &self.keys.topdown),
+            ("boost", &self.keys.boost),
         ] {
             out.insert(
                 name.to_string(),
