@@ -23,6 +23,7 @@ Menu → **New Game** → generating screen (live progress) → world preview
 | `Enter` | confirm / start flying |
 | `R` | reroll a new world (preview) |
 | `C` | copy seed to clipboard (preview) |
+| `Tab` | preview: flat top-down map toggle |
 | `Esc` | back |
 
 Seed formats accepted in “Play Seed…”: 16 hex digits or the 13-char dashed

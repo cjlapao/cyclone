@@ -306,3 +306,32 @@ rows already do, round 19). Facts banked:
   drives `button_visuals` through the real message reader instead.
 - Press-edge dedup (`prev_pressed` Local) now has a test: one
   `Activated` per click, none while held, again on re-click.
+
+## Preview screen: buttons, Tab top-down, crates hidden (rounds 21-22)
+
+Spec 01's preview demanded four things the implementation had skipped,
+all now covered by `preview_screen_mouse_and_topdown`:
+
+- **Buttons** (Fly! / Reroll / Copy seed / Back) so the screen is
+  mouse-usable end to end (C2). Same `menu_button` styling, same
+  `Activated` bus; `preview_activate` mirrors the keyboard actions.
+  Copy is a no-op with a warn where no clipboard resource exists
+  (headless).
+- **Tab → flat top-down** (the posture spec 05's map screen reuses).
+  Engine gained `RigTarget::pitch_hold: Option<f32>`: Some(pitch)
+  locks pitch, stops the orbit spin, and selects orbit mode even with
+  `auto_orbit == 0`. Q/E still snap — rotating the flat map is a
+  feature, not an accident.
+- **Crates hidden during preview** (spec: hidden by default; the
+  `dev`-only F3 reveal is deferred — not in acceptance, no dev feature
+  flag exists yet). Enforced EVERY frame while in `WorldPreview`
+  because the async scene rebuild can spawn crates after `OnEnter`;
+  `OnExit` restores, and the test asserts InGame shows exactly the
+  non-occluded crate set — preview hiding and spec-02 occlusion
+  compose without stepping on each other.
+- The generation-ERROR screen's `plain_button` was missing the
+  `Interaction` component (same round-20 bug class) — mouse Retry/
+  Back now work too.
+
+flow_app gained `flow_app_with(auto)` — the auto-advance key injections
+would otherwise drive straight through the preview.

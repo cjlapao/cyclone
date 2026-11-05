@@ -133,6 +133,10 @@ pub struct RigTarget {
     pub position: Vec3,
     /// Degrees per second added to yaw while orbiting.
     pub auto_orbit: f32,
+    /// Some(p): orbit mode locks pitch to `p` degrees and stops the
+    /// auto-orbit spin — the Tab top-down map of spec 01. Orbit mode is
+    /// selected even when `auto_orbit` is 0 while this is set.
+    pub pitch_hold: Option<f32>,
 }
 
 impl Default for RigTarget {
@@ -140,6 +144,7 @@ impl Default for RigTarget {
         Self {
             position: Vec3::ZERO,
             auto_orbit: 0.0,
+            pitch_hold: None,
         }
     }
 }
@@ -286,9 +291,13 @@ fn rig_update(
             .next()
             .and_then(|f| transforms.get(f.0).ok().map(|g| g.translation()));
 
-        if target.auto_orbit != 0.0 || follow.is_some() {
+        if target.auto_orbit != 0.0 || target.pitch_hold.is_some() || follow.is_some() {
             // Orbit mode: script the position around the centre.
-            rig.yaw += target.auto_orbit * dt;
+            // pitch_hold (top-down view) kills the spin and locks pitch.
+            let pitch = target.pitch_hold.unwrap_or(ORBIT_PITCH);
+            if target.pitch_hold.is_none() {
+                rig.yaw += target.auto_orbit * dt;
+            }
             let want_r = if follow.is_some() {
                 HOVER_DIST
             } else {
@@ -300,19 +309,15 @@ fn rig_update(
                 rig.orbit_radius + (want_r - rig.orbit_radius) * k_follow
             };
             let centre = follow.unwrap_or(target.position);
-            let rot = Quat::from_euler(
-                EulerRot::YXZ,
-                rig.yaw.to_radians(),
-                ORBIT_PITCH.to_radians(),
-                0.0,
-            );
+            let rot =
+                Quat::from_euler(EulerRot::YXZ, rig.yaw.to_radians(), pitch.to_radians(), 0.0);
             let want = centre + rot * Vec3::new(0.0, 0.0, rig.orbit_radius);
             rig.position = if follow.is_some() {
                 rig.position.lerp(want, k_follow)
             } else {
                 want
             };
-            rig.pitch = ORBIT_PITCH;
+            rig.pitch = pitch;
         } else {
             // Free fly: generous but absolute bounds so the user cannot
             // get permanently lost (map + 60 units, y 2.5..600).

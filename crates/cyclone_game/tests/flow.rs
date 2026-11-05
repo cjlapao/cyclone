@@ -11,7 +11,7 @@ use bevy::prelude::*;
 use cyclone_engine::{AppState, CurrentWorld, Settings, WorldConfig};
 use cyclone_game::CycloneGamePlugin;
 use cyclone_render::WorldBuilderPlugin;
-use cyclone_ui::{CycloneUiPlugin, MenuFocus};
+use cyclone_ui::{Activated, CycloneUiPlugin, MenuFocus};
 use cyclone_worldgen::WorldGenConfig;
 
 #[derive(Resource, Default)]
@@ -63,6 +63,13 @@ fn wait_for(app: &mut App, what: &str, timeout: Duration, cond: impl Fn(&App) ->
 }
 
 fn flow_app() -> App {
+    flow_app_with(true)
+}
+
+/// `auto` adds the drive-through key injections (Enter at preview, Esc
+/// in-game) the full-loop tests rely on; preview-level tests need the
+/// flow to STOP at the preview instead.
+fn flow_app_with(auto: bool) -> App {
     let mut app = App::new();
     app.add_plugins(MinimalPlugins)
         .add_plugins(AssetPlugin::default())
@@ -73,13 +80,15 @@ fn flow_app() -> App {
     app.add_plugins((WorldBuilderPlugin, CycloneUiPlugin, CycloneGamePlugin));
     app.init_resource::<OnceFlag>();
     app.add_systems(First, release_keys);
-    app.add_systems(
-        Update,
-        (
-            press_key(KeyCode::Enter, "confirm").run_if(in_state(AppState::WorldPreview)),
-            press_key(KeyCode::Escape, "back").run_if(in_state(AppState::InGame)),
-        ),
-    );
+    if auto {
+        app.add_systems(
+            Update,
+            (
+                press_key(KeyCode::Enter, "confirm").run_if(in_state(AppState::WorldPreview)),
+                press_key(KeyCode::Escape, "back").run_if(in_state(AppState::InGame)),
+            ),
+        );
+    }
     app
 }
 
@@ -286,4 +295,97 @@ fn leftovers(app: &mut App, st: AppState) -> usize {
         .iter(app.world())
         .filter(|d| d.0 == st)
         .count()
+}
+
+/// Spec 01 preview screen: buttons for the mouse, crates hidden, Tab
+/// top-down — the parts of the preview the old keyboard-only test
+/// never exercised.
+#[test]
+fn preview_screen_mouse_and_topdown() {
+    let mut app = flow_app_with(false);
+    app.init_resource::<Probes>();
+    app.add_systems(
+        Last,
+        |rigs: Query<&cyclone_engine::CameraRig, With<Camera>>,
+         crates: Query<(&cyclone_render::Crate, &Visibility)>,
+         heading: Option<Res<cyclone_engine::CameraHeading>>,
+         mut p: ResMut<Probes>| {
+            if let Ok(r) = rigs.single() {
+                p.rig_pitch = r.pitch;
+            }
+            let h = heading.map_or(0, |h| cyclone_render::gen_heading_of(h.0));
+            p.crates = crates.iter().count();
+            p.hidden = crates
+                .iter()
+                .filter(|(_, v)| **v == Visibility::Hidden)
+                .count();
+            // Crates this heading is allowed to see (occlusion truth).
+            p.want = crates.iter().filter(|(c, _)| !c.hidden_from[h]).count();
+        },
+    );
+    wait_for(&mut app, "MainMenu", Duration::from_secs(60), |a| {
+        state(a) == AppState::MainMenu && a.world().contains_resource::<CurrentWorld>()
+    });
+    app.world_mut().write_message(Activated(0)); // New Game
+    wait_for(&mut app, "preview", Duration::from_secs(60), |a| {
+        state(a) == AppState::WorldPreview
+    });
+
+    // Four buttons in the preview panel, keyboard focus included.
+    assert_eq!(app.world().resource::<MenuFocus>().buttons.len(), 4);
+
+    // Crates hidden while previewing (spec 01); scene really has crates.
+    assert!(
+        Probes::of(&app).crates > 0 && Probes::of(&app).hidden == Probes::of(&app).crates,
+        "every crate hidden on the preview"
+    );
+
+    // Tab → top-down: pitch locked near straight down.
+    tap(&mut app, KeyCode::Tab);
+    let pitch = Probes::of(&app).rig_pitch;
+    assert!(pitch < -85.0, "top-down pitch locked (got {pitch})");
+    tap(&mut app, KeyCode::Tab);
+    wait_for(&mut app, "orbit back", Duration::from_secs(2), |a| {
+        Probes::of(a).rig_pitch > -60.0
+    });
+
+    // Copy button must not panic headless (no clipboard resource).
+    app.world_mut().write_message(Activated(22));
+    app.update();
+    assert_eq!(state(&app), AppState::WorldPreview);
+
+    // Fly button → InGame; crates come back under the occlusion rule
+    // (restored = visible EXCEPT the ones this heading hides by spec).
+    app.world_mut().write_message(Activated(20));
+    wait_for(&mut app, "InGame", Duration::from_secs(60), |a| {
+        state(a) == AppState::InGame
+    });
+    app.update();
+    let p = Probes::of(&app);
+    assert!(p.crates > 0, "world has crates");
+    assert_eq!(
+        p.hidden,
+        p.crates - p.want,
+        "exactly the occluded crates are hidden — the rest restored"
+    );
+}
+
+#[derive(Default, Resource)]
+struct Probes {
+    rig_pitch: f32,
+    crates: usize,
+    hidden: usize,
+    want: usize,
+}
+
+impl Probes {
+    fn of(app: &App) -> Probes {
+        let r = app.world().resource::<Probes>();
+        Probes {
+            rig_pitch: r.rig_pitch,
+            crates: r.crates,
+            hidden: r.hidden,
+            want: r.want,
+        }
+    }
 }

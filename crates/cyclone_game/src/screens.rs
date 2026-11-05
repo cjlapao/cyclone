@@ -26,6 +26,11 @@ const B_ROW: u32 = 100;
 const B_QUIT: u32 = 2;
 const B_RETRY: u32 = 10;
 const B_BACK: u32 = 11;
+/// Preview screen buttons (spec 01 C2: mouse-only end to end).
+const B_PFLY: u32 = 20;
+const B_PREROLL: u32 = 21;
+const B_PCOPY: u32 = 22;
+const B_PBACK: u32 = 23;
 
 /// Config for normal rounds (assets/worldgen/default.ron if present).
 #[derive(Resource)]
@@ -60,6 +65,13 @@ pub fn register(app: &mut App) {
     );
 
     app.add_systems(OnEnter(AppState::WorldPreview), preview_build);
+    app.add_systems(OnExit(AppState::WorldPreview), preview_show_props);
+    app.add_systems(
+        Update,
+        (preview_activate, preview_topdown, preview_hide_props)
+            .chain()
+            .run_if(in_state(AppState::WorldPreview)),
+    );
     app.add_systems(
         Update,
         preview_keys.run_if(in_state(AppState::WorldPreview)),
@@ -833,6 +845,11 @@ fn plain_button(row: &mut ChildSpawnerCommands, id: u32, label: &str) -> Entity 
         },
         BackgroundColor(Color::srgba(0.10, 0.13, 0.18, 0.9)),
         bevy::ui::FocusPolicy::Block,
+        // See round-20 DECISIONS: focus never inserts Interaction.
+        #[expect(deprecated)]
+        {
+            bevy::ui::Interaction::default()
+        },
         MenuButton { id },
     ))
     .with_child((
@@ -868,6 +885,10 @@ fn gen_activate(
 
 // -------------------------------------------------------- World preview ----
 
+/// Tab-top-down flag while the preview screen is up (spec 01).
+#[derive(Resource)]
+struct PreviewTopDown(bool);
+
 fn preview_build(
     mut commands: Commands,
     world: Option<Res<CurrentWorld>>,
@@ -875,10 +896,13 @@ fn preview_build(
     mut rigs: Query<&mut CameraRig>,
     mut rig_target: ResMut<RigTarget>,
 ) {
+    commands.insert_resource(PreviewTopDown(false));
+    rig_target.pitch_hold = None;
     let Some(world) = world else { return };
     let map = world.0.clone();
     let (w, h) = map.size;
     let s = theme.scale;
+    let mut pbtns: Vec<Entity> = Vec::new();
 
     // Fit the whole archipelago and orbit it slowly (spec 01); the orbit
     // radius auto-frames from WorldBounds.
@@ -930,10 +954,79 @@ fn preview_build(
                     ..default()
                 });
                 panel.spawn(theme.small(
-                    "Enter — Fly · Q/E — Rotate · Wheel — Zoom\nR — Reroll · C — Copy seed · Esc — Back",
+                    "Enter — Fly · Q/E — Rotate · Wheel — Zoom\nR — Reroll · Tab — Top-down · C — Copy · Esc — Back",
                 ));
+                panel.spawn(Node { height: Val::Px(18.0 * s), ..default() });
+                // Spec 01 C2: the whole preview usable with the mouse.
+                pbtns.push(menu_button(panel, &theme, B_PFLY, "Fly!"));
+                pbtns.push(menu_button(panel, &theme, B_PREROLL, "Reroll"));
+                pbtns.push(menu_button(panel, &theme, B_PCOPY, "Copy seed"));
+                pbtns.push(menu_button(panel, &theme, B_PBACK, "Back"));
             });
         });
+    commands.insert_resource(MenuFocus {
+        buttons: pbtns,
+        index: 0,
+    });
+}
+
+/// Crate positions are hidden on the preview (spec 01) — enforced every
+/// frame so late-spawned props cannot leak, and restored on exit. The
+/// `dev`-feature F3 debug toggle is deferred (not in acceptance).
+fn preview_hide_props(mut vis: Query<&mut Visibility, With<cyclone_render::Crate>>) {
+    for mut v in &mut vis {
+        *v = Visibility::Hidden;
+    }
+}
+
+fn preview_show_props(mut vis: Query<&mut Visibility, With<cyclone_render::Crate>>) {
+    for mut v in &mut vis {
+        *v = Visibility::Visible;
+    }
+}
+
+/// Tab toggles the flat top-down view (spec 01; same camera posture
+/// the spec-05 map screen will reuse).
+fn preview_topdown(
+    actions: Res<Actions>,
+    mut top: ResMut<PreviewTopDown>,
+    mut target: ResMut<RigTarget>,
+) {
+    if actions.just_pressed(Action::TopDown) {
+        top.0 = !top.0;
+        target.pitch_hold = if top.0 { Some(-89.5) } else { None };
+    }
+}
+
+/// Preview buttons (Fly/Reroll/Copy/Back) — same effects as the keys.
+fn preview_activate(
+    mut rx: MessageReader<Activated>,
+    mut next: ResMut<NextState<AppState>>,
+    mut commands: Commands,
+    world: Option<Res<CurrentWorld>>,
+    mut clipboard: Option<ResMut<bevy::clipboard::prelude::Clipboard>>,
+) {
+    for act in rx.read() {
+        match act.0 {
+            B_PFLY => next.set(AppState::InGame),
+            B_PREROLL => {
+                commands.insert_resource(PendingGen {
+                    seed: random_seed(),
+                });
+                next.set(AppState::Generating);
+            }
+            B_PBACK => next.set(AppState::MainMenu),
+            B_PCOPY => {
+                let seed = world.as_ref().map(|w| w.0.seed.to_string());
+                if let (Some(seed), Some(cb)) = (seed, clipboard.as_mut())
+                    && let Err(e) = cb.set_text(seed)
+                {
+                    warn!("clipboard: {e}");
+                }
+            }
+            _ => {}
+        }
+    }
 }
 
 fn preview_keys(
