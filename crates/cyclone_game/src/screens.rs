@@ -78,8 +78,8 @@ fn load_worldgen_config(mut cfg: ResMut<GameConfig>) {
 // ---------------------------------------------------------------- Boot ----
 
 fn boot(mut commands: Commands, mut next: ResMut<NextState<AppState>>) {
-    // One persistent orthographic rig camera for every screen (spec 00).
-    // AmbientLight is a camera-attached component in 0.20.
+    // One persistent perspective rig camera for every screen (spec 00;
+    // free-fly since d564517). AmbientLight is a camera-attached component.
     commands.spawn((
         Camera3d::default(),
         CameraRig::new(),
