@@ -1,14 +1,14 @@
 // BLAKE3 of WorldMap::to_ron() per seed (spec 02 C3).
 // Regenerate: cargo run -p worldgen-cli -- golden --update
 (
-    (seed: "0000-0000-00001", hash: "b09e063917b1b8db4c9c7dd10e5eccbc3efa9024cc080499dd953303179c1c20"),
-    (seed: "0000-0000-00002", hash: "e014711d29f93b32bf429d5800831eff0801666e518be8cc105c56289f9df138"),
-    (seed: "0000-0000-00003", hash: "ca31cc906323ee9da6d2268a2fc17dc6b3379c39617f858452bcd60f58ea33fa"),
-    (seed: "0000-0000-0001A", hash: "21a147ff1c312e0dfc91ee4aaefbb701ea3c2f1159b7cbf5be7c7008b2c89174"),
-    (seed: "0000-0000-000R9", hash: "a824160e42d370e1b89bc16428c828922740bdd010785ef0768c4b3c67d5647a"),
-    (seed: "0000-0000-0019S", hash: "5d96940ee100d1d78cd80615e7e1accc2c020f68dfaaffbf81a242b869a65c3d"),
-    (seed: "0000-0000-00R0S", hash: "d5290ce8deac764493a29c5c4349d8011c57f725eb88ef5e7f757cc1bee9d04b"),
-    (seed: "0000-0000-00YK9", hash: "636d8779003510926430beb607902ec0e921f992aad5a96fc0ab063631b8dbf6"),
-    (seed: "0000-0000-C1ZZE", hash: "8f79c20040275a86abba2a5449131589907e655dc5b623368e82ec0f6435c90c"),
-    (seed: "9WDV-SQ5Z-MMZ0N", hash: "3930ea8eddc24389ed3e6be9b9877481a2924ba73c1164afc3e103e59f0f440c"),
+    (seed: "0000-0000-00001", hash: "d107c053eefd512269ff2a035a64a3881034b29ed8143be33056325c145f34e1"),
+    (seed: "0000-0000-00002", hash: "b6a53fb6ecd828b5d2ee84e75123977e5ac4ee3fa4b5e4488c5254671283a41a"),
+    (seed: "0000-0000-00003", hash: "564bc1ef31b55428eaf94456340b3b43481e793411da727514f7ea44c34f26a6"),
+    (seed: "0000-0000-0001A", hash: "bacbfb41a4dd8ec6e77007ec5c389f1ae570318eee7e2b2ac5e2c6533b8f3cc3"),
+    (seed: "0000-0000-000R9", hash: "97e84748e508b1de2b5e85e91dd41658904822678bf1f3516a3abc1ad7e931fd"),
+    (seed: "0000-0000-0019S", hash: "f4252e27f09f933a271c0e0c2e5bad5c143aabc8a023bc318a3d0c74b5d5f8af"),
+    (seed: "0000-0000-00R0S", hash: "54cc3a5a46ea4b11f67578ab98ba2de9277e83cb95f9a1cd1aeebe17fcf3360e"),
+    (seed: "0000-0000-00YK9", hash: "c4ef0a8c599b2a610dbc47bb848ac4368aab578dc4807bfb5f11ed8bad6db01c"),
+    (seed: "0000-0000-C1ZZE", hash: "bf412bb7a6df05946f777c3aa7ca5855deedfaf335eded4054cc5235c3342bf4"),
+    (seed: "9WDV-SQ5Z-MMZ0N", hash: "355f535f50c900cd495cd0b01cab55a47dc91be96df19e0c998fd4483debc1d9"),
 )

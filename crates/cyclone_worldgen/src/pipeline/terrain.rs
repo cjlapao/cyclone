@@ -20,9 +20,9 @@ fn archetype_profile(a: Archetype) -> (f64, f64) {
         // stay low so level bands span several tiles — A5.6 needs flat
         // 3×3 blocks, and per-tile noise of ±0.7 would cliff-ify everything.
         Archetype::Flat => (2.6, 0.15),
-        Archetype::Hilly => (4.0, 0.30),
+        Archetype::Hilly => (4.0, 0.50),
         Archetype::Plateau => (5.0, 0.15),
-        Archetype::Peak => (6.5, 0.35),
+        Archetype::Peak => (6.5, 0.55),
         Archetype::Atoll => (1.9, 0.12),
     }
 }
@@ -86,8 +86,9 @@ pub fn stage(ctx: &mut GenCtx) -> Result<(), crate::error::GenError> {
                         + ((y as f64 + 0.5 - (cy as f64 + 0.5))
                             * (y as f64 + 0.5 - (cy as f64 + 0.5))),
                 ) / r;
-                // Zero-mean coastline warp so the coast keeps its radius.
-                let warp = (fbm(x as f64, y as f64, 0.05, 3, noise_seed) - 0.5) * 0.3;
+                // Zero-mean coastline warp so the coast keeps its radius
+                // (spec A5.3 ragged coastline: fbm*0.35 at freq 0.08).
+                let warp = (fbm(x as f64, y as f64, 0.08, 3, noise_seed) - 0.5) * 0.7;
                 let detail = (fbm(x as f64, y as f64, 0.15, 4, noise_seed ^ 0x005D_EECE_6D1B)
                     - 0.5)
                     * 2.0
@@ -110,11 +111,11 @@ pub fn stage(ctx: &mut GenCtx) -> Result<(), crate::error::GenError> {
             let e = elev[i];
             let lvl = if !e.is_finite() || e < 0.75 {
                 0
-            } else if e < 1.25 {
+            } else if e < 1.15 {
                 1
             } else {
                 let p = peak[i].max(2) as f64;
-                let t = (e - 1.25) / (span[i] - 1.25).max(0.5);
+                let t = (e - 1.15) / (span[i] - 1.15).max(0.5);
                 (2.0 + t * (p - 2.0)).floor().clamp(2.0, p) as u8
             };
             *ctx.map.height.get_mut(x, y).expect("in bounds") = lvl;

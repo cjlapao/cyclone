@@ -214,3 +214,15 @@ drives OnEnter(Generating) on an app with no task pool — it also documents
 the minimal bare-app recipe (StatesPlugin, KeyboardInput/MouseWheel/Activated
 messages, GameConfig, RigTarget). `cyclone_game::register_test()` exposes the
 screens' schedules without the engine plugin for this.
+
+### Terrain iteration 1: spec-faithful coastlines + relief (golden refresh #2)
+Contact sheets read as "identical discs" — three fixes, all spec-justified:
+1. Coastline warp now `fbm×0.35` at freq 0.08 (was ±0.15 @ 0.05) — the
+   spec's "ragged coastline" term, zero-mean so the packing radius holds.
+   Mean gen attempts rose 1.03 → 1.13 (min-gap retries), still 300/300 ok.
+2. Beach band narrowed (sea-cut→beach 1.25 → 1.15): sand rings no longer
+   dominate every shore.
+3. Detail amp raised Hilly 0.30→0.50, Peak 0.35→0.55 (Flat/Plateau/Atoll
+   stay calm — A5.6 needs flat 3×3 pads): interior cliffs and rocky spots.
+Goldens regenerated with `golden --update` per spec. The first genuine
+round of the "generate → judge → tune" loop the specs designed around.
