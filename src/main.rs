@@ -8,6 +8,8 @@ mod iso;
 mod render;
 mod state;
 mod tuning;
+mod world;
+mod worldgen;
 
 use macroquad::prelude::*;
 use state::{GameState, PlayCmd};
