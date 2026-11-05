@@ -18,6 +18,11 @@ getrandom = { workspace = true }
 [dev-dependencies]
 proptest = { workspace = true }
 blake3 = { workspace = true }
+criterion = { workspace = true }
 
 [features]
 diag = []
+
+[[bench]]
+name = "generate"
+harness = false

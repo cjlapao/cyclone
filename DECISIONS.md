@@ -165,3 +165,42 @@ default-font pipeline dependency.
 Dev box has no rustup shims dir; toolchain is
 `~/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin`. Makefile/CI
 must prepend it or rely on a login shell.
+
+## Round 3–4 — startup panics, Bevy 0.20 landings, generator tooling
+
+### Bevy 0.20 API landings (from the headless flow test)
+- `add_asset` is `init_asset` in 0.20; tests that need assets call it
+  explicitly with `RenderAssetUsages::MAIN_WORLD`.
+- Message types must be registered (`app.add_message::<T>()`) **before** any
+  system takes a `MessageReader`/`MessageWriter` — Bevy 0.20 errors at run
+  time otherwise, not compile time. `KeyboardInput`/`MouseWheel` come from
+  `bevy::input::InputPlugin`; engine `ActionsPlugin` now adds it when absent
+  (our own plugin used to shadow it and skipped registration).
+- Injecting a world message from tests: `world.write_message(msg)`.
+- `MinimalPlugins` contains no StatesPlugin — `CycloneEnginePlugin` adds
+  `bevy::state::app::StatesPlugin` itself so headless runs get state
+  transitions.
+- Without the `gilrs` feature there is no `ButtonInput<GamepadButton>`
+  resource; the actions system reads `Option<Res<…>>`.
+- Plugins are **not** deduped: adding `CycloneEnginePlugin` from two places
+  panics. `CycloneGamePlugin` owns it; `crates/cyclone/src/main.rs` doesn't.
+
+### Difficulty bands recalibrated (golden hashes refreshed)
+The spec-02 classifier thresholds predated the final helipad placement:
+every world scored Hard, so the label carried zero signal. Bands are now a
+weighted score `0.55·hop/fuel + 0.45·route/crate/fuel` with cut points taken
+from a 1000-seed sweep (p25/p65 → Easy/Normal/Hard ≈ 25/40/35 %).
+`crates/cyclone_worldgen/tests/golden.ron` was regenerated with
+`worldgen-cli golden --update` in the same commit, as the spec requires.
+
+### worldgen-cli ships spec 02 C1–C4
+`generate` (labelled PNG + world.ron + stats.txt), `batch` (summary.csv +
+64-map contact sheet, non-zero exit on any failure), `golden` (+ cargo-test
+`golden.rs`), criterion bench (~14 ms/world release; CI logs, never gates).
+`pipeline::validate` (A5.10 invariants) is public so the batch checker and
+game-side tests share one definition.
+
+### Island visuals are uniform — known improvement
+Contact sheets show correct placement but every island reads as a green
+disc with a sand ring; archetypes don't read visually yet. First thing to
+iterate on once navigation is confirmed (affects 3D too, not just PNGs).

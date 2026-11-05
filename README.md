@@ -24,8 +24,23 @@ Menu → **New Game** → generating screen (live progress) → world preview
 
 Seed formats accepted in “Play Seed…”: 16 hex digits or the 13-char dashed
 form shown in-game. Worldgen knobs: `assets/worldgen/default.ron`;
-keys/display/vsync/fullscreen: `~/.local/share/cyclone/settings.ron`
-(applies live, see `DECISIONS.md`).
+keys/display/vsync/fullscreen: `~/.config/com.cyclone.rescue/settings.ron`
+(`directories`-convention config dir; applies live, see `DECISIONS.md`).
+
+## Judging the generator (spec 02 tooling)
+
+```sh
+cargo run -p worldgen-cli --release -- generate --seed 0x1 --out out/
+cargo run -p worldgen-cli --release -- batch --count 1000 --out out/batch/
+cargo run -p worldgen-cli -- golden          # determinism check (CI runs it)
+cargo bench -p cyclone_worldgen              # ~14 ms/world in release
+```
+
+`generate` writes a labelled top-down `map.png` (props, `H` helipads, `X`
+crates — red = hidden from some heading, refugee dots, island names),
+`world.ron` and `stats.txt`. `batch` writes `summary.csv` plus a
+`contact-sheet.png` of the first 64 worlds.
+
 
 ## Workspace
 

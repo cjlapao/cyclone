@@ -13,4 +13,7 @@ rayon = { workspace = true }
 ron = { workspace = true }
 serde = { workspace = true }
 blake3 = { workspace = true }
+imageproc = { workspace = true }
+ab_glyph = { workspace = true }
+anyhow = { workspace = true }
 getrandom = { workspace = true }
