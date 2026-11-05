@@ -7,6 +7,7 @@ use std::time::{Duration, Instant};
 use bevy::input::mouse::{MouseMotion, MouseWheel};
 use bevy::prelude::*;
 use cyclone_engine::{CameraHeading, CameraRig, CycloneEnginePlugin};
+use cyclone_render::{Crate, gen_heading_of};
 use cyclone_worldgen::{ProgressNoop, Seed, WorldGenConfig, generate};
 
 #[derive(Resource)]
@@ -37,6 +38,7 @@ fn app_with_world() -> App {
         ))
         .id();
     app.insert_resource(Cam(cam));
+    app.add_systems(Update, cyclone_render::crate_occlusion);
     app.add_systems(First, hold);
     app
 }
@@ -142,7 +144,38 @@ fn free_camera_fly_look_and_zoom() {
     let expect = ((yaw - 45.0) / 90.0).round().rem_euclid(4.0) as u8;
     assert_eq!(heading0, expect, "CameraHeading must follow yaw {yaw}");
 
-    // 5) Bounds: parked at the edge and pushed further, the free camera
+    // 5) Spec 02 B4 end to end: a crate hidden from gen heading idx 0
+    // must vanish exactly when the rig yaw enters that heading's sector.
+    let crate_ent = app
+        .world_mut()
+        .spawn((
+            Crate {
+                // Hidden from gen idx 1 ⇒ rig cam heading 2 ⇒ yaw 225°.
+                hidden_from: [false, true, false, false],
+            },
+            bevy::prelude::Visibility::default(),
+        ))
+        .id();
+    let vis = |app: &App| {
+        *app.world()
+            .get::<bevy::prelude::Visibility>(crate_ent)
+            .unwrap()
+    };
+    let cam = app.world().resource::<Cam>().0;
+    for (yaw, want_visible) in [(135.0, true), (225.0, false), (315.0, true)] {
+        app.world_mut().get_mut::<CameraRig>(cam).unwrap().yaw = yaw;
+        app.update();
+        app.update();
+        let heading = app.world().resource::<CameraHeading>().0;
+        assert_eq!(
+            matches!(vis(&app), bevy::prelude::Visibility::Visible),
+            want_visible,
+            "crate at yaw {yaw} (cam heading {heading}, gen {})",
+            gen_heading_of(heading)
+        );
+    }
+
+    // 6) Bounds: parked at the edge and pushed further, the free camera
     // never crosses the padded box (map 160 + 60).
     let cam = app.world().resource::<Cam>().0;
     app.world_mut().get_mut::<CameraRig>(cam).unwrap().position = Vec3::new(80.0, 40.0, 219.5);

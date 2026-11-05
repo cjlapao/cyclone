@@ -2653,6 +2653,7 @@ name = "cyclone_engine"
 version = "0.1.0"
 dependencies = [
  "bevy",
+ "cyclone_render",
  "cyclone_worldgen",
  "directories",
  "ron 0.10.1",

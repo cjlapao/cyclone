@@ -6,6 +6,7 @@
 mod props;
 mod terrain;
 
+pub use props::{Crate, crate_occlusion, gen_heading_of};
 pub use terrain::{LEVEL_HEIGHT, QuadBuilder};
 
 use bevy::light::DirectionalLight;
@@ -26,6 +27,16 @@ impl Plugin for WorldBuilderPlugin {
             Update,
             rebuild_world
                 .run_if(bevy::ecs::schedule::common_conditions::resource_exists::<CurrentWorld>),
+        );
+        // Spec 02 B4: crates hidden from the camera's heading blink out
+        // as the rig turns (free yaw keeps CameraHeading in sync).
+        app.add_systems(
+            Update,
+            props::crate_occlusion.run_if(
+                bevy::ecs::schedule::common_conditions::resource_exists::<
+                    cyclone_engine::CameraHeading,
+                >,
+            ),
         );
     }
 }

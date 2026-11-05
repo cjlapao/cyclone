@@ -169,11 +169,16 @@ pub fn spawn_props(
         ));
     }
 
-    // Crates (spec 02 B4: hidden_from is gameplay data, geometry same).
+    // Crates (spec 02 B4): carry `hidden_from` as a component; a system
+    // hides them against the camera's current heading (see below).
     for c in &map.crates {
         let ground = map.height.raw(c.tile.0, c.tile.1) as f32 * lh;
         root.spawn((
             InWorld,
+            Crate {
+                hidden_from: c.hidden_from,
+            },
+            Visibility::default(),
             Mesh3d(box_h.clone()),
             MeshMaterial3d(mat_of(materials, (0.83, 0.44, 0.14), 0.8)),
             Transform::from_xyz(c.tile.0 as f32 + 0.5, ground, c.tile.1 as f32 + 0.5)
@@ -191,5 +196,64 @@ pub fn spawn_props(
             Transform::from_xyz(r.tile.0 as f32 + 0.5, ground, r.tile.1 as f32 + 0.5)
                 .with_scale(Vec3::new(0.5, 0.9, 0.5)),
         ));
+    }
+}
+
+/// Crate marker + its per-heading invisibility (spec 02 B4). The camera
+/// rig keeps `CameraHeading` synced to the free yaw; when it changes,
+/// crates hidden for that heading flip to `Visibility::Hidden`, so a
+/// crate behind a cliff visibly disappears as the player turns (Q/E).
+#[derive(Component)]
+pub struct Crate {
+    pub hidden_from: [bool; 4],
+}
+
+/// Map a camera heading (rig convention: canonical yaw = 45° + 90°·h,
+/// forward = rot(yaw)·-Z, so the viewpoint sits at −forward from the
+/// crate) onto worldgen's `hidden_from` index (gen rays run from the
+/// crate toward the viewpoint, CAM_DIRS[0] = (+x,+y)).
+/// Derivation: cam 0 ⇒ viewpoint offset (−S,+S) = CAM_DIRS[3]; each
+/// further cam step walks the offsets backwards ⇒ h_gen = (3 − cam) % 4.
+pub fn gen_heading_of(cam: u8) -> usize {
+    (3 - cam % 4) as usize % 4
+}
+
+/// Spec 02 B4 demo: hide crates whose sight line is blocked from the
+/// camera's current heading (acceptance C6: Q/E turn, watch them blink).
+pub fn crate_occlusion(
+    mut crates: Query<(&Crate, &mut Visibility)>,
+    heading: Res<cyclone_engine::CameraHeading>,
+) {
+    if !heading.is_changed() {
+        return;
+    }
+    let h = gen_heading_of(heading.0);
+    for (c, mut v) in &mut crates {
+        *v = if c.hidden_from[h] {
+            Visibility::Hidden
+        } else {
+            Visibility::Visible
+        };
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn heading_space_maps_rig_to_gen() {
+        // Derivation check: cam 0 (yaw 45°, viewpoint (+z,−x)) is gen idx 3.
+        assert_eq!(gen_heading_of(0), 3);
+        assert_eq!(gen_heading_of(1), 2);
+        assert_eq!(gen_heading_of(2), 1);
+        assert_eq!(gen_heading_of(3), 0);
+        // Wraps like the rig does.
+        assert_eq!(gen_heading_of(4), 3);
+        let all: Vec<_> = (0..4).map(gen_heading_of).collect();
+        assert_eq!(
+            all.len(),
+            all.iter().collect::<std::collections::HashSet<_>>().len()
+        );
     }
 }

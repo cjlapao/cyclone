@@ -11,3 +11,6 @@ cyclone_worldgen = { workspace = true }
 serde = { workspace = true }
 ron = { workspace = true }
 directories = { workspace = true }
+
+[dev-dependencies]
+cyclone_render = { path = "../cyclone_render" }

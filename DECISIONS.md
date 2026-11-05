@@ -246,3 +246,15 @@ WASD fly along the view, Space/Shift altitude, Ctrl boost, wheel = FOV
   flow tests).
 - tests/freecam.rs: live headless proof — W flies, RMB+motion aims,
   wheel zooms FOV, heading follows yaw, bounds clamp.
+
+### Spec 02 B4 runtime occlusion was never actually wired — found and fixed
+Audit of the acceptance list found crates spawned with `hidden_from` as a
+comment-only feature: no system consumed it, so turning the camera never
+hid anything. Now crate entities carry a `Crate` component and
+`crate_occlusion` flips `Visibility` whenever `CameraHeading` changes.
+Heading-space mapping derived from both conventions (rig: canonical yaw
+45+90h, forward = rot(yaw)·−Z; gen: rays from crate toward viewpoint,
+CAM_DIRS[0]=(+x,+y)) ⇒ `h_gen = (3 − cam) % 4`, unit-tested; the freecam
+test spawns a crate hidden from gen idx 1 and watches it blink exactly
+as the free yaw crosses 225°. If the demo ever looks mirrored on
+screen, that one function is the dial.
