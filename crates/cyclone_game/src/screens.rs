@@ -379,7 +379,9 @@ fn gen_start(
     {
         let (stage_t, prog_t, cfg_t) = (stage.clone(), prog.clone(), cfg.clone());
         let slot_done = slot.clone();
-        AsyncComputeTaskPool::get()
+        // get_or_init: TaskPoolPlugin normally initialises this, but an app
+        // without it (tests, custom builds) panics inside `get()`.
+        AsyncComputeTaskPool::get_or_init(bevy::tasks::TaskPool::default)
             .spawn(async move {
                 let progress = SlotProgress {
                     stage: stage_t,

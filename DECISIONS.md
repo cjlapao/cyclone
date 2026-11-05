@@ -204,3 +204,13 @@ game-side tests share one definition.
 Contact sheets show correct placement but every island reads as a green
 disc with a sand ring; archetypes don't read visually yet. First thing to
 iterate on once navigation is confirmed (affects 3D too, not just PNGs).
+
+### AsyncComputeTaskPool::get() → get_or_init (crash class #7)
+`get()` **panics** when TaskPoolPlugin never ran ("The AsyncComputeTaskPool
+has not been initialized yet"). The real app is fine (DefaultPlugins), but
+any custom/test app died on New Game. `gen_start` now uses
+`get_or_init(TaskPool::default)`. Regression: `cyclone_game/tests/pool.rs`
+drives OnEnter(Generating) on an app with no task pool — it also documents
+the minimal bare-app recipe (StatesPlugin, KeyboardInput/MouseWheel/Activated
+messages, GameConfig, RigTarget). `cyclone_game::register_test()` exposes the
+screens' schedules without the engine plugin for this.

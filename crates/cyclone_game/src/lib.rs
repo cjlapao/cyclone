@@ -15,3 +15,10 @@ impl Plugin for CycloneGamePlugin {
         screens::register(app);
     }
 }
+
+/// Test harness: the screens' schedules/systems *without* the engine, task
+/// pool, or asset plugins — for headless unit tests that drive the state
+/// machine directly (see `tests/flow.rs`).
+pub fn register_test(app: &mut App) {
+    screens::register(app);
+}
