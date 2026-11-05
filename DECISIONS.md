@@ -335,3 +335,22 @@ all now covered by `preview_screen_mouse_and_topdown`:
 
 flow_app gained `flow_app_with(auto)` — the auto-advance key injections
 would otherwise drive straight through the preview.
+
+## Base Island highlight = warm vertex tint (round 23)
+
+Spec 01's preview panel asks for "Island count, Base Island
+highlighted". Island 0 is always the Base Island (cleanup.rs names it
+BASE_ISLAND_NAME). Chose a per-vertex warm tint on the base island's
+surface quads in terrain.rs (`island_of == 0` → red +10%, blue −18%,
+linear space, clamped per channel):
+
+- same mesh, same vertex count, zero extra draw calls or materials;
+- generator data untouched → goldens unaffected;
+- reads at a glance from orbit altitude, obvious while flying, and
+  survives every camera mode including the Tab top-down;
+- unit test asserts the warm shift, gamut clamp, and the white-input
+  behaviour (white → gold IS the tint, by design).
+
+Alternative considered: separate highlight ring mesh — rejected as a
+second material + transparency ordering for what is one component of
+existing color data.

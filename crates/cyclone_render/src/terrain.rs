@@ -80,6 +80,13 @@ fn surface_rgb(surface: Surface) -> Option<(f32, f32, f32)> {
 
 const ROCK: (f32, f32, f32) = (0.463, 0.455, 0.470);
 
+/// Shift a surface color toward warm gold for the Base Island, without
+/// changing its luminance much (subtle at a glance, obvious in play).
+fn base_island_tint(c: Vec4) -> Vec4 {
+    let k = |v: f32, w: f32| (v * w).min(1.0);
+    Vec4::new(k(c.x, 1.10), k(c.y, 1.02), k(c.z, 0.82), 1.0)
+}
+
 pub fn spawn_terrain(
     root: &mut ChildSpawnerCommands,
     map: &WorldMap,
@@ -155,7 +162,13 @@ fn build_tile(
     let Some((r, g, bch)) = surface_rgb(surf) else {
         return; // land tile with sea surface shouldn't happen
     };
-    let top_col = srgb_to_vec4(r * tint, g * tint, bch * tint);
+    let mut top_col = srgb_to_vec4(r * tint, g * tint, bch * tint);
+    // Spec 01 preview: the Base Island reads at a glance. A warm tint
+    // on its surface quads — same mesh, same vertex count, no extra
+    // draw call, generator data untouched so goldens are unaffected.
+    if map.island_of.raw(tx, ty) == 0 {
+        top_col = base_island_tint(top_col);
+    }
 
     // Top face (CCW seen from +Y): ring with +Y normal.
     b.quad(
@@ -236,5 +249,23 @@ fn build_tile(
             ),
         };
         b.quad(ring, n, col);
+    }
+}
+
+#[cfg(test)]
+mod base_tint_tests {
+    use super::*;
+
+    #[test]
+    fn warm_shift_within_gamut() {
+        let sand = srgb_to_vec4(0.855, 0.769, 0.545);
+        let tinted = base_island_tint(sand);
+        // Linearized components shift warm: red up, blue down, none clipped.
+        assert!(tinted.x > sand.x && tinted.z < sand.z);
+        assert!(tinted.x <= 1.0 && tinted.z >= 0.0);
+        // Pure white linear goes warm-gold too (that IS the tint); the
+        // per-channel clamp guarantees no component leaves the gamut.
+        let w = base_island_tint(Vec4::splat(1.0));
+        assert_eq!(w, Vec4::new(1.0, 1.0, 0.82, 1.0));
     }
 }
