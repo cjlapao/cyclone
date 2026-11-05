@@ -1,0 +1,20 @@
+[package]
+name = "cyclone"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Cyclone Rescue — the binary. Wires plugins together, nothing else (spec 00)."
+
+[features]
+default = []
+# Fast local iteration: Bevy as a dylib + asset hot reload + dev tools.
+# Never ship with it on (spec 00).
+dev = ["bevy/dynamic_linking", "bevy/file_watcher", "bevy/bevy_dev_tools"]
+
+[dependencies]
+bevy = { workspace = true }
+cyclone_engine = { workspace = true }
+cyclone_render = { workspace = true }
+cyclone_worldgen = { workspace = true }
+cyclone_ui = { workspace = true }
+cyclone_game = { workspace = true }

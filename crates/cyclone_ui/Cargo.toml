@@ -1,0 +1,14 @@
+[package]
+name = "cyclone_ui"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Menu widgets, theme, screen framework on bevy_ui (spec 01)."
+
+[dependencies]
+bevy = { workspace = true }
+cyclone_engine = { workspace = true }
+cyclone_worldgen = { workspace = true }
+
+[dev-dependencies]
+bevy = { workspace = true }

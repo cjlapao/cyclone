@@ -1,3 +1,6 @@
 /target
+target-wg/
+.scratch/
+out/
 *.zip
 vendor/

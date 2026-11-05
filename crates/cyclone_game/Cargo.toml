@@ -1,0 +1,13 @@
+[package]
+name = "cyclone_game"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Gameplay: screens, flight, cyclone, objectives (specs 01/03/04)."
+
+[dependencies]
+bevy = { workspace = true }
+cyclone_engine = { workspace = true }
+cyclone_render = { workspace = true }
+cyclone_worldgen = { workspace = true }
+cyclone_ui = { workspace = true }

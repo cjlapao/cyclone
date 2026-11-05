@@ -1,0 +1,23 @@
+[package]
+name = "cyclone_worldgen"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "PURE Rust map generator for Cyclone Rescue. No Bevy dependency (spec 02 Part A)."
+
+# Determinism rule A2.1/A2.2: ChaCha8 streams only, all transcendentals via libm.
+[dependencies]
+rand = { workspace = true }
+rand_chacha = { workspace = true }
+libm = { workspace = true }
+serde = { workspace = true }
+ron = { workspace = true }
+thiserror = { workspace = true }
+getrandom = { workspace = true }
+
+[dev-dependencies]
+proptest = { workspace = true }
+blake3 = { workspace = true }
+
+[features]
+diag = []

@@ -90,3 +90,78 @@ option closest to the 1984 original's feel, record it, move on).
   `.cargo/config.toml` adds `-L native=vendor/alsa` for the linux target.
   Machines with the real dev package ignore the missing dir; macOS/Windows
   configs untouched. Full sound, no root.
+
+## V2 — Engine & renderer (specs 00–02)
+
+### Bevy pinned exactly to 0.20.1
+Spec 00 requires an exact pin; `=`0.20.1 with `default-features = false` and
+an explicit feature list. `x11` is on (no wayland on this dev box); audio,
+gamepad-backends and wayland are off — Gilrs would pull C deps we don't need
+v1 has no sound.
+
+### `First` is a struct, not an enum variant (Bevy 0.20)
+`Systems::First` no longer exists; schedules take the `First` marker struct
+directly (`add_systems(First, poll_actions)`). Input polling runs there so
+`Actions` is fresh before every Update system.
+
+### KeyboardInput/MouseWheel are Messages in 0.20
+`Event` → `Message`; readers are `MessageReader<T>`. The seed-text field
+consumes `MessageReader<KeyboardInput>` — no `bevy_ui` TextInput, whose
+pointer-event API is too new to rely on yet.
+
+### Custom MenuButton + Interaction (deprecated) instead of bevy_ui_widgets
+The 0.20 `widget::Button` needs `Pointer*` messages the focus system can't
+share; classic `Button`/`Interaction` still works and is only deprecated.
+`#[expect(deprecated)]` is confined to cyclone_ui.
+
+### Text is component-tuples now (0.20 `Text` widget)
+`TextBundle` is gone. Theme helpers return `(Text, TextFont, TextColor)`;
+font size is `FontSize::Px`, font handle goes through `FontSource`.
+
+### One Camera3d renders world + UI
+Bevy 0.20 renders UI for 3D cameras; a second `Camera2d` doubles the render
+graph for nothing. If UI turns out invisible at runtime, re-add Camera2d.
+
+### Orthographic rig in engine, target-relative
+`CameraRig` (yaw tween 0.3 s, 3 zoom stops 56/104/176 tiles, fixed 35.264°
+pitch) lives in cyclone_engine with `RigTarget`/`RigFollow`/`WorldBounds`
+so menus, preview and gameplay all share one camera model (spec 00).
+
+### Level height comes from WorldConfig, not a constant
+`level_height` defaults to 0.5 world units (≤ 3.5-unit peaks). The renderer
+reads `Res<WorldConfig>` and scales terrain by it; props use their own
+`PROP_UNIT = 1.15` so they stay readable at any level height.
+
+### Terrain: chunked quads + vertex colors, no textures v1
+16×16-tile meshes, `RENDER_WORLD` usage, baked hash-tint vertex colors;
+one white StandardMaterial per chunk group. Shore foam texture is authored
+(R8 image) but unused until a shader exists. No shadows, no fog, no MSAA
+(spec 00 perf budget).
+
+### Mesh type is `Mesh3d` (+ `MeshMaterial3d`)
+0.20 renamed the world-mesh component; `MeshMesh3d` doesn't exist. Caught
+against the 0.20.1 registry sources, not from memory.
+
+### Generation off-thread via Arc<Mutex<Option<..>>> + atomics
+Worldgen is sync; a detached AsyncComputeTaskPool task writes progress into
+Arc<AtomicU32> (permille) + Arc<Mutex<&'static str>> (stage) and the result
+into a slot. `Generating` polls, floors at 300 ms so it never flashes
+(spec 01).
+
+### Settings path via directories::ProjectDirs, RON, forgiving load
+`com.cyclone.rescue` → `settings.ron`; any parse error falls back to
+defaults (spec 00: never hard-fail on user files).
+
+### Clipboard through bevy_clipboard (C-copy on preview)
+`ResMut<Clipboard>` + `set_text`; headless/clipboard-less setups just log
+a warning instead of failing the key press.
+
+### Fonts: Liberation Sans bundled
+`assets/fonts/LiberationSans-{Regular,Bold}.ttf` (Liberation fonts are
+SIL OFL / LPPL; metric-compatible with Arial). Avoids Bevy's built-in
+default-font pipeline dependency.
+
+### cargo not on PATH
+Dev box has no rustup shims dir; toolchain is
+`~/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin`. Makefile/CI
+must prepend it or rely on a login shell.

@@ -1,0 +1,13 @@
+[package]
+name = "cyclone_engine"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Cyclone engine layer: states, camera rig, input, settings, rng, facade (spec 00)."
+
+[dependencies]
+bevy = { workspace = true }
+cyclone_worldgen = { workspace = true }
+serde = { workspace = true }
+ron = { workspace = true }
+directories = { workspace = true }

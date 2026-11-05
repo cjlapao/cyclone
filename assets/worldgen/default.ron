@@ -1,0 +1,21 @@
+// Cyclone Rescue — default world generation config (spec 02 A3).
+// Loaded by cyclone_game at boot when this file exists; edit freely,
+// `cargo run` picks it up on next launch. Invalid files fall back to
+// built-in defaults (logged).
+(
+    size: (160, 160),          // world tiles
+    margin: 12,                // open-sea border
+    island_count: 14,          // includes Base Island
+    island_radius: (6, 16),    // normal island base radius
+    base_radius: (10, 14),     // Base Island radius
+    min_gap: 6,                // water between coastlines
+    max_level: 7,              // 0 sea, 1 beach, 2..=7 land
+    level_height: 0.5,         // world units per level
+    fuel_range: 70,            // full-tank flight distance (tiles)
+    helipads_extra: (3, 5),    // pads beyond Base Island
+    crates: 5,                 // supply crates
+    hidden_crates_min: 2,      // crates hidden from >=1 heading (floor)
+    refugee_islands: (4, 7),
+    refugees_per_island: (2, 4),
+    max_world_attempts: 8,
+)

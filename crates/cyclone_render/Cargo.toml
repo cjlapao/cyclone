@@ -1,0 +1,11 @@
+[package]
+name = "cyclone_render"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Materials, shaders, terrain/sea mesh builders, lighting (specs 00/02 Part B)."
+
+[dependencies]
+bevy = { workspace = true }
+cyclone_engine = { workspace = true }
+cyclone_worldgen = { workspace = true }
