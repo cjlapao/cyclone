@@ -46,6 +46,7 @@ pub fn register(app: &mut App) {
     app.insert_resource(GameConfig(WorldGenConfig::default()));
     app.add_systems(Startup, load_worldgen_config);
     app.add_systems(OnEnter(AppState::Boot), boot);
+    app.add_systems(Update, boot_hold.run_if(in_state(AppState::Boot)));
 
     app.add_systems(OnEnter(AppState::MainMenu), menu_build);
     app.add_systems(
@@ -103,7 +104,53 @@ fn load_worldgen_config(mut cfg: ResMut<GameConfig>) {
 
 // ---------------------------------------------------------------- Boot ----
 
-fn boot(mut commands: Commands, mut next: ResMut<NextState<AppState>>) {
+/// Minimum seconds the Boot placeholder is visible (spec 00 C1: show a
+/// boot screen, THEN MainMenu — not an invisible same-frame handoff;
+/// also hides the menu popping in while fonts/streaming assets settle).
+#[derive(Resource)]
+struct BootAt(f32);
+
+const BOOT_SECONDS: f32 = 0.7;
+
+fn boot_hold(time: Res<Time>, at: Res<BootAt>, mut next: ResMut<NextState<AppState>>) {
+    if time.elapsed_secs() - at.0 >= BOOT_SECONDS {
+        next.set(AppState::MainMenu);
+    }
+}
+
+fn boot(mut commands: Commands, time: Res<Time>) {
+    commands.insert_resource(BootAt(time.elapsed_secs()));
+    commands
+        .spawn((
+            Node {
+                width: Val::Percent(100.0),
+                height: Val::Percent(100.0),
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                flex_direction: FlexDirection::Column,
+                ..default()
+            },
+            BackgroundColor(Color::srgb(0.05, 0.07, 0.09)),
+            DespawnOnExit(AppState::Boot),
+        ))
+        .with_children(|mid| {
+            mid.spawn((
+                Text::new("CYCLONE RESCUE"),
+                TextFont {
+                    font_size: FontSize::Px(54.0),
+                    ..default()
+                },
+                TextColor(Color::srgb(0.85, 0.9, 1.0)),
+            ));
+            mid.spawn((
+                Text::new("free-fly archipelagos"),
+                TextFont {
+                    font_size: FontSize::Px(17.0),
+                    ..default()
+                },
+                TextColor(Color::srgb(0.45, 0.55, 0.68)),
+            ));
+        });
     // One persistent perspective rig camera for every screen (spec 00;
     // free-fly since d564517). AmbientLight is a camera-attached component.
     commands.spawn((
@@ -122,7 +169,6 @@ fn boot(mut commands: Commands, mut next: ResMut<NextState<AppState>>) {
             ..default()
         },
     ));
-    next.set(AppState::MainMenu);
 }
 
 // ----------------------------------------------------------- Main menu ----

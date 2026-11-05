@@ -96,6 +96,11 @@ fn flow_app_with(auto: bool) -> App {
 fn full_flow_offscreen() {
     let mut app = flow_app();
 
+    // The Boot placeholder is a real screen now (spec 00 C1): held for
+    // ~0.7 s, not an invisible same-frame handoff.
+    app.update();
+    assert_eq!(state(&app), AppState::Boot, "boot placeholder holds");
+
     // Boot hands over to MainMenu, which spawns a small background world.
     wait_for(&mut app, "MainMenu", Duration::from_secs(30), |a| {
         state(a) == AppState::MainMenu && a.world().contains_resource::<CurrentWorld>()

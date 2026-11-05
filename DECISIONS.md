@@ -419,3 +419,22 @@ Fix, three layers:
 
 `wrapper_surfaces_config_errors` proves the wrapper passes real
 `Err(Config)` through to the error-screen path.
+## Boot placeholder holds 0.7 s; two spec-01/00 audit notes (round 27)
+
+- **Boot screen (spec 00 C1)** previously spawned nothing and set
+  MainMenu in the same frame — the "placeholder boot screen" had never
+  been visible on any machine. Now `boot` spawns a branded overlay
+  (CYCLONE RESCUE / free-fly archipelagos) and `boot_hold` defers the
+  handoff ~0.7 s: the first visible frame is intentional, and the menu
+  no longer pops in while fonts and the backdrop world stream. Test
+  asserts state is still Boot after the first update.
+- **High Scores menu row: deferred with cause.** Spec 01's tree lists
+  it; scores themselves arrive with the gameplay specs (03+), which
+  also own the data shape (name, score, round, date, seed). Shipping a
+  panel over an invented store is the "UI that lies" pattern we
+  rejected for settings volumes. When spec 03 lands, the row mounts an
+  empty-state table honestly, with "Play this seed" per entry.
+- **CI deviation recorded:** spec 00 asks for `cargo build --release`
+  on every push (3-OS matrix); we run debug per push and a full
+  release job on `v*` tags instead — release-only breakage is rare,
+  and per-push triple-release would quadruple CI wall-clock for it.
