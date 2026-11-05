@@ -13,6 +13,7 @@ mod tuning;
 mod world;
 mod worldgen;
 
+use game::{Game, Inputs};
 use macroquad::prelude::*;
 use state::{GameState, PlayCmd};
 use tuning::*;
@@ -61,13 +62,14 @@ async fn main() {
     let mut acc = 0.0f32;
     let mut t = 0.0f32;
     let mut fullscreen = false;
+    let mut game: Option<Game> = None;
 
     loop {
         let dt = get_frame_time().min(0.25);
         t += dt;
         acc += dt;
         while acc >= PHYSICS_DT {
-            step(&mut state);
+            step(&mut state, game.as_mut());
             acc -= PHYSICS_DT;
         }
 
@@ -85,22 +87,25 @@ async fn main() {
                 clear_background(col_sea());
                 gfx.draw_title((t * 2.0) as i32 % 2 == 0, &high);
                 if !get_keys_pressed().is_empty() && t > 0.4 {
+                    game = Some(Game::new(BASE_SEED));
                     state = GameState::Playing;
                 }
             }
-            GameState::Playing => {
-                gfx.draw_placeholder_play();
+            GameState::Playing | GameState::Paused | GameState::Map => {
+                if let Some(g) = &game {
+                    render::draw_scene(g, t);
+                    if render::heli_occluded(g) {
+                        // keep the airframe findable behind tall objects
+                        let p = iso_hud_pos(g);
+                        draw_circle_lines(p.x, p.y - 4.0, 9.0, 1.0, WHITE);
+                    }
+                }
                 gfx.draw_frame();
-                gfx.draw_state_hint(state);
-            }
-            GameState::Paused => {
-                gfx.draw_placeholder_play();
-                gfx.draw_frame();
-                gfx.draw_paused();
-            }
-            GameState::Map => {
-                gfx.draw_placeholder_play();
-                gfx.draw_frame();
+                match state {
+                    GameState::Paused => gfx.draw_paused(),
+                    GameState::Map => gfx.draw_placeholder_play(), // real map screen in M6
+                    _ => {}
+                }
             }
             _ => {
                 gfx.draw_placeholder_play();
@@ -117,8 +122,26 @@ fn col_sea() -> Color {
     render::col(1)
 }
 
+fn iso_hud_pos(g: &Game) -> Vec2 {
+    let (sx, sy) = iso::project(g.heli.x, g.heli.y, g.heli.z, g.cam, g.view);
+    vec2(game::PLAY_W * 0.5 + sx, game::PLAY_H * 0.5 + sy)
+}
+
+/// Screen-space control snapshot for the physics tick (spec: Controls).
+fn read_inputs() -> Inputs {
+    let mx = any_of(keys::RIGHT) as i32 as f32 - any_of(keys::LEFT) as i32 as f32;
+    let my = any_of(keys::DOWN) as i32 as f32 - any_of(keys::UP) as i32 as f32;
+    Inputs {
+        mx,
+        my,
+        climb: any_of(keys::CLIMB),
+        descend: any_of(keys::DESCEND),
+        flip: any_pressed(keys::FLIP),
+    }
+}
+
 /// Fixed-rate edge-triggered state transitions from input (spec: Game states).
-fn step(state: &mut GameState) {
+fn step(state: &mut GameState, game: Option<&mut Game>) {
     let cmd = if is_key_pressed(KeyCode::Escape) {
         match *state {
             GameState::Paused => Some(PlayCmd::QuitToTitle),
@@ -136,5 +159,10 @@ fn step(state: &mut GameState) {
     };
     if let Some(c) = cmd {
         *state = state::transition(*state, c);
+    }
+    if *state == GameState::Playing {
+        if let Some(g) = game {
+            g.step(PHYSICS_DT, &read_inputs());
+        }
     }
 }

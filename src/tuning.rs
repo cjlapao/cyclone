@@ -2,6 +2,9 @@
 
 // ---------------------------------------------------------------- identity
 /// Working title — configurable in this one constant (window title + binary name is `cyclone-rescue`).
+/// World layout seed shown on Game Over (spec: acceptance).
+pub const BASE_SEED: u64 = 1984;
+
 pub const GAME_NAME: &str = "Cyclone Rescue";
 
 // ---------------------------------------------------------------- display
