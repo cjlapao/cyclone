@@ -283,3 +283,17 @@ save on close" had no in-app path at all. Added as `menu → Settings`:
   `ChildOf(spawner)`, so spawning a child-of-manual-parent through the
   spawner panics with duplicate `ChildOf` — deferred value texts are
   spawned via plain `commands.spawn((ChildOf(label), …))` instead.
+
+## 0.20 classic `Interaction` lives on every UI node — rows are clickable
+
+While making settings rows mouse-adjustable: Bevy 0.20's
+`ui_focus_system` (bevy_ui `focus.rs` `NodeQuery`) writes
+`Interaction` on *any* visible UI node that has the component — no
+`Button` widget required, and `bevy_ui` inserts it automatically. So
+rows carry just `Interaction + FocusPolicy::Block + MenuButton{id}`
+and the existing `button_visuals` pressed-edge → `Activated` wiring
+gives click handling for free. Clicking a row moves ▶ to it and
+adjusts +1 (spec 01 C2, mouse-only complete for the panel).
+`cyclone_ui::button_visuals` also recolours rows every frame
+(`BG_NORMAL` idle) — rows read as button bars, consistent with the
+main menu.

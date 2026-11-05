@@ -30,7 +30,7 @@ form shown in-game. Worldgen knobs: `assets/worldgen/default.ron`;
 keys/display/vsync/fullscreen: `~/.config/com.cyclone.rescue/settings.ron`
 (`directories`-convention config dir; applies live, see `DECISIONS.md`).
 Display/input options also live in-menu: **Settings** row opens an overlay
-(↑↓ rows · ←→ or Enter adjust · Esc close) — fullscreen, vsync, window
+(↑↓ rows · ←→ or Enter adjust · **click a row** to adjust · Esc close) — fullscreen, vsync, window
 size, camera speed; edits apply the same frame and persist. Volume rows
 arrive with the audio engine (spec 05).
 

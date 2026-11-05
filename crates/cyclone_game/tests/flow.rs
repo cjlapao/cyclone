@@ -246,6 +246,16 @@ fn settings_panel_opens_edits_live_and_closes() {
     // Panel open ⇒ Enter through the background focus list is ignored:
     // still in MainMenu, not New Game.
     assert_eq!(state(&app), AppState::MainMenu);
+    // Mouse-only path: a click on a row writes Activated(B_ROW+row) —
+    // the VSync row is 101 — and adjusts it live.
+    let before = app.world().resource::<Settings>().vsync;
+    app.world_mut().write_message(Activated(101));
+    app.update();
+    assert_ne!(
+        app.world().resource::<Settings>().vsync,
+        before,
+        "clicking the VSync row flips it (mouse-only users)"
+    );
     // Esc closes; the next Enter is the focused button again (New Game).
     tap(&mut app, KeyCode::Escape); // closes the overlay
     // The Down inside the panel did NOT move the background focus (the

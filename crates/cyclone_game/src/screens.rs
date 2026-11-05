@@ -20,6 +20,9 @@ use cyclone_worldgen::{GenError, Progress, Seed, WorldGenConfig, WorldMap, gener
 const B_NEW: u32 = 0;
 const B_PLAY_SEED: u32 = 1;
 const B_SETTINGS: u32 = 3; // overlay panel (spec 01)
+/// Row buttons inside the panel: clicking a row adjusts it +1 (mouse-only
+/// users must be able to use the panel — spec 01 C2).
+const B_ROW: u32 = 100;
 const B_QUIT: u32 = 2;
 const B_RETRY: u32 = 10;
 const B_BACK: u32 = 11;
@@ -351,18 +354,33 @@ fn menu_activate(
 /// every MessageReader sees every message.
 fn settings_toggle(
     mut rx: MessageReader<Activated>,
-    panel: Option<Res<SettingsPanel>>,
+    mut panel: Option<ResMut<SettingsPanel>>,
     menu: Option<Res<MenuScreen>>,
     theme: Res<Theme>,
-    settings: Res<Settings>,
+    mut settings: ResMut<Settings>,
     mut commands: Commands,
+    mut texts: Query<&mut Text>,
 ) {
     for act in rx.read() {
-        if act.0 != B_SETTINGS {
-            continue;
-        }
         if menu.as_ref().is_some_and(|m| m.seed_mode) {
             continue; // typing owns input while the seed field is open
+        }
+        if let Some(idx) = act.0.checked_sub(B_ROW)
+            && let Some(p) = panel.as_mut()
+        {
+            // Mouse click on a row: focus it and adjust +1.
+            let row = idx as usize;
+            if row >= p.rows.len() {
+                continue;
+            }
+            p.row = row;
+            let kind = p.rows[row].2;
+            adjust_row(&mut settings, kind, 1);
+            repaint(p, &settings, &mut texts);
+            continue;
+        }
+        if act.0 != B_SETTINGS {
+            continue;
         }
         if let Some(p) = panel.as_ref() {
             let root = p.root;
@@ -439,6 +457,10 @@ struct SettingsPanel {
     rows: Vec<(Entity, Entity, RowKind)>, // (label, value, kind)
 }
 
+#[expect(
+    deprecated,
+    reason = "classic Interaction until the picking::hover migration (DECISIONS.md)"
+)]
 /// Spawn the overlay (spec 01: panel over the backdrop, applies live).
 /// Resource changes are what `apply_settings` consumes — display changes
 /// hit the window the same frame and persist to disk.
@@ -482,8 +504,19 @@ fn open_settings_panel(commands: &mut Commands, theme: &Theme, settings: &Settin
                     .spawn((
                         Node {
                             justify_content: JustifyContent::SpaceBetween,
+                            align_items: AlignItems::Center,
+                            padding: UiRect::axes(Val::Px(10.0 * s), Val::Px(6.0 * s)),
                             ..default()
                         },
+                        // 0.20: ui_focus_system writes Interaction on any
+                        // UI node that has one — no Button widget needed
+                        // (focus.rs NodeQuery); Block makes the row a hit.
+                        bevy::ui::Interaction::default(),
+                        bevy::ui::FocusPolicy::Block,
+                        MenuButton {
+                            id: B_ROW + i as u32,
+                        },
+                        BackgroundColor(Color::NONE),
                         theme.small(format!("{arrow}{}", row_label(*k))),
                     ))
                     .id();
