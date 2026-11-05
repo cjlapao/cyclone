@@ -24,6 +24,7 @@ Menu → **New Game** → generating screen (live progress) → world preview
 | `R` | reroll a new world (preview) |
 | `C` | copy seed to clipboard (preview) |
 | `Tab` | preview: flat top-down map toggle |
+| `F3` | **dev builds only** (`--features dev`): reveal crates on preview — rotate with Q/E to watch them hide per heading |
 | — | the **Base Island is warm-tinted** gold in every 3D view |
 | `Esc` | back |
 

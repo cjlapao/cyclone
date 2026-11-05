@@ -9,7 +9,12 @@ description = "Cyclone Rescue — the binary. Wires plugins together, nothing el
 default = []
 # Fast local iteration: Bevy as a dylib + asset hot reload + dev tools.
 # Never ship with it on (spec 00).
-dev = ["bevy/dynamic_linking", "bevy/file_watcher", "bevy/bevy_dev_tools"]
+dev = [
+  "bevy/dynamic_linking",
+  "bevy/file_watcher",
+  "bevy/bevy_dev_tools",
+  "cyclone_game/dev",
+]
 
 [dependencies]
 bevy = { workspace = true }

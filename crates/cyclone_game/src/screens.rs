@@ -64,6 +64,12 @@ pub fn register(app: &mut App) {
         (gen_update, gen_activate).run_if(in_state(AppState::Generating)),
     );
 
+    app.init_resource::<PreviewShowProps>();
+    #[cfg(feature = "dev")]
+    app.add_systems(
+        Update,
+        preview_dev_toggle.run_if(in_state(AppState::WorldPreview)),
+    );
     app.add_systems(OnEnter(AppState::WorldPreview), preview_build);
     app.add_systems(OnExit(AppState::WorldPreview), preview_show_props);
     app.add_systems(
@@ -889,6 +895,12 @@ fn gen_activate(
 #[derive(Resource)]
 struct PreviewTopDown(bool);
 
+/// `dev`-feature only: F3 reveals crate positions on the preview so
+/// the spec-02 acceptance check ("each hidden crate disappears behind
+/// a cliff from at least one heading") is actually performable.
+#[derive(Default, Resource)]
+struct PreviewShowProps(bool);
+
 fn preview_build(
     mut commands: Commands,
     world: Option<Res<CurrentWorld>>,
@@ -972,13 +984,23 @@ fn preview_build(
 
 /// Crate positions are hidden on the preview (spec 01) — enforced every
 /// frame so late-spawned props cannot leak, and restored on exit. The
-/// `dev`-feature F3 debug toggle is deferred (not in acceptance).
-fn preview_hide_props(mut vis: Query<&mut Visibility, With<cyclone_render::Crate>>) {
+/// The `dev`-feature F3 toggle (below) is this system's bypass.
+fn preview_hide_props(
+    mut vis: Query<&mut Visibility, With<cyclone_render::Crate>>,
+    #[cfg(feature = "dev")] show: Res<PreviewShowProps>,
+) {
+    #[cfg(feature = "dev")]
+    if show.0 {
+        return; // F3 on: crate_occlusion alone decides visibility.
+    }
+    #[cfg(not(feature = "dev"))]
+    let _ = &mut vis;
     for mut v in &mut vis {
         *v = Visibility::Hidden;
     }
 }
 
+/// Leaving the preview restores crate visibility for the flight.
 fn preview_show_props(mut vis: Query<&mut Visibility, With<cyclone_render::Crate>>) {
     for mut v in &mut vis {
         *v = Visibility::Visible;
@@ -995,6 +1017,32 @@ fn preview_topdown(
     if actions.just_pressed(Action::TopDown) {
         top.0 = !top.0;
         target.pitch_hold = if top.0 { Some(-89.5) } else { None };
+    }
+}
+
+/// F3 (dev builds only) toggles crate reveal on the preview screen;
+/// while revealed, spec-02 occlusion alone drives visibility, so
+/// turning with Q/E demonstrates crates disappearing per heading.
+#[cfg(feature = "dev")]
+fn preview_dev_toggle(
+    mut rx: bevy::ecs::message::MessageReader<bevy::input::keyboard::KeyboardInput>,
+    mut show: ResMut<PreviewShowProps>,
+    mut vis: Query<&mut Visibility, With<cyclone_render::Crate>>,
+) {
+    use bevy::input::keyboard::KeyCode;
+    let hit = rx
+        .read()
+        .any(|e| e.key_code == KeyCode::F3 && e.state == bevy::input::ButtonState::Pressed);
+    if hit {
+        show.0 = !show.0;
+        if show.0 {
+            for mut v in &mut vis {
+                *v = Visibility::Visible;
+            }
+            info!("dev: preview crate reveal ON");
+        } else {
+            info!("dev: preview crate reveal OFF");
+        }
     }
 }
 

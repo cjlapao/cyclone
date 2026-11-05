@@ -304,25 +304,7 @@ fn leftovers(app: &mut App, st: AppState) -> usize {
 fn preview_screen_mouse_and_topdown() {
     let mut app = flow_app_with(false);
     app.init_resource::<Probes>();
-    app.add_systems(
-        Last,
-        |rigs: Query<&cyclone_engine::CameraRig, With<Camera>>,
-         crates: Query<(&cyclone_render::Crate, &Visibility)>,
-         heading: Option<Res<cyclone_engine::CameraHeading>>,
-         mut p: ResMut<Probes>| {
-            if let Ok(r) = rigs.single() {
-                p.rig_pitch = r.pitch;
-            }
-            let h = heading.map_or(0, |h| cyclone_render::gen_heading_of(h.0));
-            p.crates = crates.iter().count();
-            p.hidden = crates
-                .iter()
-                .filter(|(_, v)| **v == Visibility::Hidden)
-                .count();
-            // Crates this heading is allowed to see (occlusion truth).
-            p.want = crates.iter().filter(|(c, _)| !c.hidden_from[h]).count();
-        },
-    );
+    app.add_systems(Last, probe_system);
     wait_for(&mut app, "MainMenu", Duration::from_secs(60), |a| {
         state(a) == AppState::MainMenu && a.world().contains_resource::<CurrentWorld>()
     });
@@ -388,4 +370,80 @@ impl Probes {
             want: r.want,
         }
     }
+}
+
+/// Watches rig pitch + crate visibility sets from the game app.
+fn probe_system(
+    rigs: Query<&cyclone_engine::CameraRig, With<Camera>>,
+    crates: Query<(&cyclone_render::Crate, &Visibility)>,
+    heading: Option<Res<cyclone_engine::CameraHeading>>,
+    mut p: ResMut<Probes>,
+) {
+    if let Ok(r) = rigs.single() {
+        p.rig_pitch = r.pitch;
+    }
+    let h = heading.map_or(0, |h| cyclone_render::gen_heading_of(h.0));
+    p.crates = crates.iter().count();
+    p.hidden = crates
+        .iter()
+        .filter(|(_, v)| **v == Visibility::Hidden)
+        .count();
+    // Crates this heading is allowed to see (occlusion truth).
+    p.want = crates.iter().filter(|(c, _)| !c.hidden_from[h]).count();
+}
+
+/// Spec 02 acceptance box: with the dev toggle ON, crates are
+/// revealable on the preview (default = all hidden), so rotating Q/E
+/// can demonstrate per-heading disappearance. Run with
+/// `cargo test -p cyclone_game --features dev`.
+#[cfg(feature = "dev")]
+#[test]
+fn f3_dev_reveal_on_preview() {
+    use bevy::input::keyboard::KeyCode;
+    let mut app = flow_app_with(false);
+    app.init_resource::<Probes>();
+    app.add_systems(Last, probe_system);
+    wait_for(&mut app, "MainMenu", Duration::from_secs(60), |a| {
+        state(a) == AppState::MainMenu && a.world().contains_resource::<CurrentWorld>()
+    });
+    app.world_mut().write_message(Activated(0));
+    wait_for(&mut app, "preview", Duration::from_secs(60), |a| {
+        state(a) == AppState::WorldPreview
+    });
+    let p = Probes::of(&app);
+    assert!(p.crates > 0 && p.hidden == p.crates, "default: all hidden");
+
+    key_msg(&mut app, KeyCode::F3);
+    let p = Probes::of(&app);
+    // Reveal ON ⇒ crate_occlusion alone decides: exactly the crates
+    // this heading hides stay hidden, the rest are visible — that IS
+    // the spec-02 acceptance demo, provable per heading as you turn.
+    assert_eq!(
+        p.hidden,
+        p.crates - p.want,
+        "revealed set = occlusion truth for the current heading"
+    );
+
+    key_msg(&mut app, KeyCode::F3);
+    let p = Probes::of(&app);
+    assert_eq!(p.hidden, p.crates, "F3 again re-hides for the spec default");
+}
+
+/// Press+release as raw KeyboardInput messages (what InputPlugin would
+/// send with a window; dev toggles read the messages directly).
+fn key_msg(app: &mut App, code: KeyCode) {
+    use bevy::input::ButtonState;
+    use bevy::input::keyboard::KeyboardInput;
+    for state in [ButtonState::Pressed, ButtonState::Released] {
+        app.world_mut().write_message(KeyboardInput {
+            key_code: code,
+            // The dev toggle matches key_code only; logical key unused.
+            logical_key: bevy::input::keyboard::Key::Character("f3".into()),
+            state,
+            text: None,
+            repeat: false,
+            window: Entity::PLACEHOLDER,
+        });
+    }
+    app.update();
 }

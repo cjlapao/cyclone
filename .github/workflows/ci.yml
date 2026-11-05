@@ -30,6 +30,8 @@ jobs:
       - run: cargo fmt --all --check
       - run: cargo clippy --workspace --all-targets -- -D warnings
       - run: cargo test --workspace
+      - name: dev-feature tests (F3 crate reveal)
+        run: cargo test -p cyclone_game --features dev --test flow
       - run: cargo run -p worldgen-cli -- golden
       - name: Dependency direction (spec 00 C2/C3)
         shell: bash

@@ -12,5 +12,11 @@ cyclone_render = { workspace = true }
 cyclone_worldgen = { workspace = true }
 cyclone_ui = { workspace = true }
 
+[features]
+# Developer aids that ship compiled-out: F3 reveals hidden crate
+# positions on the preview screen (spec 02 acceptance box). Enable with
+# `cargo run -p cyclone --features dev`.
+dev = []
+
 [dev-dependencies]
 smol_str = { workspace = true }

@@ -372,3 +372,26 @@ existing color data.
   grep the output for the dependent package instead of trusting the
   exit code; verified with a positive control (worldgen → engine shows
   up, proving the guard can actually see a violation).
+
+## F3 dev reveal shipped — spec 02's acceptance box is now performable (round 25)
+
+Round-22 deferred the preview's dev-only crate reveal; the spec-02
+acceptance list itself demands it ("dev toggle on" to watch crates
+hide per heading), so it now exists under `cyclone_game`'s new `dev`
+feature (bin's existing `dev` feature now implies it — one flag:
+`cargo run -p cyclone --features dev`):
+
+- F3 toggles `PreviewShowProps`; while ON, `preview_hide_props`
+  stands down and **`crate_occlusion` alone** decides visibility —
+  so turning Q/E demonstrates each heading's hidden set live.
+- Test `f3_dev_reveal_on_preview` (feature-gated, CI step added):
+  default all-hidden → F3 → hidden set == exactly `crates - want`
+  for the current heading → F3 → all hidden again.
+
+Input lesson re-earned the hard way: the toggle reads
+**`KeyboardInput` messages**, not `ButtonInput::just_pressed` —
+hand-pressing `ButtonInput` between updates in a headless test does
+not produce `just_pressed` edges (it saw `pressed()` but never the
+edge; message injection is the path every working test uses).
+The `--workspace --features dev` clippy invocation drags the bin's
+bevy dev-tools → alsa; scope to `-p cyclone_game --features dev`.
