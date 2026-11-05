@@ -1,8 +1,10 @@
 //! The whole simulation in one pure, testable, macroquad-free struct.
 //! main.rs feeds it input at a fixed 60 Hz; render/hud/map read it.
 
+use crate::cyclone::Cyclone;
 use crate::heli::Heli;
 use crate::iso::View;
+use crate::planes::Planes;
 use crate::tuning::*;
 use crate::world::*;
 use crate::worldgen::*;
@@ -61,6 +63,8 @@ pub struct Game {
     // winch + objective bookkeeping
     pub winch_t: f32,
     pub winch_target: Option<(bool, usize)>, // (is_crate, index)
+    pub storm: Cyclone,
+    pub planes: Planes,
     pub delivered_crates: u32,
     pub delivered_refs: u32,
     score_f: f32,
@@ -103,6 +107,14 @@ impl Game {
             rng: Rng(seed ^ round as u64),
             winch_t: 0.0,
             winch_target: None,
+            storm: {
+                let mut sri = Rng(seed ^ (round as u64).wrapping_mul(0xD1B5_4A32));
+                Cyclone::new(&mut sri, CYCLONE_SPEEDUP.powf((round - 1) as f32))
+            },
+            planes: {
+                let mut pri = Rng(seed ^ (round as u64).wrapping_mul(0x85EB_CA6B));
+                Planes::new(&mut pri)
+            },
             delivered_crates: 0,
             delivered_refs: 0,
             score_f: 0.0,
@@ -168,6 +180,26 @@ impl Game {
                     Phase::Flying
                 };
             }
+        }
+
+        // --- hazards: storm drift, eye, planes ---
+        self.storm.step(dt, &mut self.rng);
+        let (fx, fy) = self
+            .storm
+            .force(self.heli.x, self.heli.y, self.heli.landed, &mut self.rng);
+        if fx != 0.0 || fy != 0.0 {
+            self.heli.x = (self.heli.x + fx * dt).clamp(0.0, WORLD_UNITS);
+            self.heli.y = (self.heli.y + fy * dt).clamp(0.0, WORLD_UNITS);
+            if self.heli.landed && self.world.h_at(self.heli.x, self.heli.y) == 0 {
+                self.heli.dead = true; // dragged off the island into the sea
+            }
+        }
+        if self.storm.crashes(self.heli.x, self.heli.y) {
+            self.heli.dead = true;
+        }
+        self.planes.step(dt, &self.world, &mut self.rng);
+        if self.planes.hits(self.heli.x, self.heli.y, self.heli.z) {
+            self.heli.dead = true;
         }
 
         // a dead airframe triggers the life loop

@@ -3,10 +3,12 @@
 // Milestones 2..7 wire these up one by one; remove this allow in the polish pass.
 #![allow(dead_code)]
 
+mod cyclone;
 mod font;
 mod game;
 mod heli;
 mod iso;
+mod planes;
 mod render;
 mod state;
 mod tuning;

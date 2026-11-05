@@ -398,6 +398,126 @@ pub fn draw_scene(g: &Game, t: f32) {
         }
     }
 
+    // cyclone: translucent disc + iso spiral arms
+    {
+        let (sx, sy) = project(g.storm.x, g.storm.y, 0.0, g.cam, view);
+        let p = vec2(pcx + sx, pcy + sy);
+        let r_px = CYCLONE_RADIUS * 0.9;
+        draw_ellipse(
+            p.x,
+            p.y,
+            r_px * 1.414,
+            r_px * 0.707,
+            0.0,
+            Color {
+                a: 0.22,
+                r: 0.12,
+                g: 0.16,
+                b: 0.35,
+            },
+        );
+        let steps = 52;
+        for i in 0..steps {
+            let f = i as f32 / steps as f32;
+            let arm = (g.storm.phase * 1.6 + f * 7.5) % (std::f32::consts::TAU);
+            for k in 0..3 {
+                let a = arm + k as f32 * std::f32::consts::TAU / 3.0;
+                let r = CYCLONE_INNER + (CYCLONE_RADIUS - CYCLONE_INNER) * f;
+                let (wx, wy) = (g.storm.x + a.cos() * r, g.storm.y + a.sin() * r);
+                let (ax, ay) = project(wx, wy, 1.0, g.cam, view);
+                let shade = 0.35 + 0.4 * (1.0 - f);
+                draw_rectangle(
+                    pcx + ax,
+                    pcy + ay,
+                    1.0,
+                    1.0,
+                    Color {
+                        r: 0.75 * shade,
+                        g: 0.8 * shade,
+                        b: 0.95,
+                        a: 0.9,
+                    },
+                );
+            }
+        }
+        draw_ellipse(
+            p.x,
+            p.y,
+            CYCLONE_INNER * 2.4,
+            CYCLONE_INNER * 1.2,
+            0.0,
+            Color {
+                a: 0.55,
+                r: 0.05,
+                g: 0.06,
+                b: 0.15,
+            },
+        );
+    }
+
+    // plane: warning lane, then the aircraft and its sea shadow
+    match g.planes.state {
+        crate::planes::PlaneState::Warning => {
+            if !((t * 6.0) as u32).is_multiple_of(2) {
+                let mut d = 0.0;
+                while d < WORLD_UNITS {
+                    let (wx, wy) = (
+                        g.planes.x + g.planes.dir.0 * d,
+                        g.planes.y + g.planes.dir.1 * d,
+                    );
+                    let (sx, sy) = project(wx, wy, 0.0, g.cam, view);
+                    if sx > -8.0 && sx < PLAY_W + 8.0 && sy > -8.0 && sy < PLAY_H + 8.0 {
+                        draw_rectangle(pcx + sx, pcy + sy, 2.0, 1.0, col(12));
+                    }
+                    d += 3.0 * TILE;
+                }
+                gfx_hud_warn(t);
+            }
+        }
+        crate::planes::PlaneState::Flying => {
+            let (sx0, sy0) = project(g.planes.x, g.planes.y, 0.0, g.cam, view);
+            diamond(
+                vec2(pcx + sx0, pcy + sy0),
+                7.0,
+                3.5,
+                Color {
+                    a: 0.4,
+                    r: 0.0,
+                    g: 0.0,
+                    b: 0.15,
+                },
+            );
+            let (sx, sy) = project(g.planes.x, g.planes.y, g.planes.alt, g.cam, view);
+            let p = vec2(pcx + sx, pcy + sy);
+            let (dx, dy) = project(
+                g.planes.x + g.planes.dir.0 * TILE,
+                g.planes.y + g.planes.dir.1 * TILE,
+                g.planes.alt,
+                g.cam,
+                view,
+            );
+            let nose = vec2(dx - sx, dy - sy);
+            let l = (nose.x * nose.x + nose.y * nose.y).sqrt().max(1.0);
+            let nx = nose.x / l;
+            let ny = nose.y / l;
+            ln(vec2(p.x - nx * 8.0, p.y - ny * 8.0), p, 2.0, col(0));
+            ln(
+                vec2(p.x - nx * 3.0 - ny * 4.0, p.y - ny * 3.0 + nx * 2.0),
+                vec2(p.x - nx * 3.0 + ny * 4.0, p.y - ny * 3.0 - nx * 2.0),
+                1.0,
+                col(9),
+            );
+            draw_rectangle(
+                p.x + nx * 6.0 - 1.0,
+                p.y + ny * 6.0 - 1.0,
+                2.0,
+                2.0,
+                col(12),
+            );
+        }
+        crate::planes::PlaneState::Idle => {}
+    }
+
     // helicopter shadow + airframe (spec: above tiles, occluded-outline next round)
     let gh = g.world.h_at(g.heli.x, g.heli.y) as f32;
     let (sx, sy) = project(g.heli.x, g.heli.y, gh, g.cam, view);
@@ -484,6 +604,14 @@ fn draw_box(p: Vec2, hw: f32, hh: f32, top: Color, front: Color, side: Color) {
         vec2(p.x, p.y + hh + h),
         side,
     );
+}
+
+fn gfx_hud_warn(_t: f32) {
+    // "PLANE INBOUND" — full HUD copy arrives in M6; blink marker now
+    let blink = ((_t * 6.0) as u32).is_multiple_of(2);
+    if blink {
+        draw_rectangle(4.0, 4.0, 3.0, 3.0, col(12));
+    }
 }
 
 fn draw_obj(p: Vec2, o: &crate::world::Obj, _t: f32) {
