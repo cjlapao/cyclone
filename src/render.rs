@@ -200,6 +200,18 @@ fn diamond(p: Vec2, hw: f32, hh: f32, col: Color) {
     );
 }
 
+/// Pack a (flipped) tile coord into the u32 id slot of a depth item.
+fn pack_tile(ftx: i32, fty: i32) -> u32 {
+    ((fty as u32) << 16) | ((ftx as u32) & 0xFFFF)
+}
+
+fn unpack_tile(id: u32) -> (i32, i32) {
+    (
+        (id & 0xFFFF) as u16 as i32,
+        ((id >> 16) & 0xFFFF) as u16 as i32,
+    )
+}
+
 pub fn draw_scene(g: &Game, t: f32) {
     // brief camera shake on crash (visual only; sim untouched)
     let shake = if g.phase == crate::game::Phase::Crashed {
@@ -267,7 +279,7 @@ pub fn draw_scene(g: &Game, t: f32) {
             if fh(ftx, fty) == 0 {
                 continue;
             }
-            items.push((ftx + fty, 0, (fty << 16) as u32 | ftx as u32));
+            items.push((ftx + fty, 0, pack_tile(ftx, fty)));
         }
     }
     let push_far = |items: &mut Vec<(i32, u8, u32)>, x: f32, y: f32, sub: u8, id: u32| {
@@ -293,8 +305,7 @@ pub fn draw_scene(g: &Game, t: f32) {
     for (d, sub, id) in items {
         match sub {
             0 => {
-                let ftx = (id << 16) as i16 as i32;
-                let fty = (id >> 16) as i32;
+                let (ftx, fty) = unpack_tile(id);
                 let _ = d;
                 let h = fh(ftx, fty);
                 let (rx, ry) = (
@@ -700,5 +711,21 @@ pub fn heli_occluded(g: &Game) -> bool {
 impl Default for Gfx {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{pack_tile, unpack_tile};
+
+    #[test]
+    fn tile_id_roundtrip_covers_world() {
+        // Regression: an early `(id << 16) as i16` decode returned 0 for every
+        // tile coord, so all land culled off-screen and only objects drew.
+        for fty in [0i32, 1, 47, 48, 60, 95] {
+            for ftx in [0i32, 1, 32, 48, 60, 95] {
+                assert_eq!(unpack_tile(pack_tile(ftx, fty)), (ftx, fty));
+            }
+        }
     }
 }
