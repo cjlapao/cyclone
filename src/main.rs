@@ -4,6 +4,8 @@
 #![allow(dead_code)]
 
 mod font;
+mod game;
+mod heli;
 mod iso;
 mod render;
 mod state;
