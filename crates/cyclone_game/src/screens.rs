@@ -703,7 +703,10 @@ fn preview_keys(
 // ------------------------------------------------------------- In game ----
 
 fn ingame_build(
+    mut commands: Commands,
     world: Res<CurrentWorld>,
+    seed: Res<GameSeed>,
+    theme: Res<Theme>,
     mut rig_target: ResMut<RigTarget>,
     mut rigs: Query<&mut CameraRig>,
 ) {
@@ -716,6 +719,28 @@ fn ingame_build(
         rig.pitch = -25.0;
         rig.set_fov(52.0);
     }
+
+    // Corner hints until spec 05's HUD exists (free camera is new muscle).
+    let s = theme.scale;
+    commands
+        .spawn((
+            Node {
+                position_type: PositionType::Absolute,
+                left: Val::Px(28.0 * s),
+                bottom: Val::Px(24.0 * s),
+                flex_direction: FlexDirection::Column,
+                align_items: AlignItems::Start,
+                row_gap: Val::Px(4.0 * s),
+                ..default()
+            },
+            bevy::ui::FocusPolicy::Pass,
+            DespawnOnExit(AppState::InGame),
+        ))
+        .with_children(|col| {
+            col.spawn(theme.small("WASD fly · Space/Shift up · Ctrl boost".to_string()));
+            col.spawn(theme.small("Hold RMB + move to aim · Wheel zoom".to_string()));
+            col.spawn(theme.small(format!("Seed {} · Q/E snap view · Esc menu", seed.0)));
+        });
 }
 
 fn ingame_keys(actions: Res<Actions>, mut next: ResMut<NextState<AppState>>) {

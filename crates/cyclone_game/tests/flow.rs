@@ -123,6 +123,11 @@ fn full_flow_offscreen() {
         state(a) == AppState::InGame
     });
     assert_eq!(app.world().resource::<CurrentWorld>().0.seed, preview.seed);
+    let mut texts = app.world_mut().query::<&Text>();
+    assert!(
+        texts.iter(app.world()).count() >= 3,
+        "corner control-hints are on screen while flying"
+    );
 
     // Esc (injected) → MainMenu with a fresh small background.
     wait_for(&mut app, "back to MainMenu", Duration::from_secs(60), |a| {
