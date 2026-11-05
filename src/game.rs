@@ -271,10 +271,9 @@ impl Game {
         if let Some((is_crate, idx)) = self.winch_target {
             self.winch_t -= dt;
             let still = match is_crate {
-                true => self
-                    .crates
-                    .get(idx)
-                    .is_some_and(|c| self.load_dist(c.x, c.y) <= WINCH_RADIUS),
+                true => self.crates.get(idx).is_some_and(|c| {
+                    c.hidden_by != Some(self.view) && self.load_dist(c.x, c.y) <= WINCH_RADIUS
+                }),
                 false => self
                     .refugees
                     .get(idx)
@@ -304,10 +303,9 @@ impl Game {
         } else if inp.winch && low {
             let cap_c = self.carried_crates < NUM_CRATES;
             let cap_r = self.carried_refs < 8;
-            let ci = self
-                .crates
-                .iter()
-                .position(|c| cap_c && self.load_dist(c.x, c.y) <= WINCH_RADIUS);
+            let ci = self.crates.iter().position(|c| {
+                cap_c && c.hidden_by != Some(self.view) && self.load_dist(c.x, c.y) <= WINCH_RADIUS
+            });
             let ri = self
                 .refugees
                 .iter()

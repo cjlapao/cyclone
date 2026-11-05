@@ -41,7 +41,7 @@ pub const MAX_ALT: f32 = 8.0;
 /// Ground speed above this (units/s) makes touchdown a crash.
 pub const LAND_MAX_SPEED: f32 = 0.9 * TILE;
 /// Winch radius in tiles and max altitude for winching.
-pub const WINCH_RADIUS: f32 = 0.5 * TILE;
+pub const WINCH_RADIUS: f32 = TILE;
 pub const WINCH_MAX_ALT: f32 = 2.0;
 /// Seconds a crate/refugee must stay in winch range before it lifts off.
 pub const WINCH_LIFT_TIME: f32 = 0.5;

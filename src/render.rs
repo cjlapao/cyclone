@@ -298,7 +298,7 @@ pub fn draw_scene(g: &Game, t: f32) {
         push_far(&mut items, c.x, c.y, 2, i as u32);
     }
     for (i, rf) in g.refugees.iter().enumerate() {
-        push_far(&mut items, rf.x, rf.y, 2, i as u32);
+        push_far(&mut items, rf.x, rf.y, 3, i as u32);
     }
     items.sort_unstable();
 
@@ -385,9 +385,8 @@ pub fn draw_scene(g: &Game, t: f32) {
                 let (sx, sy) = project(o.x, o.y, o.top(), g.cam, view);
                 draw_obj(vec2(pcx + sx, pcy + sy), o, t);
             }
-            2 => {
-                if id as usize >= g.crates.len() {
-                    let rf = &g.refugees[id as usize - g.crates.len()];
+            3 => {
+                if let Some(rf) = g.refugees.get(id as usize) {
                     let (sx, sy) =
                         project(rf.x, rf.y, g.world.h_at(rf.x, rf.y) as f32, g.cam, view);
                     let p = vec2(pcx + sx, pcy + sy);
@@ -395,9 +394,11 @@ pub fn draw_scene(g: &Game, t: f32) {
                     draw_rectangle(p.x - 1.0, p.y - 4.0, 2.0, 4.0, col(12)); // body
                     let wob = ((t * 5.0) as i32 % 2) as f32;
                     draw_rectangle(p.x + 1.0, p.y - 5.0 - wob, 1.0, 2.0, col(12));
-                // waving arm
-                } else {
-                    let c = &g.crates[id as usize];
+                    // waving arm
+                }
+            }
+            2 => {
+                if let Some(c) = g.crates.get(id as usize) {
                     let gh = g.world.h_at(c.x, c.y) as f32;
                     let (sx, sy) = project(c.x, c.y, gh, g.cam, view);
                     let p = vec2(pcx + sx, pcy + sy - 3.0);
