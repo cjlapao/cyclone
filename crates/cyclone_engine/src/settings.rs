@@ -179,3 +179,40 @@ impl Plugin for SettingsPlugin {
         app.add_systems(Update, crate::apply_settings);
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Spec 00 acceptance: settings survive a restart (exact RON round
+    /// trip), and a deleted or corrupt file restores defaults without a
+    /// crash — the load() arms are `Err(text) => unwrap_or_default()`.
+    #[test]
+    fn settings_ron_round_trip_is_lossless() {
+        let s = Settings {
+            fullscreen: true,
+            vsync: false,
+            window_width: 2560,
+            window_height: 1440,
+            ..default()
+        };
+        let text = ron::ser::to_string_pretty(&s, ron::ser::PrettyConfig::default()).unwrap();
+        let back: Settings = ron::from_str(&text).unwrap();
+        assert_eq!(back, s);
+        assert_eq!(back.keys, s.keys);
+    }
+
+    #[test]
+    fn partial_and_corrupt_files_default_without_panic() {
+        // Hand-edited file with one field: everything else is default.
+        let partial: Settings = ron::from_str("(window_width: 999)").unwrap();
+        assert_eq!(partial.window_width, 999);
+        assert_eq!(partial.window_height, Settings::default().window_height);
+        // Garbage: load() maps the parse error to defaults, never panics.
+        assert!(ron::from_str::<Settings>("nonsense {{{").is_err());
+        // Keymap with an unknown action name still parses (unknown keys
+        // bind to nothing rather than error).
+        let km: Settings = ron::from_str("(keys:(up:[\"NoSuchKey\"]))").unwrap();
+        assert_eq!(km.keys.up, vec!["NoSuchKey".to_string()]);
+    }
+}
