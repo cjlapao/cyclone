@@ -29,8 +29,8 @@ pub struct GameConfig(pub WorldGenConfig);
 
 /// Seed queued for the next `Generating` run.
 #[derive(Resource)]
-struct PendingGen {
-    seed: Seed,
+pub struct PendingGen {
+    pub seed: Seed,
 }
 
 pub fn register(app: &mut App) {

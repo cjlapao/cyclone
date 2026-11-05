@@ -2668,6 +2668,7 @@ dependencies = [
  "cyclone_render",
  "cyclone_ui",
  "cyclone_worldgen",
+ "smol_str",
 ]
 
 [[package]]

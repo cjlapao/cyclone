@@ -11,3 +11,6 @@ cyclone_engine = { workspace = true }
 cyclone_render = { workspace = true }
 cyclone_worldgen = { workspace = true }
 cyclone_ui = { workspace = true }
+
+[dev-dependencies]
+smol_str = { workspace = true }

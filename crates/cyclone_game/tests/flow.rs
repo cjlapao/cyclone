@@ -135,6 +135,64 @@ fn full_flow_offscreen() {
     assert_eq!(state(&app), AppState::MainMenu);
 }
 
+/// Spec 02 acceptance: a seed typed/copied from another machine must show
+/// the identical world. Drives the *real* typing path: Play Seed button →
+/// per-character KeyboardInput messages → Enter.
+#[test]
+fn play_seed_shows_identical_world() {
+    use bevy::input::ButtonState;
+    use bevy::input::keyboard::{Key, KeyboardInput};
+    use cyclone_worldgen::{ProgressNoop, Seed, generate};
+    use smol_str::SmolStr;
+
+    let mut app = flow_app();
+    wait_for(&mut app, "MainMenu", Duration::from_secs(30), |a| {
+        state(a) == AppState::MainMenu && a.world().contains_resource::<CurrentWorld>()
+    });
+    // GameConfig holds the full-round config the app will generate with
+    // (WorldConfig is the menu backdrop's until generation completes).
+    let seed: Seed = "0000-0000-00042".parse().unwrap();
+    let want =
+        generate(seed, 1, &WorldGenConfig::default(), &ProgressNoop).expect("direct generate");
+    let typed = seed.to_string(); // e.g. "0000-0000-00042"
+
+    app.world_mut().write_message(cyclone_ui::Activated(1)); // Play Seed
+    app.update();
+    for c in typed.chars() {
+        app.world_mut().write_message(KeyboardInput {
+            key_code: KeyCode::KeyA, // unused by menu_seed_input
+            logical_key: Key::Character(SmolStr::new(c.to_string())),
+            state: ButtonState::Pressed,
+            text: Some(SmolStr::new(c.to_string())),
+            repeat: false,
+            window: Entity::PLACEHOLDER,
+        });
+        app.update();
+    }
+    app.world_mut().write_message(KeyboardInput {
+        key_code: KeyCode::Enter,
+        logical_key: Key::Enter,
+        state: ButtonState::Pressed,
+        text: Some(SmolStr::new("\r")),
+        repeat: false,
+        window: Entity::PLACEHOLDER,
+    });
+    wait_for(
+        &mut app,
+        "WorldPreview via typed seed",
+        Duration::from_secs(60),
+        |a| state(a) == AppState::WorldPreview,
+    );
+    let got = app.world().resource::<CurrentWorld>().0.clone();
+    assert_eq!(got.seed, want.seed);
+    // On completion the app republishes its real config to WorldConfig.
+    let shown = app.world().resource::<WorldConfig>().0.clone();
+    assert_eq!(shown.size, WorldGenConfig::default().size);
+    assert_eq!(got.height, want.height, "terrain must be bit-identical");
+    assert_eq!(got.crates, want.crates, "crate placement must be identical");
+    assert_eq!(got.helipads, want.helipads);
+}
+
 /// The menu backdrop must generate for any seed — the menu hangs without
 /// a world otherwise (this regression killed the flow test once already).
 #[test]

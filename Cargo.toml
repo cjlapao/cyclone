@@ -75,6 +75,7 @@ image = { version = "0.25", default-features = false, features = ["png"] }
 rayon = "1"
 blake3 = "1"
 anyhow = "1"
+smol_str = "0.2"
 criterion = "0.7"
 imageproc = "0.26"
 ab_glyph = "0.2"
