@@ -39,6 +39,34 @@ pub struct ActionBindings {
     by_action: Vec<(Action, Vec<KeyCode>, Vec<GamepadButton>)>,
 }
 
+/// Spec 01 acceptance: every action also has a gamepad button, so the
+/// game and menus work gamepad-only. Stick axes (view-relative fly, menu
+/// scroll speed) arrive with the helicopter in spec 03; buttons cover
+/// everything now.
+fn gamepad_buttons(a: Action) -> Vec<GamepadButton> {
+    use GamepadButton::*;
+    match a {
+        Action::Up => vec![DPadUp],
+        Action::Down => vec![DPadDown],
+        Action::Left => vec![DPadLeft],
+        Action::Right => vec![DPadRight],
+        Action::Confirm => vec![South],
+        Action::Back => vec![East],
+        // bevy 0.20's GamepadButton has no *Trigger2/stick-press aliases;
+        // dual roles are per-state safe (each screen reads its own subset).
+        Action::RotateCamLeft => vec![West], // preview reads rotate, not CopySeed
+        Action::RotateCamRight => vec![North], // reroll-on-N also rotates: invisible
+        Action::Climb => vec![RightTrigger], // R1 / RB hold
+        Action::Descend => vec![LeftTrigger], // L1 / LB hold
+        Action::Map => vec![Select],
+        Action::Pause => vec![Start],
+        Action::Reroll => vec![North],
+        Action::CopySeed => vec![RightThumb],
+        Action::TopDown => vec![Mode],
+        Action::Boost => vec![LeftThumb], // stick press
+    }
+}
+
 impl ActionBindings {
     fn rebuild(settings: &Settings) -> Self {
         let map = settings.keymap();
@@ -46,7 +74,7 @@ impl ActionBindings {
         let kb = |pairs: &[(Action, &str)]| {
             pairs
                 .iter()
-                .map(|(a, n)| (*a, get(n), Vec::new()))
+                .map(|(a, n)| (*a, get(n), gamepad_buttons(*a)))
                 .collect()
         };
         Self {
@@ -152,5 +180,49 @@ impl Plugin for ActionsPlugin {
         app.add_systems(Update, rebuild_bindings);
         // Screens read `Actions` this frame, so refresh first.
         app.add_systems(First, update_actions);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Spec 01 C2 (gamepad only): no action may lack a gamepad fallback.
+    #[test]
+    fn every_action_has_a_gamepad_button() {
+        let all = [
+            Action::Up,
+            Action::Down,
+            Action::Left,
+            Action::Right,
+            Action::Confirm,
+            Action::Back,
+            Action::RotateCamLeft,
+            Action::RotateCamRight,
+            Action::Climb,
+            Action::Descend,
+            Action::Map,
+            Action::Pause,
+            Action::Reroll,
+            Action::CopySeed,
+            Action::TopDown,
+            Action::Boost,
+        ];
+        for a in all {
+            assert!(!gamepad_buttons(a).is_empty(), "no gamepad for {a:?}");
+        }
+    }
+
+    #[test]
+    fn rebuild_keeps_keyboard_and_gamepad_together() {
+        let b = ActionBindings::rebuild(&Settings::default());
+        let count = |a: Action| {
+            b.by_action
+                .iter()
+                .find(|(x, _, _)| *x == a)
+                .map(|(_, k, g)| (k.len(), g.len()))
+        };
+        assert_eq!(count(Action::Confirm).unwrap().1, 1); // South
+        assert_eq!(count(Action::Up).unwrap().0, 2); // ArrowUp + KeyW
     }
 }
