@@ -8,10 +8,10 @@ use std::time::{Duration, Instant};
 
 use bevy::asset::{AssetApp, AssetPlugin};
 use bevy::prelude::*;
-use cyclone_engine::{AppState, CurrentWorld, WorldConfig};
+use cyclone_engine::{AppState, CurrentWorld, Settings, WorldConfig};
 use cyclone_game::CycloneGamePlugin;
 use cyclone_render::WorldBuilderPlugin;
-use cyclone_ui::CycloneUiPlugin;
+use cyclone_ui::{CycloneUiPlugin, MenuFocus};
 use cyclone_worldgen::WorldGenConfig;
 
 #[derive(Resource, Default)]
@@ -217,6 +217,56 @@ fn menu_backdrop_always_generates() {
         let cfg = cyclone_game::screens::menu_bg_config();
         generate(seed, 1, &cfg, &ProgressNoop).unwrap_or_else(|e| panic!("seed {seed}: {e}"));
     }
+}
+
+#[test]
+fn settings_panel_opens_edits_live_and_closes() {
+    let mut app = flow_app();
+    wait_for(&mut app, "menu", Duration::from_secs(10), |a| {
+        state(a) == AppState::MainMenu && a.world().contains_resource::<MenuFocus>()
+    });
+    // The Settings button joined the keyboard focus list (4 buttons).
+    assert_eq!(app.world().resource::<MenuFocus>().buttons.len(), 4);
+    use cyclone_ui::Activated;
+    app.world_mut().write_message(Activated(3)); // open
+    app.update();
+    app.update();
+    // The opening Enter must not also flip row 0 (swallow frame).
+    let fs_before = app.world().resource::<Settings>().fullscreen;
+    assert!(!fs_before, "fresh panel has not edited anything");
+    // Navigate to VSync (row 1) and flip it — live, in the resource.
+    tap(&mut app, KeyCode::ArrowDown);
+    let before = app.world().resource::<Settings>().vsync;
+    tap(&mut app, KeyCode::Enter);
+    assert_ne!(
+        app.world().resource::<Settings>().vsync,
+        before,
+        "Enter on the VSync row flips it live"
+    );
+    // Panel open ⇒ Enter through the background focus list is ignored:
+    // still in MainMenu, not New Game.
+    assert_eq!(state(&app), AppState::MainMenu);
+    // Esc closes; the next Enter is the focused button again (New Game).
+    tap(&mut app, KeyCode::Escape); // closes the overlay
+    // The Down inside the panel did NOT move the background focus (the
+    // OverlayActive marker gates focus_nav while open), so focus is
+    // still on New Game: Enter leaves the menu.
+    tap(&mut app, KeyCode::Enter);
+    wait_for(&mut app, "left menu", Duration::from_secs(60), |a| {
+        state(a) != AppState::MainMenu
+    });
+}
+
+/// Press, one frame, release, one frame — imperative key tap.
+fn tap(app: &mut App, key: KeyCode) {
+    app.world_mut()
+        .resource_mut::<ButtonInput<KeyCode>>()
+        .press(key);
+    app.update();
+    app.world_mut()
+        .resource_mut::<ButtonInput<KeyCode>>()
+        .release(key);
+    app.update();
 }
 
 /// Entities still alive that were scheduled to die on exiting `st`.

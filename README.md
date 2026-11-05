@@ -29,6 +29,10 @@ Seed formats accepted in “Play Seed…”: 16 hex digits or the 13-char dashed
 form shown in-game. Worldgen knobs: `assets/worldgen/default.ron`;
 keys/display/vsync/fullscreen: `~/.config/com.cyclone.rescue/settings.ron`
 (`directories`-convention config dir; applies live, see `DECISIONS.md`).
+Display/input options also live in-menu: **Settings** row opens an overlay
+(↑↓ rows · ←→ or Enter adjust · Esc close) — fullscreen, vsync, window
+size, camera speed; edits apply the same frame and persist. Volume rows
+arrive with the audio engine (spec 05).
 
 ## Judging the generator (spec 02 tooling)
 

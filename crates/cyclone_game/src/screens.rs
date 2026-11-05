@@ -10,15 +10,16 @@ use bevy::input::keyboard::{Key, KeyboardInput};
 use bevy::prelude::*;
 use bevy::tasks::AsyncComputeTaskPool;
 use cyclone_engine::{
-    Action, Actions, AppState, CameraRig, CurrentWorld, GameSeed, RigTarget, WorldConfig,
+    Action, Actions, AppState, CameraRig, CurrentWorld, GameSeed, RigTarget, Settings, WorldConfig,
     random_seed,
 };
-use cyclone_ui::{Activated, MenuButton, MenuFocus, Theme, menu_button};
+use cyclone_ui::{Activated, MenuButton, MenuFocus, OverlayActive, Theme, menu_button};
 use cyclone_worldgen::{GenError, Progress, Seed, WorldGenConfig, WorldMap, generate};
 
 /// Button ids (the ui crate is game-agnostic; screens own the meaning).
 const B_NEW: u32 = 0;
 const B_PLAY_SEED: u32 = 1;
+const B_SETTINGS: u32 = 3; // overlay panel (spec 01)
 const B_QUIT: u32 = 2;
 const B_RETRY: u32 = 10;
 const B_BACK: u32 = 11;
@@ -41,9 +42,13 @@ pub fn register(app: &mut App) {
     app.add_systems(OnEnter(AppState::MainMenu), menu_build);
     app.add_systems(
         Update,
-        (menu_seed_input, menu_activate).run_if(in_state(AppState::MainMenu)),
+        (menu_seed_input, menu_activate)
+            .chain()
+            .run_if(in_state(AppState::MainMenu)),
     );
+    app.add_systems(Update, settings_toggle.run_if(in_state(AppState::MainMenu)));
     app.add_systems(OnExit(AppState::MainMenu), menu_cleanup);
+    app.add_systems(Update, settings_nav.run_if(in_state(AppState::MainMenu)));
 
     app.add_systems(OnEnter(AppState::Generating), gen_start);
     app.add_systems(
@@ -183,6 +188,7 @@ fn menu_build(
                 });
                 buttons.push(menu_button(col, &theme, B_NEW, "New Game"));
                 buttons.push(menu_button(col, &theme, B_PLAY_SEED, "Play Seed…"));
+                buttons.push(menu_button(col, &theme, B_SETTINGS, "Settings"));
                 buttons.push(menu_button(col, &theme, B_QUIT, "Quit"));
                 seed_label = col
                     .spawn((
@@ -227,6 +233,8 @@ fn menu_build(
 
 fn menu_cleanup(mut commands: Commands) {
     commands.remove_resource::<MenuScreen>();
+    commands.remove_resource::<SettingsPanel>();
+    commands.remove_resource::<OverlayActive>();
     commands.insert_resource(MenuFocus::default());
 }
 
@@ -332,6 +340,228 @@ fn menu_activate(
                 exit.write(bevy::app::AppExit::Success);
             }
             _ => {}
+        }
+    }
+}
+
+// ------------------------------------------------------------ Settings ----
+
+/// Opens/closes the settings overlay. A separate system from
+/// `menu_activate` (clippy's arg budget) with its own Activated cursor —
+/// every MessageReader sees every message.
+fn settings_toggle(
+    mut rx: MessageReader<Activated>,
+    panel: Option<Res<SettingsPanel>>,
+    menu: Option<Res<MenuScreen>>,
+    theme: Res<Theme>,
+    settings: Res<Settings>,
+    mut commands: Commands,
+) {
+    for act in rx.read() {
+        if act.0 != B_SETTINGS {
+            continue;
+        }
+        if menu.as_ref().is_some_and(|m| m.seed_mode) {
+            continue; // typing owns input while the seed field is open
+        }
+        if let Some(p) = panel.as_ref() {
+            let root = p.root;
+            commands.entity(root).try_despawn();
+            commands.remove_resource::<SettingsPanel>();
+            commands.remove_resource::<OverlayActive>();
+        } else {
+            open_settings_panel(&mut commands, &theme, &settings);
+        }
+    }
+}
+
+/// Row kinds the panel edits (volumes arrive with the audio engine,
+/// spec 05 — see DECISIONS.md: no UI that lies about doing something).
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub enum RowKind {
+    Fullscreen,
+    Vsync,
+    WindowSize,
+    CamSpeed,
+}
+
+const WINDOW_SIZES: [(u32, u32); 4] = [(1280, 800), (1600, 900), (1920, 1080), (2560, 1440)];
+
+/// Pure edit for one row; `dir` −1 / +1 (Confirm = +1 for toggles).
+pub fn adjust_row(s: &mut Settings, kind: RowKind, dir: i8) {
+    match kind {
+        RowKind::Fullscreen => s.fullscreen = !s.fullscreen,
+        RowKind::Vsync => s.vsync = !s.vsync,
+        RowKind::WindowSize => {
+            let cur = WINDOW_SIZES
+                .iter()
+                .position(|(w, h)| *w == s.window_width && *h == s.window_height)
+                .unwrap_or(0);
+            let n = WINDOW_SIZES.len() as i32;
+            let next = (cur as i32 + dir.signum() as i32 + n) % n;
+            (s.window_width, s.window_height) = WINDOW_SIZES[next as usize];
+        }
+        RowKind::CamSpeed => {
+            s.camera_rotation_speed = (s.camera_rotation_speed + 0.2 * dir as f32).clamp(0.2, 3.0);
+        }
+    }
+}
+
+fn row_value(s: &Settings, kind: RowKind) -> String {
+    match kind {
+        RowKind::Fullscreen => on_off(s.fullscreen),
+        RowKind::Vsync => on_off(s.vsync),
+        RowKind::WindowSize => format!("{} × {}", s.window_width, s.window_height),
+        RowKind::CamSpeed => format!("{:.1}", s.camera_rotation_speed),
+    }
+}
+
+fn row_label(kind: RowKind) -> &'static str {
+    match kind {
+        RowKind::Fullscreen => "Fullscreen",
+        RowKind::Vsync => "VSync",
+        RowKind::WindowSize => "Window size",
+        RowKind::CamSpeed => "Camera speed",
+    }
+}
+
+fn on_off(b: bool) -> String {
+    if b { "ON".into() } else { "OFF".into() }
+}
+
+#[derive(Resource)]
+struct SettingsPanel {
+    row: usize,
+    root: Entity,
+    /// True on the frame the panel opens: the Enter (or click) that
+    /// opened it must not also edit a row.
+    swallow: bool,
+    rows: Vec<(Entity, Entity, RowKind)>, // (label, value, kind)
+}
+
+/// Spawn the overlay (spec 01: panel over the backdrop, applies live).
+/// Resource changes are what `apply_settings` consumes — display changes
+/// hit the window the same frame and persist to disk.
+fn open_settings_panel(commands: &mut Commands, theme: &Theme, settings: &Settings) -> Entity {
+    const KINDS: [RowKind; 4] = [
+        RowKind::Fullscreen,
+        RowKind::Vsync,
+        RowKind::WindowSize,
+        RowKind::CamSpeed,
+    ];
+    let s = theme.scale;
+    let mut rows: Vec<(Entity, Entity, RowKind)> = Vec::new();
+    let mut pending_rows: Vec<(Entity, RowKind)> = Vec::new();
+    let root = commands
+        .spawn((
+            Node {
+                position_type: PositionType::Absolute,
+                left: Val::Percent(30.0),
+                top: Val::Percent(22.0),
+                width: Val::Percent(40.0),
+                min_height: Val::Px(280.0 * s),
+                flex_direction: FlexDirection::Column,
+                padding: UiRect::axes(Val::Px(32.0 * s), Val::Px(28.0 * s)),
+                row_gap: Val::Px(10.0 * s),
+                ..default()
+            },
+            BackgroundColor(Color::srgba(0.04, 0.06, 0.09, 0.94)),
+            bevy::ui::FocusPolicy::Block,
+            DespawnOnExit(AppState::MainMenu),
+        ))
+        .with_children(|col| {
+            col.spawn(theme.title("SETTINGS"));
+            col.spawn(theme.small("changes apply live · Esc closes".to_string()));
+            col.spawn(Node {
+                height: Val::Px(12.0 * s),
+                ..default()
+            });
+            for (i, k) in KINDS.iter().enumerate() {
+                let arrow = if i == 0 { "▶ " } else { "  " };
+                let label = col
+                    .spawn((
+                        Node {
+                            justify_content: JustifyContent::SpaceBetween,
+                            ..default()
+                        },
+                        theme.small(format!("{arrow}{}", row_label(*k))),
+                    ))
+                    .id();
+                pending_rows.push((label, *k));
+            }
+        })
+        .id();
+    // Value texts become children of their label rows (commands are
+    // deferred, so ordering holds; via `commands` — not `col`, whose
+    // spawn auto-inserts ChildOf(root) and would duplicate ChildOf).
+    for (label, k) in pending_rows {
+        let v = commands
+            .spawn((ChildOf(label), theme.small(row_value(settings, k))))
+            .id();
+        rows.push((label, v, k));
+    }
+    commands.insert_resource(OverlayActive);
+    commands.insert_resource(SettingsPanel {
+        row: 0,
+        root,
+        swallow: true,
+        rows,
+    });
+    root
+}
+
+/// Keyboard/gamepad editing of the open panel (mouse users: rows react to
+/// their button hover like the menu does — values change on click focus).
+fn settings_nav(
+    panel: Option<ResMut<SettingsPanel>>,
+    mut settings: ResMut<Settings>,
+    mut texts: Query<&mut Text>,
+    actions: Res<Actions>,
+    mut commands: Commands,
+) {
+    let Some(mut panel) = panel else { return };
+    if actions.just_pressed(Action::Back) {
+        commands.entity(panel.root).try_despawn();
+        commands.remove_resource::<SettingsPanel>();
+        commands.remove_resource::<OverlayActive>();
+        return;
+    }
+    let n = panel.rows.len();
+    if actions.just_pressed(Action::Up) {
+        panel.row = (panel.row + n - 1) % n;
+    } else if actions.just_pressed(Action::Down) {
+        panel.row = (panel.row + 1) % n;
+    }
+    let kind = panel.rows[panel.row].2;
+    if panel.swallow {
+        panel.swallow = false; // eat the Confirm that opened the panel
+        repaint(&panel, &settings, &mut texts);
+        return;
+    }
+    let dir = if actions.just_pressed(Action::Confirm) {
+        1
+    } else if actions.just_pressed(Action::Left) {
+        -1
+    } else if actions.just_pressed(Action::Right) {
+        1
+    } else {
+        0
+    };
+    if dir != 0 {
+        adjust_row(&mut settings, kind, dir);
+    }
+    repaint(&panel, &settings, &mut texts);
+}
+
+/// Arrow on the focused row + fresh values everywhere.
+fn repaint(panel: &SettingsPanel, settings: &Settings, texts: &mut Query<&mut Text>) {
+    for (i, (label, value, k)) in panel.rows.iter().enumerate() {
+        let arrow = if i == panel.row { "▶ " } else { "  " };
+        if let Ok(mut t) = texts.get_mut(*label) {
+            *t = Text::new(format!("{arrow}{}", row_label(*k)));
+        }
+        if let Ok(mut t) = texts.get_mut(*value) {
+            *t = Text::new(row_value(settings, *k));
         }
     }
 }
@@ -746,5 +976,40 @@ fn ingame_build(
 fn ingame_keys(actions: Res<Actions>, mut next: ResMut<NextState<AppState>>) {
     if actions.just_pressed(Action::Back) {
         next.set(AppState::MainMenu);
+    }
+}
+
+#[cfg(test)]
+mod settings_tests {
+    use super::*;
+
+    #[test]
+    fn adjust_row_touches_every_knob() {
+        let mut s = Settings::default();
+        adjust_row(&mut s, RowKind::Fullscreen, 1);
+        assert!(s.fullscreen);
+        adjust_row(&mut s, RowKind::Vsync, 1);
+        assert!(!s.vsync); // default ON → OFF
+        let w0 = s.window_width;
+        adjust_row(&mut s, RowKind::WindowSize, 1);
+        assert_ne!(s.window_width, w0);
+        // full cycle back, and wraps from first entry going down
+        for _ in 0..4 {
+            adjust_row(&mut s, RowKind::WindowSize, -1);
+        }
+        assert_eq!(s.window_width, WINDOW_SIZES[1].0, "cycle is a loop");
+        for _ in 0..2 {
+            adjust_row(&mut s, RowKind::WindowSize, -1);
+        }
+        assert_eq!(s.window_width, WINDOW_SIZES[3].0, "wraps past the start");
+        adjust_row(&mut s, RowKind::CamSpeed, 1);
+        assert!(
+            (s.camera_rotation_speed - (Settings::default().camera_rotation_speed + 0.2)).abs()
+                < 1e-5
+        );
+        for _ in 0..50 {
+            adjust_row(&mut s, RowKind::CamSpeed, -1);
+        }
+        assert!((s.camera_rotation_speed - 0.2).abs() < 1e-5, "clamped low");
     }
 }

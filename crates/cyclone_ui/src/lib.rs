@@ -109,6 +109,11 @@ pub fn menu_button(
         .id()
 }
 
+/// Marker: a modal overlay (settings panel…) owns Up/Down/Confirm;
+/// the plain menu focus must not move behind it (DECISIONS.md).
+#[derive(Resource)]
+pub struct OverlayActive;
+
 fn focus_nav(
     mut focus: ResMut<MenuFocus>,
     actions: Res<Actions>,
@@ -193,6 +198,16 @@ impl Plugin for CycloneUiPlugin {
         });
         app.init_resource::<MenuFocus>();
         app.add_message::<Activated>();
-        app.add_systems(Update, (theme_scale, focus_nav, button_visuals).chain());
+        app.add_systems(
+            Update,
+            (
+                theme_scale,
+                focus_nav.run_if(bevy::ecs::schedule::common_conditions::not(
+                    bevy::ecs::schedule::common_conditions::resource_exists::<OverlayActive>,
+                )),
+                button_visuals,
+            )
+                .chain(),
+        );
     }
 }

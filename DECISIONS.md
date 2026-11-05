@@ -258,3 +258,28 @@ CAM_DIRS[0]=(+x,+y)) ⇒ `h_gen = (3 − cam) % 4`, unit-tested; the freecam
 test spawns a crate hidden from gen idx 1 and watches it blink exactly
 as the free yaw crosses 225°. If the demo ever looks mirrored on
 screen, that one function is the dial.
+
+## Settings overlay panel (spec 01 C6, closes the "apply live" gap)
+
+Spec 01 lists a Settings overlay in the menu tree, but the first
+implementation only read settings.ron at boot — "changes apply live and
+save on close" had no in-app path at all. Added as `menu → Settings`:
+
+- Rows: Fullscreen, VSync, Window size, Camera speed. Editing mutates
+  `Res<Settings>`; the existing `apply_settings` system pushes it to the
+  window and saves RON every frame it changes — "apply live + save" comes
+  for free from the same plumbing the file-watcher story planned.
+- Volume rows deliberately **not** shown: there is no audio engine until
+  spec 05; UI that pretends to control something is worse than no UI.
+  They get added with audio.
+- Modal input arbitration: `cyclone_ui::OverlayActive` resource gates
+  `focus_nav` (`not(resource_exists)`) so Up/Down/Enter behind the open
+  panel can't move the background menu; the panel's root uses
+  `FocusPolicy::Block` so the mouse can't press through. `menu_activate`
+  no longer needs a panel guard.
+- The panel swallows the opening frame's Confirm (`swallow` flag): the
+  Enter/click that opens it must not also flip row 0.
+- Found while wiring: `RelatedSpawnerCommands::spawn` auto-inserts
+  `ChildOf(spawner)`, so spawning a child-of-manual-parent through the
+  spawner panics with duplicate `ChildOf` — deferred value texts are
+  spawned via plain `commands.spawn((ChildOf(label), …))` instead.
