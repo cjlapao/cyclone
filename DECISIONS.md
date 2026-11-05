@@ -395,3 +395,27 @@ not produce `just_pressed` edges (it saw `pressed()` but never the
 edge; message injection is the path every working test uses).
 The `--workspace --features dev` clippy invocation drags the bin's
 bevy dev-tools → alsa; scope to `-p cyclone_game --features dev`.
+
+## Generation is panic-proof end to end (round 26)
+
+Panic-path audit of all shipping code: every `unwrap` left in game/
+engine/render/ui lives behind `#[cfg(test)]` except the generation
+channel's mutex locks — and those hid a real failure mode. A panic
+inside `generate()` (its guarded `expect("in bounds")` class is
+1000-seed-clean but possible) would (a) poison the mutexes the main
+thread locks with `.unwrap()` → cascade panic, and (b) never fill the
+result slot → the Generating screen would wait forever, progress bar
+animating into the heat death of the universe.
+
+Fix, three layers:
+- `run_generate` wraps the whole call in `catch_unwind` and converts
+  a panic to `GenError::Internal`-flavoured `Invalid(…)` — the user
+  lands on the existing Retry/Back error screen;
+- `lock_any()` takes the poisoned guard instead of re-panicking
+  (`PoisonError::into_inner`); the slot's invariant (Option<Result>)
+  survives a remote panic untouched;
+- both call sites use it: the async task AND the synchronous menu-
+  backdrop generate (a panic there used to kill the process outright).
+
+`wrapper_surfaces_config_errors` proves the wrapper passes real
+`Err(Config)` through to the error-screen path.

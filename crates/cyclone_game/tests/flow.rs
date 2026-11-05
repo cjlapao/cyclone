@@ -431,6 +431,7 @@ fn f3_dev_reveal_on_preview() {
 
 /// Press+release as raw KeyboardInput messages (what InputPlugin would
 /// send with a window; dev toggles read the messages directly).
+#[cfg(feature = "dev")]
 fn key_msg(app: &mut App, code: KeyCode) {
     use bevy::input::ButtonState;
     use bevy::input::keyboard::KeyboardInput;

@@ -158,7 +158,7 @@ fn menu_build(
     // Background island: a fresh small world, generated inline (~10 ms).
     let seed = random_seed();
     let cfg = menu_bg_config();
-    match generate(seed, 1, &cfg, &cyclone_worldgen::ProgressNoop) {
+    match run_generate(seed, &cfg, &cyclone_worldgen::ProgressNoop) {
         Ok(map) => {
             let (w, h) = map.size;
             let centre = Vec3::new(w as f32 * 0.5, 0.0, h as f32 * 0.5);
@@ -627,7 +627,7 @@ struct SlotProgress {
 
 impl Progress for SlotProgress {
     fn report(&self, stage: &'static str, fraction: f32) {
-        *self.stage.lock().unwrap() = stage;
+        *lock_any(&self.stage) = stage;
         self.prog.store(
             (fraction.clamp(0.0, 1.0) * 1000.0) as u32,
             Ordering::Relaxed,
@@ -674,7 +674,7 @@ fn gen_start(
                     stage: stage_t,
                     prog: prog_t,
                 };
-                let result = generate(seed, 1, &cfg_t, &progress);
+                let result = run_generate(seed, &cfg_t, &progress);
                 slot_t_result(&slot_done, result);
             })
             .detach();
@@ -746,11 +746,39 @@ fn gen_start(
 }
 
 /// Store the generation result (split out so the closure stays readable).
+/// A generator panic on the worker thread must never poison the main
+/// thread's view of these channels: the slot either holds a result or
+/// stays None, and a poisoned mutex still guards exactly that.
+fn lock_any<T>(m: &Mutex<T>) -> std::sync::MutexGuard<'_, T> {
+    m.lock().unwrap_or_else(std::sync::PoisonError::into_inner)
+}
+
+/// Spec 02 A5 / spec 01 error screen, made panic-proof: a generator
+/// panic (the `expect("in bounds")` class of bug in 1000-seed-clean
+/// code is possible) becomes a normal `Err` → the friendly Retry/Back
+/// screen — instead of poisoning the mutex and stranding the progress
+/// bar forever, or killing the process window.
+fn run_generate(
+    seed: cyclone_worldgen::Seed,
+    cfg: &WorldGenConfig,
+    progress: &dyn cyclone_worldgen::Progress,
+) -> Result<WorldMap, GenError> {
+    std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        generate(seed, 1, cfg, progress)
+    }))
+    .unwrap_or_else(|_| {
+        error!("generator panicked; surfacing as a generation error");
+        Err(GenError::Invalid(
+            "the generator panicked internally".to_string(),
+        ))
+    })
+}
+
 fn slot_t_result(
     slot: &Arc<Mutex<Option<Result<WorldMap, GenError>>>>,
     result: Result<WorldMap, GenError>,
 ) {
-    *slot.lock().unwrap() = Some(result);
+    *lock_any(slot) = Some(result);
 }
 
 /// Plain text components without the Theme resource (ChildSpawner closures
@@ -781,7 +809,7 @@ fn gen_update(
     if let Ok(mut n) = nodes.get_mut(running.fill) {
         n.width = Val::Px(420.0 * frac);
     }
-    let stage = *running.stage.lock().unwrap();
+    let stage = *lock_any(&running.stage);
     if stage != *last_stage {
         *last_stage = stage.to_string();
         if let Ok(mut t) = texts.get_mut(running.stage_label) {
@@ -789,11 +817,11 @@ fn gen_update(
         }
     }
 
-    let finished = running.slot.lock().unwrap().take();
+    let finished = lock_any(&running.slot).take();
     let Some(result) = finished else { return };
     // Keep the screen ≥300 ms so it doesn't flash (spec 01).
     if running.started.elapsed().as_millis() < 300 {
-        *running.slot.lock().unwrap() = Some(result);
+        *lock_any(&running.slot) = Some(result);
         return;
     }
     match result {
@@ -899,7 +927,11 @@ struct PreviewTopDown(bool);
 /// the spec-02 acceptance check ("each hidden crate disappears behind
 /// a cliff from at least one heading") is actually performable.
 #[derive(Default, Resource)]
-struct PreviewShowProps(bool);
+struct PreviewShowProps(
+    /// Only read by the cfg(dev) hide-bypass; dead in default builds.
+    #[cfg_attr(not(feature = "dev"), allow(dead_code))]
+    bool,
+);
 
 fn preview_build(
     mut commands: Commands,
@@ -1185,5 +1217,27 @@ mod settings_tests {
             adjust_row(&mut s, RowKind::CamSpeed, -1);
         }
         assert!((s.camera_rotation_speed - 0.2).abs() < 1e-5, "clamped low");
+    }
+}
+
+#[cfg(test)]
+mod gen_panic_tests {
+    use super::*;
+    use cyclone_worldgen::ProgressNoop;
+
+    /// A nonsense config must surface as `Err(Config)` THROUGH the
+    /// catch_unwind wrapper (the generating screen's error path consumes
+    /// it exactly like any generator error).
+    #[test]
+    fn wrapper_surfaces_config_errors() {
+        let cfg = WorldGenConfig {
+            island_count: 1, // below any legal archipelago
+            ..WorldGenConfig::default()
+        };
+        let seed: Seed = "0000-0000-00001".parse().unwrap();
+        let err = run_generate(seed, &cfg, &ProgressNoop)
+            .unwrap_err()
+            .to_string();
+        assert!(err.contains("invalid config"), "got {err}");
     }
 }
