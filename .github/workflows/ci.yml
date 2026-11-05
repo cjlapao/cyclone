@@ -31,7 +31,24 @@ jobs:
       - run: cargo clippy --workspace --all-targets -- -D warnings
       - run: cargo test --workspace
       - run: cargo run -p worldgen-cli -- golden
-      - run: cargo build -p cyclone
+      - name: Dependency direction (spec 00 C2/C3)
+        shell: bash
+        run: |
+          # The generator must stay Bevy-free (C3). Dev-dependencies
+          # are allowed (test-only); C2 is about what must COMPILE.
+          if cargo tree -p cyclone_worldgen -e normal,dev | grep -q bevy; then
+            echo "cyclone_worldgen depends on bevy"; exit 1
+          fi
+          # The engine must not reference any game crate on any NORMAL
+          # edge (C2: deleting them still compiles the engine). `cargo
+          # tree -i` exits 0 even when nothing matches, so grep for the
+          # actual dependent instead of trusting the status code.
+          for c in cyclone_game cyclone_render cyclone_ui cyclone worldgen-cli; do
+            if cargo tree -p cyclone_engine -e normal -i "$c" 2>/dev/null |
+                grep -q "cyclone_engine v"; then
+              echo "cyclone_engine depends on game crate $c"; exit 1
+            fi
+          done
 
   # Benchmarks are informational; never gate the pipeline on them (spec 02 C4).
   bench:

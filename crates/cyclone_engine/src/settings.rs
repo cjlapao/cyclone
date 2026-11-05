@@ -184,9 +184,47 @@ impl Plugin for SettingsPlugin {
 mod tests {
     use super::*;
 
+    /// Spec 00 acceptance on the REAL disk path, not just RON: a
+    /// missing file loads defaults, save→load survives a restart, and a
+    /// corrupt file degrades to defaults without a crash.
+    /// Only this test in the crate touches the process environment, so
+    /// the env mutation is safe despite parallel test threads.
+    #[test]
+    fn settings_disk_roundtrip_and_recovery() {
+        let tmp =
+            std::env::temp_dir().join(format!("cyclone-settings-test-{}", std::process::id()));
+        // SAFETY: no other test here reads env; XDG_CONFIG_HOME is
+        // restored before returning (including on assert failure paths
+        // we control).
+        unsafe { std::env::set_var("XDG_CONFIG_HOME", &tmp) };
+        let outcome = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            // 1. Deleted/never-written file → defaults, no crash.
+            assert_eq!(Settings::load(), Settings::default(), "missing file");
+            // 2. Save then reload: survives the restart.
+            let s = Settings {
+                camera_rotation_speed: 1.7,
+                fullscreen: true,
+                ..Settings::default()
+            };
+            s.save_to_disk();
+            assert!(
+                Settings::file_path().is_some_and(|p| p.exists()),
+                "save actually wrote to disk"
+            );
+            let back = Settings::load();
+            assert_eq!(back, s, "disk round trip");
+            // 3. Corrupt file → defaults, no crash.
+            std::fs::write(Settings::file_path().unwrap(), "not ron at all {{{").unwrap();
+            assert_eq!(Settings::load(), Settings::default(), "corrupt file");
+        }));
+        unsafe { std::env::remove_var("XDG_CONFIG_HOME") };
+        let _ = std::fs::remove_dir_all(&tmp);
+        assert!(outcome.is_ok(), "settings disk test panicked");
+    }
+
     /// Spec 00 acceptance: settings survive a restart (exact RON round
     /// trip), and a deleted or corrupt file restores defaults without a
-    /// crash — the load() arms are `Err(text) => unwrap_or_default()`.
+    /// crash — every failure in load() falls back to Default.
     #[test]
     fn settings_ron_round_trip_is_lossless() {
         let s = Settings {

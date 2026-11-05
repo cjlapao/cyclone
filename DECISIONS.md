@@ -354,3 +354,21 @@ linear space, clamped per channel):
 Alternative considered: separate highlight ring mesh — rejected as a
 second material + transparency ordering for what is one component of
 existing color data.
+
+## Spec 00 C2/C3/C5 closed (round 24)
+
+- **C5** now has a *disk-level* test (`settings_disk_roundtrip_and_recovery`):
+  XDG_CONFIG_HOME redirected to a temp dir (the only env-touching test
+  in the crate, so the unsafe env write is safe under parallel test
+  threads): missing file → defaults, save→load survives, corrupt file
+  → defaults, no crash. The RON round-trip test alone didn't exercise
+  the real path.
+- **C2/C3** enforced in CI, not just in prose: `cargo tree` guards —
+  worldgen has no bevy on normal or dev edges, and no game crate
+  appears on NORMAL edges of the engine tree (`cyclone_render` is a
+  dev-dep of the engine for the occlusion E2E test, which C2's
+  "still compiles" wording permits).
+- `cargo tree -i` pitfall: it prints "nothing to print" but exits 0 —
+  grep the output for the dependent package instead of trusting the
+  exit code; verified with a positive control (worldgen → engine shows
+  up, proving the guard can actually see a violation).
