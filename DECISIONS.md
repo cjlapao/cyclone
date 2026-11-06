@@ -574,3 +574,13 @@ that hid it: no job ever resolved the BIN crate's dev feature graph
 (dev-flow tests the game crate only) — now closed with
 `cargo check -p cyclone --features dev` on all three OSes.
 Re-add dev_tools only together with the alsa dev package.
+## Copy-seed gets a status line (round 48)
+
+The C key / Copy button wrote the clipboard silently — success was
+indistinguishable from failure for the player (and untestable
+headless). Both routes now feed one `CopyStatus` text line in the
+preview panel: "copied ✓" / "copy failed" / "clipboard unavailable"
+(the latter is also the honest headless fallback: no window ⇒ no
+Clipboard resource). preview_keys now sends Activated(B_PCOPY)
+instead of duplicating clipboard code — one handler, one truth.
+flow.rs asserts the fallback wording through the real message route.

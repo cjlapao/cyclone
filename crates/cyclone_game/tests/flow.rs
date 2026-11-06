@@ -132,6 +132,17 @@ fn full_flow_offscreen() {
     let lh = app.world().resource::<WorldConfig>().0.level_height;
     assert!((lh - WorldGenConfig::default().level_height).abs() < f32::EPSILON);
 
+    // Copy feedback (round 48): headless has no Clipboard resource, so
+    // the status line must read the honest fallback — proof the C
+    // route answers the player instead of silently doing nothing.
+    app.world_mut().write_message(cyclone_ui::Activated(22)); // B_PCOPY
+    app.update();
+    let mut cq = app
+        .world_mut()
+        .query_filtered::<&bevy::prelude::Text, With<cyclone_game::screens::CopyStatus>>();
+    let status = cq.single(app.world()).unwrap().as_str().to_string();
+    assert_eq!(status, "clipboard unavailable", "copy status line");
+
     // Enter (injected) → InGame; same world stays loaded.
     // Spec 01 C7: a state's DespawnOnExit entities must be gone once we
     // leave it — no menu screen bleeding into the game.

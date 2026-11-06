@@ -1046,6 +1046,7 @@ fn preview_build(
                 panel.spawn(theme.small(
                     "Enter — Fly · Q/E — Rotate · Wheel — Zoom\nR — Reroll · Tab — Top-down · C — Copy · Esc — Back",
                 ));
+                panel.spawn((theme.small(String::new()), CopyStatus));
                 panel.spawn(Node { height: Val::Px(18.0 * s), ..default() });
                 // Spec 01 C2: the whole preview usable with the mouse.
                 pbtns.push(menu_button(panel, &theme, B_PFLY, "Fly!"));
@@ -1125,12 +1126,21 @@ fn preview_dev_toggle(
 }
 
 /// Preview buttons (Fly/Reroll/Copy/Back) — same effects as the keys.
+///
+/// `CopyStatus`: the silent clipboard was untestable by the player —
+/// every C/button press now reports its outcome on a status line.
+/// Component marker for the preview copy-status line (exported for
+/// headless tests; `flow.rs` asserts the fallback wording).
+#[derive(Component)]
+pub struct CopyStatus;
+
 fn preview_activate(
     mut rx: MessageReader<Activated>,
     mut next: ResMut<NextState<AppState>>,
     mut commands: Commands,
     world: Option<Res<CurrentWorld>>,
     mut clipboard: Option<ResMut<bevy::clipboard::prelude::Clipboard>>,
+    mut copy_text: Query<&mut Text, With<CopyStatus>>,
 ) {
     for act in rx.read() {
         match act.0 {
@@ -1144,10 +1154,18 @@ fn preview_activate(
             B_PBACK => next.set(AppState::MainMenu),
             B_PCOPY => {
                 let seed = world.as_ref().map(|w| w.0.seed.to_string());
-                if let (Some(seed), Some(cb)) = (seed, clipboard.as_mut())
-                    && let Err(e) = cb.set_text(seed)
-                {
-                    warn!("clipboard: {e}");
+                let msg = match (seed, clipboard.as_mut()) {
+                    (Some(seed), Some(cb)) => match cb.set_text(seed) {
+                        Ok(()) => "copied ✓",
+                        Err(e) => {
+                            warn!("clipboard: {e}");
+                            "copy failed"
+                        }
+                    },
+                    _ => "clipboard unavailable",
+                };
+                for mut t in copy_text.iter_mut() {
+                    *t = Text::new(msg.to_string());
                 }
             }
             _ => {}
@@ -1159,8 +1177,7 @@ fn preview_keys(
     actions: Res<Actions>,
     mut next: ResMut<NextState<AppState>>,
     mut commands: Commands,
-    world: Option<Res<CurrentWorld>>,
-    clipboard: Option<ResMut<bevy::clipboard::prelude::Clipboard>>,
+    mut sent: MessageWriter<Activated>,
 ) {
     if actions.just_pressed(Action::Reroll) {
         commands.insert_resource(PendingGen {
@@ -1171,14 +1188,9 @@ fn preview_keys(
         next.set(AppState::InGame);
     } else if actions.just_pressed(Action::Back) {
         next.set(AppState::MainMenu);
-    } else if actions.just_pressed(Action::CopySeed)
-        && let Some(w) = world
-        && let Some(mut cb) = clipboard
-    {
-        let seed = w.0.seed.to_string();
-        if let Err(e) = cb.set_text(seed) {
-            warn!("clipboard: {e}");
-        }
+    } else if actions.just_pressed(Action::CopySeed) {
+        // Same route as the button, so the CopyStatus line always answers.
+        sent.write(Activated(B_PCOPY));
     }
 }
 
