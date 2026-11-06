@@ -57,15 +57,19 @@ descends, Ctrl boosts. The in-game HUD and this table match the code
 
 ## Debug profile is honest (measured, not assumed)
 
-The tour says plain `cargo run` (dev profile). Measured before (while
-the app's hot path was ours to time): boot+plugins ~10 ms, generate
-~1.7 ms, scene build ~0.3 ms/frame — within noise of release
-(10.1 / 1.5 / 0.36 ms), the `worldgen benchmark` CI job keeps the
-generate number watched every push. The profile compiles all deps at
-opt-level 3 (root Cargo.toml), so `cargo run` gives release-speed
-gameplay with fast incremental rebuilds. If a feel complaint ever
-smells like stutter, the first question is "dev or release?" — and
-the answer should not matter.
+The tour says plain `cargo run` (dev profile). Measured on the
+current code and config (160×160, 14 islands): `cargo bench` release
+248 ms per 20-seed sample = ~12 ms/world; a single debug CLI
+generate 13 ms — dev ≈ release, as designed: the profile compiles
+all deps at opt-level 3 (root Cargo.toml), so `cargo run` gives
+release-speed gameplay with fast incremental rebuilds. The `worldgen
+benchmark` CI job logs the same bench every push (its runner is
+~2× slower: ~26 ms/world; the bench times 20 seeds per criterion
+sample — divide by 20 before comparing). Worst reroll frame measured
+in-app (dev, ignored `reroll_hitch` test): 3.8 ms — under a quarter
+of the 16.6 ms 60 Hz budget. If a feel complaint ever smells like
+stutter, the first question is "dev or release?" — and the answer
+should not matter.
 
 ## Feedback loop
 
