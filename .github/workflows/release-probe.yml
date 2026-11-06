@@ -1,0 +1,29 @@
+# Weekly release-profile probe (spec 01: the <3 s boot claim is a RELEASE
+# claim, and per-push CI only compiles debug). Tag pushes already build
+# release binaries; this proves main's code keeps compiling in release
+# across three OSes between releases — compile-only, no tests, so it
+# stays cheap.
+name: release probe
+
+on:
+  schedule:
+    - cron: "0 6 * * 0" # Sundays 06:00 UTC
+  workflow_dispatch: # manual poke from the Actions tab
+
+permissions:
+  contents: read
+
+jobs:
+  release-build:
+    name: cargo build --release (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: release build
+        run: cargo build --release -p cyclone --jobs 2
