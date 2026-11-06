@@ -84,28 +84,6 @@ jobs:
               tail -n 6 devtest.log; } | sed 's/^/::error::/' | head -n 12
             exit $rc
           fi
-      - name: upload failure evidence to ci-diagnostics branch
-        if: failure()
-        # HARD step: continue-on-error showed a dead push as "success"
-        # for a whole run — the step's own conclusion must be honest.
-        env:
-          RUN_OS: ${{ runner.os }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GIT_TERMINAL_PROMPT: "0"   # never hang on a credential prompt
-        run: |
-          set -ex
-          mkdir -p ev
-          for f in test.log devtest.log; do [ -f "$f" ] && cp "$f" ev/ || true; done
-          (df -h .; (vm_stat || free -m) 2>/dev/null | head -n 6) > ev/runner-state.txt 2>&1
-          echo "$RUN_OS ${{ github.sha }}" > ev/which.txt
-          git config user.name "ci-evidence"
-          git config user.email "ci@localhost"
-          git checkout --orphan ci-diagnostics
-          git rm -rqf . 2>/dev/null || true
-          cp -r ev/* . && rm -rf ev
-          git add -A && git commit -m "failure evidence ${{ github.sha }} ($RUN_OS)"
-          git push -f "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}" ci-diagnostics
-        timeout-minutes: 2
       - name: annotate dev-test failure (runner state included)
         if: failure()
         shell: bash
