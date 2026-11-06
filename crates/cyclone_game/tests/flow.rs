@@ -500,7 +500,15 @@ fn dev_peek_reroll_returns_hidden() {
     wait_for(&mut app, "preview", Duration::from_secs(60), |a| {
         state(a) == AppState::WorldPreview
     });
-    assert!(Probes::of(&app).crates > 0);
+    // Crates stream in over frames; peek only once the set is complete,
+    // or late spawns would arrive Hidden mid-peek.
+    let want_crates = app.world().resource::<CurrentWorld>().0.crates.len();
+    wait_for(
+        &mut app,
+        "all crates spawned",
+        Duration::from_secs(60),
+        |a| Probes::of(a).crates >= want_crates,
+    );
     // The dev peek reads the raw key-event stream, not ButtonInput.
     app.world_mut()
         .write_message(bevy::input::keyboard::KeyboardInput {
@@ -512,15 +520,26 @@ fn dev_peek_reroll_returns_hidden() {
             window: bevy::ecs::entity::Entity::PLACEHOLDER,
         });
     app.update();
-    assert_eq!(Probes::of(&app).hidden, 0, "F3 reveals every crate");
+    // Revealed = occlusion decides (spec 02): exactly this heading's
+    // hidden-from crates stay hidden — that IS the demo.
+    let p = Probes::of(&app);
+    assert_eq!(
+        p.hidden,
+        p.crates - p.want,
+        "revealed: occlusion alone decides"
+    );
     tap(&mut app, KeyCode::KeyR); // reroll WHILE revealed
     wait_for(&mut app, "new preview", Duration::from_secs(60), |a| {
         state(a) == AppState::WorldPreview
     });
-    // Peek is sticky: the fresh world's crates are visible as they land.
+    // Peek is sticky: the fresh world's crates land revealed (occlusion
+    // still hides its heading share).
+    let want_crates2 = app.world().resource::<CurrentWorld>().0.crates.len();
     wait_for(&mut app, "revealed crates", Duration::from_secs(60), |a| {
         let p = Probes::of(a);
-        p.crates > 0 && p.hidden == 0
+        // want>0 proves the peek did something: all-hidden (the
+        // non-sticky world) would give hidden==crates > crates-want.
+        p.crates >= want_crates2 && p.want > 0 && p.hidden == p.crates - p.want
     });
     // F3 OFF restores the hidden default immediately, same visit.
     app.world_mut()
@@ -714,31 +733,4 @@ fn new_game_seeds_differ() {
         b.to_ron(),
         "two New Games produced identical worlds"
     );
-}
-
-/// Ignored perf probe: pure busy-update wall time around the real
-/// pipeline steps (generate → scene build → mesh upload) so dev vs
-/// release numbers mean something. Run:
-///   cargo test -p cyclone_game [--release] --test flow pipeline_wall -- --ignored --nocapture
-#[test]
-#[ignore]
-fn pipeline_wall() {
-    use cyclone_worldgen::{ProgressNoop, Seed, generate};
-    let cfg = cyclone_game::screens::menu_bg_config();
-    let t0 = Instant::now();
-    let mut app = flow_app_with(false);
-    for _ in 0..20 {
-        app.update();
-    } // plugin warm
-    let t_boot = t0.elapsed();
-    let t1 = Instant::now();
-    let map = generate(Seed(1234), 1, &cfg, &ProgressNoop).unwrap();
-    let t_gen = t1.elapsed();
-    app.insert_resource(cyclone_engine::CurrentWorld(std::sync::Arc::new(map)));
-    let t2 = Instant::now();
-    for _ in 0..20 {
-        app.update();
-    }
-    let t_scene = t2.elapsed();
-    println!("boot+plugins {t_boot:?}, generate {t_gen:?}, 20 scene-build frames {t_scene:?}");
 }
