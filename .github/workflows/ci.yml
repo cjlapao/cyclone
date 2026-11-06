@@ -81,6 +81,16 @@ jobs:
               tail -n 6 devtest.log; } | sed 's/^/::error::/' | head -n 12
             exit $rc
           fi
+      - name: annotate dev-test failure (runner state included)
+        if: failure()
+        shell: bash
+        run: |
+          echo "::error::── annotator after dev-test ──"
+          ls -la devtest.log 2>/dev/null | sed 's/^/::error::stat: /'
+          echo "::error::log size: $(wc -c < devtest.log 2>/dev/null || echo NOFILE)"
+          tail -n 10 devtest.log 2>/dev/null | sed 's/^/::error::/'
+          df -h . | tail -n 1 | sed 's/^/::error::disk: /'
+          (vm_stat || free -m) 2>/dev/null | head -n 4 | tr '\\n' ' ' | sed 's/^/::error::mem: /'
       - run: cargo run -p worldgen-cli -- golden
       - name: Dependency direction (spec 00 C2/C3)
         shell: bash
