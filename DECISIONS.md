@@ -859,3 +859,16 @@ or beyond the horizon band. With terraces + size-lift the visible
 peaks carry real height contrast now. The spawn-placement claim that
 rides on this is no longer a comment, it's arithmetic (rerun recipe:
 project (centre, peak_level·level_height) through the camera basis).
+
+## Round 103 — "not always solid" closed: windings verified, culling is correct
+
+Audit of every QuadBuilder quad in terrain.rs (top + 4 wall dirs):
+ring windings produce right-hand normals equal to the outward
+direction (dir 0 −Z, 1 +X, 2 +Z, 3 −X all hand-verified; indices
+0,1,2/0,2,3 preserve ring order), so with Bevy's default backface
+culling walls are visible exactly from outside a column. The user's
+"blocks not always solid" was the seam-gap bug (fixed round ~99 by
+full-skirt walls), NOT single-sided geometry — do not reach for
+cull_mode NONE as a "fix": it would only hide a future real bug and
+cost fill-rate. Column undersides are never visible (drone cannot
+descend below the sea plane), so the open-bottom boxes need no caps.
