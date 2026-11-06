@@ -89,16 +89,31 @@ pub fn register(app: &mut App) {
 }
 
 /// Replace defaults with `assets/worldgen/default.ron` when present (A3).
+/// Two candidate paths: relative to the CWD (`cargo run`, zip run in
+/// place) and relative to the executable (launchers that change the
+/// CWD). First file found wins; an invalid file warns and keeps
+/// built-in defaults.
 fn load_worldgen_config(mut cfg: ResMut<GameConfig>) {
-    match std::fs::read_to_string("assets/worldgen/default.ron") {
-        Err(_) => {}
-        Ok(text) => match WorldGenConfig::from_ron(&text) {
+    let rel = std::path::Path::new("assets")
+        .join("worldgen")
+        .join("default.ron");
+    let candidates = std::iter::once(rel.clone()).chain(
+        std::env::current_exe()
+            .ok()
+            .and_then(|exe| exe.parent().map(|dir| dir.join(&rel))),
+    );
+    for path in candidates {
+        let Ok(text) = std::fs::read_to_string(&path) else {
+            continue;
+        };
+        match WorldGenConfig::from_ron(&text) {
             Ok(parsed) => {
                 *cfg = GameConfig(parsed);
-                info!("loaded assets/worldgen/default.ron");
+                info!("loaded {path:?}");
             }
-            Err(e) => warn!("bad assets/worldgen/default.ron, using defaults: {e}"),
-        },
+            Err(e) => warn!("bad {path:?}, using defaults: {e}"),
+        }
+        return;
     }
 }
 
@@ -882,7 +897,9 @@ fn gen_update(
         Err(err) => {
             warn!("worldgen failed: {err}");
             if let Ok(mut t) = texts.get_mut(running.error_label) {
-                *t = Text::new("Couldn't build a world from this seed".to_string());
+                *t = Text::new(
+                    "Couldn't build a world — try another seed,\nor fix assets/worldgen/default.ron".to_string(),
+                );
             }
             if !running.buttons_shown {
                 running.buttons_shown = true;
