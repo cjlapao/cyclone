@@ -90,6 +90,8 @@ jobs:
         # for a whole run — the step's own conclusion must be honest.
         env:
           RUN_OS: ${{ runner.os }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GIT_TERMINAL_PROMPT: "0"   # never hang on a credential prompt
         run: |
           set -ex
           mkdir -p ev

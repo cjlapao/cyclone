@@ -452,7 +452,20 @@ fn fly_loop_leaks_nothing() {
     wait_for(&mut app, "preview", Duration::from_secs(60), |a| {
         state(a) == AppState::WorldPreview
     });
-    let base_entities = app.world().entities().len();
+    // Baseline only AFTER the scene builder stops spawning: the world
+    // streams in over frames, and sampling on the entry frame caught
+    // half a world (512 of 1024) on a loaded macOS runner — every
+    // round then "grew" by the missing half. Stable twice = settled.
+    let mut base_entities = app.world().entities().len();
+    for _ in 0..600 {
+        app.update();
+        std::thread::sleep(Duration::from_millis(2));
+        let n = app.world().entities().len();
+        if n == base_entities {
+            break;
+        }
+        base_entities = n;
+    }
     for round in 1..=3 {
         tap(&mut app, KeyCode::Enter); // focused Fly! activates
         wait_for(&mut app, "InGame", Duration::from_secs(30), |a| {
