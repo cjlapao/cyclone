@@ -633,3 +633,16 @@ app captures all main-thread ECS work (terrain/sea/props meshes,
 materials, shore texture upload prep). 10 rerolls × 5789 frames:
 worst frame 3.6 ms. GPU-side transfer is the only unrepresented
 phase; kept the test as --ignored manual diagnostic.
+## Layout styles, not just terrain variety (round 56)
+
+The 64-world contact sheet failed spec 02 A5.2 by gestalt: every map
+was the same evenly-scattered blob field because stage 1 was ONE
+Bridson process. Added a per-attempt style roll (Scatter / Cluster /
+Chain / Sparse) changing anchor seeding, annulus width, heading
+persistence, parent policy and size-bias-within-config-range. Chain
+spacing is absolute slack (near-touching pearls), cluster anchors at
+0.21–0.30·min-dim with a 16-tile blob leash, all geometry scaled by
+min-dim/160 so custom small configs stay solvable (that test caught
+fixed-distance anchors failing a 96×96 world). Style histogram over
+64 worlds is roughly uniform; goldens regenerated for the new
+pipeline, 300-seed invariants green, batch 64/64 ok, median 20 ms.
