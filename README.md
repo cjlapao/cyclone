@@ -31,8 +31,11 @@ Menu → **New Game** → generating screen (live progress) → world preview
 | — | the **Base Island is warm-tinted** gold in every 3D view |
 | `Esc` | back, chain-wise: flight → **preview of the world you just flew** → menu |
 
-**Gamepad**: menus and flying are fully mappable to a pad (D-pad/South
-etc.). Device I/O is optional: build with `--features gamepad` (on Linux
+**Gamepad**: menus and flying are fully playable on a pad via a **fixed**
+button map (D-pad moves, South/East confirm/back, triggers climb/descend,
+left-stick-press boost; input.rs `gamepad_buttons` — stick *axes* are a
+spec-03 item, buttons cover everything today). The settings file remaps
+keyboard only; pad remapping joins the deferred remap UI. Device I/O is optional: build with `--features gamepad` (on Linux
 first `sudo apt install pkg-config libudev-dev`; macOS/Windows need
 nothing). Without it everything still works by keyboard; the mapping
 itself is event-tested in CI either way.
