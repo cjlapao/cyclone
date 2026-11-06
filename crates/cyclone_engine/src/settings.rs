@@ -57,30 +57,39 @@ impl Default for KeyBindings {
 
 /// Resolve a key name (as saved) into a KeyCode; unknown names drop out.
 pub fn parse_key(name: &str) -> Option<KeyCode> {
-    Some(match name {
-        "KeyW" => KeyCode::KeyW,
-        "KeyA" => KeyCode::KeyA,
-        "KeyS" => KeyCode::KeyS,
-        "KeyD" => KeyCode::KeyD,
-        "KeyQ" => KeyCode::KeyQ,
-        "KeyE" => KeyCode::KeyE,
-        "KeyR" => KeyCode::KeyR,
-        "KeyC" => KeyCode::KeyC,
-        "KeyM" => KeyCode::KeyM,
-        "KeyP" => KeyCode::KeyP,
-        "KeyT" => KeyCode::KeyT,
-        "ArrowUp" => KeyCode::ArrowUp,
-        "ArrowDown" => KeyCode::ArrowDown,
-        "ArrowLeft" => KeyCode::ArrowLeft,
-        "ArrowRight" => KeyCode::ArrowRight,
-        "Enter" => KeyCode::Enter,
-        "Space" => KeyCode::Space,
-        "Escape" => KeyCode::Escape,
-        "Tab" => KeyCode::Tab,
-        "ShiftLeft" => KeyCode::ShiftLeft,
-        "ShiftRight" => KeyCode::ShiftRight,
-        "ControlLeft" => KeyCode::ControlLeft,
-        "ControlRight" => KeyCode::ControlRight,
+    // Users think in characters, files round-trip canonical enum names,
+    // and both disagree — accept them all: "W", "w", "KeyW", "keyw",
+    // "arrowup". Case-insensitive; single letters get the Key prefix
+    // for free.
+    let cased = if name.chars().count() == 1 {
+        format!("key{}", name.to_lowercase())
+    } else {
+        name.to_lowercase()
+    };
+    Some(match cased.as_str() {
+        "keyw" => KeyCode::KeyW,
+        "keya" => KeyCode::KeyA,
+        "keys" => KeyCode::KeyS,
+        "keyd" => KeyCode::KeyD,
+        "keyq" => KeyCode::KeyQ,
+        "keye" => KeyCode::KeyE,
+        "keyr" => KeyCode::KeyR,
+        "keyc" => KeyCode::KeyC,
+        "keym" => KeyCode::KeyM,
+        "keyp" => KeyCode::KeyP,
+        "keyt" => KeyCode::KeyT,
+        "arrowup" => KeyCode::ArrowUp,
+        "arrowdown" => KeyCode::ArrowDown,
+        "arrowleft" => KeyCode::ArrowLeft,
+        "arrowright" => KeyCode::ArrowRight,
+        "enter" => KeyCode::Enter,
+        "space" => KeyCode::Space,
+        "escape" => KeyCode::Escape,
+        "tab" => KeyCode::Tab,
+        "shiftleft" => KeyCode::ShiftLeft,
+        "shiftright" => KeyCode::ShiftRight,
+        "controlleft" => KeyCode::ControlLeft,
+        "controlright" => KeyCode::ControlRight,
         _ => return None,
     })
 }
@@ -164,7 +173,15 @@ impl Settings {
         ] {
             out.insert(
                 name.to_string(),
-                keys.iter().filter_map(|k| parse_key(k)).collect(),
+                keys.iter()
+                    .filter_map(|k| {
+                        let kc = parse_key(k);
+                        if kc.is_none() {
+                            warn!("settings.ron: unknown key {k:?} — ignored");
+                        }
+                        kc
+                    })
+                    .collect(),
             );
         }
         out

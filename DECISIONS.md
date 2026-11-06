@@ -727,3 +727,16 @@ the kill-proof run (633542b, all three OSes); if the silent death ever
 repeats it arrives with a real log. Same run re-verified the reroll
 hitch probe: still green, no hitch regression from any round-61–69
 state churn.
+
+## Round 74 — key remaps: live (was already true), now also HUMAN (bug fix)
+
+`remap_takes_effect_live` aimed to lock the README's "key remaps …
+applies live" promise and detonated a real bug: parse_key accepted
+only canonical enum names ("KeyT") and SILENTLY EMPTIED a binding
+written in the obvious human form (`up: ["T"]`) — user remaps
+themselves mute with zero diagnostics. Fixed: parse_key is
+case-insensitive and single letters get the Key prefix free ("T",
+"t", "KeyT", "keyt" all parse); unknown names now `warn!` from
+keymap() instead of vanishing. The rebuild-after-insert frame
+ordering (update_actions in First, rebuild in Update) is documented
+in the test's settle-frame comment.

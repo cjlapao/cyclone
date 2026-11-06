@@ -257,6 +257,80 @@ mod tests {
         }
     }
 
+    /// The settings.ron promise 'key remaps live there too' means
+    /// LIVE: changing Settings.keys mid-session must drive input on the
+    /// very next frame — no restart. Also checks the OLD key is dead,
+    /// which a merely-additive rebuild would silently pass.
+    /// The settings.ron promise 'key remaps live there too' means
+    /// LIVE: changing Settings.keys mid-session must drive input on the
+    /// very next frame — no restart. Also checks the OLD key is dead,
+    /// which a merely-additive rebuild would silently pass.
+    #[test]
+    fn dbg_remap() {
+        use bevy::input::InputPlugin;
+        use bevy::input::keyboard::KeyCode;
+        let mut app = App::new();
+        app.add_plugins((InputPlugin, ActionsPlugin));
+        let mut settings = Settings::default();
+        settings.keys.up = vec!["T".into()];
+        app.insert_resource(settings);
+        app.update();
+        let b = app.world().resource::<ActionBindings>();
+        for (a, keys, _) in &b.by_action {
+            if *a == Action::Up {
+                eprintln!("UP keys: {keys:?}");
+            }
+        }
+        app.world_mut()
+            .resource_mut::<bevy::input::ButtonInput<KeyCode>>()
+            .press(KeyCode::KeyT);
+        app.update();
+        let a = app.world().resource::<Actions>();
+        eprintln!(
+            "pressed(Up)={} kb(T)={}",
+            a.pressed(Action::Up),
+            app.world()
+                .resource::<bevy::input::ButtonInput<KeyCode>>()
+                .pressed(KeyCode::KeyT)
+        );
+    }
+
+    #[test]
+    fn remap_takes_effect_live() {
+        use bevy::input::InputPlugin;
+        use bevy::input::keyboard::KeyCode;
+        let mut app = App::new();
+        app.add_plugins((InputPlugin, ActionsPlugin));
+        let mut settings = Settings::default();
+        settings.keys.up = vec!["T".into()];
+        app.insert_resource(settings);
+        // Settle frame: update_actions runs in First, ahead of
+        // rebuild_bindings (Update) — the frame that inserts consumes
+        // the OLD map; the remap is live from the next frame on.
+        app.update();
+        app.update();
+
+        // New key drives the action...
+        app.world_mut()
+            .resource_mut::<bevy::input::ButtonInput<KeyCode>>()
+            .press(KeyCode::KeyT);
+        app.update();
+        let a = app.world().resource::<Actions>();
+        assert!(a.pressed(Action::Up), "remapped T flies up");
+
+        // ...and the old default does nothing anymore. Release T
+        // first: with the new key still held, Up pressed is CORRECT.
+        app.world_mut()
+            .resource_mut::<bevy::input::ButtonInput<KeyCode>>()
+            .release(KeyCode::KeyT);
+        app.world_mut()
+            .resource_mut::<bevy::input::ButtonInput<KeyCode>>()
+            .press(KeyCode::KeyW);
+        app.update();
+        let a = app.world().resource::<Actions>();
+        assert!(!a.pressed(Action::Up), "unbound W must be inert");
+    }
+
     #[test]
     fn rebuild_keeps_keyboard_and_gamepad_together() {
         let b = ActionBindings::rebuild(&Settings::default());
