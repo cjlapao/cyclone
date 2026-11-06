@@ -32,8 +32,14 @@ fn changed_settings_reach_disk_and_idle_frames_do_not() {
     app.add_systems(Update, apply_settings);
     app.update();
 
-    // directories-rust maps config_dir to $XDG_CONFIG_HOME/rescue
-    let path = root.join("rescue").join("settings.ron");
+    // Ask the SAME library the code uses — the layout is
+    // $XDG_CONFIG_HOME/rescue on Linux but $HOME/Library/Application
+    // Support/rescue on macOS; hardcoding either would fail the other.
+    let path = directories::ProjectDirs::from("com", "cyclone", "rescue")
+        .expect("project dirs")
+        .config_dir()
+        .join("settings.ron");
+    assert!(path.starts_with(&root), "redirect took: {path:?}");
     let written = std::fs::read_to_string(&path).expect("edit reached disk");
     assert!(
         written.contains("window_width: 1234"),
