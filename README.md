@@ -37,10 +37,13 @@ first `sudo apt install pkg-config libudev-dev`; macOS/Windows need
 nothing). Without it everything still works by keyboard; the mapping
 itself is event-tested in CI either way.
 
-Seed formats accepted in “Play Seed…”: 16 hex digits or the 13-char dashed
-form shown in-game. Worldgen knobs: `assets/worldgen/default.ron`;
+Seed formats accepted in “Play Seed…”: the dashed 13-char form shown
+in-game — case-insensitive Crockford base32 (dashes/spaces ignored, `O→0`,
+`I`/`L→1` auto-corrected), 1–13 digits, shorter values zero-padded.
+No hex parser exists: `0x1` parses as base32 digits (X is a Crockford
+digit), which the CLI prints normalized. Worldgen knobs: `assets/worldgen/default.ron`;
 keys/display/vsync/fullscreen: `~/.config/rescue/settings.ron` on Linux
-(`%APPDATA%\cyclone\rescue\` on Windows, `~/Library/Application Support/com.cyclone.rescue/`
+(`%APPDATA%\cyclone\rescue\config\` on Windows, `~/Library/Application Support/com.cyclone.rescue/`
 on macOS — applies live, see `DECISIONS.md`; key remaps live there too).
 Display/input options also live in-menu: **Settings** row opens an overlay
 (↑↓ rows · ←→ or Enter adjust · **click a row** to adjust · Esc close) — fullscreen, vsync, window
