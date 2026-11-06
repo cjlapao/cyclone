@@ -49,7 +49,7 @@ descends, Ctrl boosts. The in-game HUD and this table match the code
 | 6 | `PITCH_LIMIT` | `const PITCH_LIMIT` | 85° | how far up/down look can go before lock |
 | 7 | orbit radius factor | `max_dim * 1.45` | max_dim × 1.45 | how far the menu/preview camera sits above the island |
 | 8 | fly bounds | `let lo = Vec3::new` | map + 60 u, y ∈ [2.5, 600] | soft walls of free flight (ceiling/floor) |
-| 9 | InGame start pitch | `screens.rs` `rig.pitch = -25.0` | −25° | first-frame angle when Fly! begins |
+| 9 | InGame start pitch | `screens.rs` `rig.pitch = -18.0` | −18° | first-frame angle when Fly! begins (−25° pre-feel-pass; −18° frames 10 of 14 islands at spawn — see DECISIONS round 101) |
 | 10 | preview Tab pitch | `screens.rs` `Some(-89.5)` | −89.5° | the flat top-down toggle angle |
 | 11 | Base Island tint | `cyclone_render/src/terrain.rs` `base_island_tint` | ×1.10/1.02/0.82 RGB | the warm gold cast on the starting island |
 | 12 | Q/E snap | fixed | 90° | heading snaps (drives crate occlusion per quadrant) |
