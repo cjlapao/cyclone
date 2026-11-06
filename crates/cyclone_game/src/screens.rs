@@ -51,7 +51,7 @@ pub fn register(app: &mut App) {
     app.add_systems(OnEnter(AppState::MainMenu), menu_build);
     app.add_systems(
         Update,
-        (menu_seed_input, menu_activate)
+        (menu_seed_paste, menu_seed_input, menu_activate)
             .chain()
             .run_if(in_state(AppState::MainMenu)),
     );
@@ -197,6 +197,11 @@ struct MenuScreen {
     seed_text: String,
     seed_label: Entity,
     error_label: Entity,
+    /// In-flight Ctrl+V read; bevy 0.20 fetches the clipboard async and
+    /// the handle is polled on later frames.
+    paste_read: Option<bevy::clipboard::ClipboardRead>,
+    /// Set by menu_seed_paste when fresh text should reach the label.
+    paste_dirty: bool,
 }
 
 /// Small world for the menu/preview backdrop; every knob stays inside
@@ -310,6 +315,8 @@ fn menu_build(
     commands.insert_resource(MenuScreen {
         seed_mode: false,
         seed_text: String::new(),
+        paste_read: None,
+        paste_dirty: false,
         seed_label,
         error_label,
     });
@@ -321,6 +328,56 @@ fn menu_cleanup(mut commands: Commands) {
     commands.remove_resource::<SettingsPanel>();
     commands.remove_resource::<OverlayActive>();
     commands.insert_resource(MenuFocus::default());
+}
+
+/// Ctrl/Cmd+V in the seed field: bevy 0.20 clipboard reads are async
+/// (fetch_text returns a handle polled on later frames), so the fetch
+/// starts here and the text lands filtered/capped like manual typing.
+fn menu_seed_paste(
+    mut menu: ResMut<MenuScreen>,
+    kb: Res<bevy::input::ButtonInput<bevy::input::keyboard::KeyCode>>,
+    mut clipboard: Option<ResMut<bevy::clipboard::prelude::Clipboard>>,
+    mut texts: Query<&mut Text>,
+) {
+    if !menu.seed_mode {
+        return;
+    }
+    let ctrl = kb.pressed(bevy::input::keyboard::KeyCode::ControlLeft)
+        || kb.pressed(bevy::input::keyboard::KeyCode::ControlRight)
+        || kb.pressed(bevy::input::keyboard::KeyCode::SuperLeft)
+        || kb.pressed(bevy::input::keyboard::KeyCode::SuperRight);
+    if ctrl
+        && kb
+            .get_just_pressed()
+            .any(|k| *k == bevy::input::keyboard::KeyCode::KeyV)
+        && menu.paste_read.is_none()
+        && let Some(cb) = clipboard.as_mut()
+    {
+        menu.paste_read = Some(cb.fetch_text());
+    }
+    let Some(read) = menu.paste_read.as_mut() else {
+        return;
+    };
+    match read.poll_result() {
+        Some(Ok(text)) => {
+            menu.paste_read = None;
+            menu.seed_text.clear();
+            for c in text.chars().filter(char::is_ascii_alphanumeric) {
+                if menu.seed_text.len() >= 16 {
+                    break;
+                }
+                menu.seed_text.push(c.to_ascii_uppercase());
+            }
+            menu.paste_dirty = true;
+        }
+        Some(Err(_)) => {
+            menu.paste_read = None;
+            if let Ok(mut t) = texts.get_mut(menu.error_label) {
+                *t = Text::new("clipboard unavailable".to_string());
+            }
+        }
+        None => {}
+    }
 }
 
 fn menu_seed_input(
@@ -336,6 +393,10 @@ fn menu_seed_input(
         return;
     }
     let mut dirty = false;
+    if menu.paste_dirty {
+        menu.paste_dirty = false;
+        dirty = true;
+    }
     for ev in keys.read() {
         if !ev.state.is_pressed() {
             continue;

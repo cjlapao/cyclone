@@ -673,3 +673,15 @@ real-game latent bugs, now fixed:
 
 Flow suite 7/7 incl. full Boot→Menu→Gen→Preview→Fly→Esc→Preview→Esc→
 Menu on random styled worlds.
+
+## Round 63 — Ctrl+V pastes into the Play Seed field (async clipboard)
+
+Play Seed's field was keyboard-only; a copied seed could only be
+retyped. bevy_clipboard 0.20 reads are async (fetch_text → ClipboardRead
+handle, polled later), so menu_seed_paste is its own system in the
+menu chain: Ctrl/Super+V starts a fetch, the poll injects the text
+filtered+uppercased+capped(16) exactly like manual typing, and a
+paste_dirty flag makes the label re-render through the existing path.
+Clipboard absent (CI) or fetch error → "clipboard unavailable" on the
+error line — never silent. First draft failed clippy's 7-arg cap by
+growing menu_seed_input; the split is the better design anyway.

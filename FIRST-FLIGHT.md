@@ -35,8 +35,9 @@ Optional before you start — tune the world knobs first:
    - **Esc** — back to preview, same world; Esc again → menu
    Fly low over Base Island: helipad + hangar + the five supply crates
    are there (some hidden from certain headings — circle around).
-6. **Same seed, same world**: reroll a world you liked, copy its seed,
-   quit, Play Seed, paste — identical world on the spot.
+6. **Same seed, same world**: reroll a world you liked, copy its seed
+   (**C**), quit, **Play Seed…**, **Ctrl+V** to paste (or type it —
+   case-insensitive, O/I auto-corrected), Enter — identical world instantly.
    *(box: cross-machine seed — paste the same seed on another machine)*
 7. **Fly the map edges** — you hit soft walls 60 units off-map (never a
    fall-through), ceiling at 600.
