@@ -716,3 +716,14 @@ flow suite runs).
 Both fixes green on all three OSes at 7a0d8e8. Observability upgrades
 made en route (raw-tail annotations on both test steps) paid for
 themselves immediately: keyword-only filters were blind twice.
+
+## Round 70 — CI logs must be kill-proof (tee was eating the evidence)
+
+macOS dev-test deaths annotated ZERO lines twice: `cargo … | tee log`
+block-buffers, so a SIGKILL loses everything unwritten — the annotator
+never had input. Direct `> file` redirect now: every byte cargo wrote
+before the kill survives as annotations. macOS dev-test passed clean on
+the kill-proof run (633542b, all three OSes); if the silent death ever
+repeats it arrives with a real log. Same run re-verified the reroll
+hitch probe: still green, no hitch regression from any round-61–69
+state churn.
