@@ -740,3 +740,17 @@ case-insensitive and single letters get the Key prefix free ("T",
 keymap() instead of vanishing. The rebuild-after-insert frame
 ordering (update_actions in First, rebuild in Update) is documented
 in the test's settle-frame comment.
+
+## Round 76 — 'entity footprint' measured the allocator, not the app
+
+fly_loop's leak assert used `world.entities().len()` — the
+metadata-TABLE length, which reserves entity slots in power-of-two
+arcs: crossing 511 live entities jumps it 512 → 1024 with zero
+leaks. Two CI OSes fired "grew 512 → 1024" while my (already-wide)
+local arc never crossed — a test that can only fail on someone
+else's allocator state. `live_entities()` now queries actual live
+entities. Also fixed same round: evidence-push step hung on
+credential prompts (retired — public run pages render annotator
+output ANONYMOUSLY, which is where three reds finally confessed),
+and the fly_loop 'settle' loop went back out as unnecessary once
+the quantity was right.
