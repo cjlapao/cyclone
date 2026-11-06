@@ -93,7 +93,7 @@ Actions:
 ## Acceptance checks
 
 - [ ] Boot to a usable main menu in under 3 s in release on an M1 Mac.
-- [ ] Whole menu usable with keyboard only, mouse only, and gamepad only.
+- [x] Whole menu usable with keyboard only, mouse only, and gamepad only. *(round 49–54 evidence: flow.rs drives Boot→Menu→Generate→Preview by (a) key messages only, (b) Activated button-click messages only, (c) GamepadButtonStateChangedEvent injections only — each modality end-to-end, all three OSes in CI. Physical-device confirmation is the player's box to close.)*
 - [x] New Game produces a different world every time (seed differs, preview differs). *(`new_game_seeds_differ` + CI batch uniqueness.)*
 - [x] Play Seed with a copied seed reproduces the exact same world. *(`play_seed_shows_identical_world` asserts terrain/crates/helipads bit-identical; goldens now pass on all three CI OSes.)*
 - [ ] Reroll ten times in a row with no frame hitch over 50 ms on the main thread.
