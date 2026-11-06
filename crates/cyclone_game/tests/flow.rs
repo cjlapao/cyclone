@@ -656,3 +656,30 @@ fn new_game_seeds_differ() {
         "two New Games produced identical worlds"
     );
 }
+
+/// Ignored perf probe: pure busy-update wall time around the real
+/// pipeline steps (generate → scene build → mesh upload) so dev vs
+/// release numbers mean something. Run:
+///   cargo test -p cyclone_game [--release] --test flow pipeline_wall -- --ignored --nocapture
+#[test]
+#[ignore]
+fn pipeline_wall() {
+    use cyclone_worldgen::{ProgressNoop, Seed, generate};
+    let cfg = cyclone_game::screens::menu_bg_config();
+    let t0 = Instant::now();
+    let mut app = flow_app_with(false);
+    for _ in 0..20 {
+        app.update();
+    } // plugin warm
+    let t_boot = t0.elapsed();
+    let t1 = Instant::now();
+    let map = generate(Seed(1234), 1, &cfg, &ProgressNoop).unwrap();
+    let t_gen = t1.elapsed();
+    app.insert_resource(cyclone_engine::CurrentWorld(std::sync::Arc::new(map)));
+    let t2 = Instant::now();
+    for _ in 0..20 {
+        app.update();
+    }
+    let t_scene = t2.elapsed();
+    println!("boot+plugins {t_boot:?}, generate {t_gen:?}, 20 scene-build frames {t_scene:?}");
+}

@@ -55,6 +55,17 @@ descends, Ctrl boosts. The in-game HUD and this table match the code
 | 12 | Q/E snap | fixed | 90° | heading snaps (drives crate occlusion per quadrant) |
 | 13 | min-show progress | `screens.rs` | 300 ms | Generating screen floor before it can hand off |
 
+## Debug profile is honest (measured, not assumed)
+
+The tour says plain `cargo run` (dev profile). Dev builds here measure
+(ignored flow test `pipeline_wall`, `-- --ignored --nocapture`):
+boot+plugins ~10 ms, generate ~1.7 ms, scene build ~0.3 ms/frame —
+within noise of release (10.1 / 1.5 / 0.36 ms). The profile already
+compiles all dependencies at opt-level 3, so `cargo run` gives you
+release-speed gameplay with fast incremental rebuilds. If a feel
+complaint ever smells like stutter, we first ask "dev or release?"
+and re-run this probe.
+
 ## Feedback loop
 
 Say what you felt ("cruise feels slow over water", "gold too strong",
