@@ -51,12 +51,28 @@ fn state(app: &App) -> AppState {
 }
 
 /// Spin frames until `cond` or fail loudly.
+///
+/// Shared runners (Windows + WARP software shader compiles especially)
+/// have repeatedly sat this suite's wall-clock 3–5x over local: three
+/// historical reds were all timeout waits, never assertions. One choke
+/// point scales every timeout under CI rather than 12 literals
+/// drifting. A genuine deadlock still fails — with a 4x slower fuse,
+/// not a different one.
 fn wait_for(app: &mut App, what: &str, timeout: Duration, cond: impl Fn(&App) -> bool) {
+    let timeout = if std::env::var_os("CI").is_some() {
+        timeout * 4
+    } else {
+        timeout
+    };
     let start = Instant::now();
     while !cond(app) {
         app.update();
         if start.elapsed() > timeout {
-            panic!("timeout waiting for {what} (state {:?})", state(app));
+            panic!(
+                "timeout waiting for {what} after {:?} (state {:?})",
+                start.elapsed(),
+                state(app)
+            );
         }
         std::thread::sleep(Duration::from_millis(2));
     }
