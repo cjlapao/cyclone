@@ -438,3 +438,28 @@ Fix, three layers:
   on every push (3-OS matrix); we run debug per push and a full
   release job on `v*` tags instead — release-only breakage is rare,
   and per-push triple-release would quadruple CI wall-clock for it.
+## Release-mode verification, memory-throttled (rounds 28-30)
+
+The shipping config (`cargo build --release -p cyclone`) had only ever
+compiled on CI — a blind spot worth closing. Full release build: 3 m
+10 s warm. Running the workspace test suite under `--release` OOM-killed
+cargo: the default parallel codegen/link spawns one rustc + one linker
+per core (8 here), each peaking 1-3 GB while linking several Bevy test
+binaries simultaneously.
+
+Fix is a flag, not a profile change: **`-j 2`**. Verifying each crate
+under release separately with `-j 2` kept peak memory at ~3 GB (12 GB
+free throughout), every suite green, and left the release dep cache
+intact:
+
+```sh
+for c in cyclone_worldgen cyclone_engine cyclone_ui cyclone_render \
+         cyclone_game cyclone; do cargo test -p $c --release -j 2; done
+```
+
+Not `[profile]` edits: those invalidate every cached dependency (minutes
+of rebuild) to fix a problem `-j` solves for free, and CI's runners
+want the full default parallelism. On this box (15 GB / 8 cores)
+`-j 2` is the right call for any release-mode cargo job; debug builds
+never needed it because `debug = "line-tables-only"` and
+`codegen-units = 1` (release) already keep per-process RSS modest.
