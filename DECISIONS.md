@@ -615,3 +615,13 @@ window; macOS Locked is native). Release restores the cursor. Gated on
 free-fly (`auto_orbit == 0`) so menus/preview never grab. Engine test
 spawns a headless Window+CursorOptions and asserts press→Locked→
 release→None.
+## Golden regeneration is legitimate when the stored map violated spec (round 54)
+
+Round 53's min_gap/component gates made golden seed 0x19 drift: its
+stored map was spec-violating (silently accepted pre-check). We
+regenerated that golden rather than weaken the gate — the spec, not
+the golden, is the contract; goldens exist to pin determinism, and
+post-regeneration CI proved byte-identical reproduction on
+ubuntu+windows+macos. Benchmark note: mean gen 14→26 ms, p95 53 ms,
+22% of seeds retry once — still an order of magnitude below the
+300 ms Generating floor.
