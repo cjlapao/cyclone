@@ -165,6 +165,17 @@ fn main() -> Result<()> {
                 };
                 *hist.entry(k).or_default() += 1;
             }
+            // Why seeds get re-rolled — the tuning signal (TUNING.md):
+            // strip the attempt prefix and bucket by validator verdict.
+            let mut rejects: std::collections::BTreeMap<String, u32> = Default::default();
+            for m in &ok {
+                for r in &m.metrics.rejections {
+                    *rejects
+                        .entry(r.split(": ").nth(1).unwrap_or(r).to_owned())
+                        .or_default() += 1;
+                }
+            }
+            println!("batch rejects: {rejects:?}");
             println!(
                 "batch: {}/{} ok, median gen_ms {median} ms, difficulty {hist:?}, sheet+csv in {}",
                 ok.len(),

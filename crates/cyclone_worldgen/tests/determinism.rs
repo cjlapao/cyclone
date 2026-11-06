@@ -125,3 +125,27 @@ proptest! {
         prop_assert!(s.parse::<Seed>().is_err());
     }
 }
+
+#[test]
+fn rejections_match_attempts() {
+    // The batch rejection histogram is only honest if kept reasons
+    // exactly explain the attempt count: attempts = 1 + rejections.
+    let cfg = cyclone_worldgen::WorldGenConfig::default();
+    let mut saw_rejected = false;
+    for i in 1..=12u64 {
+        let m = cyclone_worldgen::generate(
+            cyclone_worldgen::Seed(i * 77),
+            1,
+            &cfg,
+            &cyclone_worldgen::ProgressNoop,
+        )
+        .unwrap();
+        assert_eq!(
+            m.metrics.attempts as usize,
+            m.metrics.rejections.len() + 1,
+            "seed {i}: reasons must account for every extra attempt"
+        );
+        saw_rejected |= !m.metrics.rejections.is_empty();
+    }
+    assert!(saw_rejected, "12 seeds should include a re-roll");
+}

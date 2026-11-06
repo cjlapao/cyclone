@@ -152,6 +152,7 @@ pub(crate) fn blank_map(seed: Seed, round: u32, cfg: &WorldGenConfig) -> WorldMa
             difficulty_reason: String::new(),
             gen_ms: 0,
             attempts: 0,
+            rejections: Vec::new(),
             stage_ms: Vec::new(),
         },
     }
@@ -245,7 +246,10 @@ pub fn generate(
     let mut reasons = Vec::new();
     for attempt in 0..cfg.max_world_attempts {
         match attempt_once(seed, round.max(1), attempt, cfg, progress, None) {
-            Ok(map) => return Ok(map),
+            Ok(mut map) => {
+                map.metrics.rejections = reasons;
+                return Ok(map);
+            }
             Err(GenError::Retry(r)) => reasons.push(format!("a{attempt}: {r}")),
             Err(e) => return Err(e),
         }
@@ -267,7 +271,10 @@ pub fn regenerate_round(
     let mut reasons = Vec::new();
     for attempt in 0..cfg.max_world_attempts {
         match attempt_once(base.seed, round.max(1), attempt, cfg, progress, Some(base)) {
-            Ok(map) => return Ok(map),
+            Ok(mut map) => {
+                map.metrics.rejections = reasons;
+                return Ok(map);
+            }
             Err(GenError::Retry(r)) => reasons.push(format!("a{attempt}: {r}")),
             Err(e) => return Err(e),
         }

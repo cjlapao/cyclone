@@ -71,6 +71,18 @@ of the 16.6 ms 60 Hz budget. If a feel complaint ever smells like
 stutter, the first question is "dev or release?" — and the answer
 should not matter.
 
+## What the generator rejects (measured tuning signal)
+
+`worldgen-cli batch` prints `batch rejects: {…}` — every validator
+verdict that cost a re-roll, live. Observed mix at current dials:
+`no room for the base hangar` and `only N of 14 island sites fit
+(style 2)` dominate; a `fuel reach` rejection means the route solver
+couldn't link pads under `fuel_range`. If one dominates your runs,
+the dial it points at (island_count, island_radius, min_gap,
+fuel_range) is the one to move — the test
+`rejections_match_attempts` guarantees attempts = 1 + reasons, so
+the histogram is trustworthy, not folklore.
+
 ## Feedback loop
 
 Say what you felt ("cruise feels slow over water", "gold too strong",

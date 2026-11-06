@@ -139,6 +139,11 @@ pub struct WorldMetrics {
     pub attempts: u32,
     #[serde(skip, default)]
     pub stage_ms: Vec<(String, u64)>,
+    /// Why earlier attempts were rejected (`validate` verdicts), e.g.
+    /// `"a0: route 41.2 > fuel_range"`. Empty on one-shot worlds — the
+    /// histogram of these is the tuning signal (TUNING.md).
+    #[serde(skip, default)]
+    pub rejections: Vec<String>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
