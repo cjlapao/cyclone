@@ -39,9 +39,10 @@ fn golden_worlds_reproduce_exactly() {
                 blake3::hash(joined.as_bytes()).to_hex()[..8].to_string()
             };
             panic!(
-                "golden drift seed {seed}: len={} lines={} c0={} c1={} c2={} c3={}",
+                "golden drift seed {seed}: len={} lines={} h8={} c0={} c1={} c2={} c3={}",
                 ron_text.len(),
                 n,
+                &blake3::hash(ron_text.as_bytes()).to_hex()[..8],
                 chunk(0, 200),
                 chunk(200, 2000),
                 chunk(2000, 20000),
@@ -69,9 +70,10 @@ fn golden_fingerprints() {
             blake3::hash(joined.as_bytes()).to_hex()[..8].to_string()
         };
         println!(
-            "seed {seed} want={want} len={} lines={} c0={} c1={} c2={} c3={}",
+            "seed {seed} want={want} len={} lines={} h8={} c0={} c1={} c2={} c3={}",
             ron_text.len(),
             n,
+            &blake3::hash(ron_text.as_bytes()).to_hex()[..8],
             chunk(0, 200),
             chunk(200, 2000),
             chunk(2000, 20000),
