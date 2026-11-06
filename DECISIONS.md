@@ -498,3 +498,26 @@ When spec 05 (polish/audio) or user feedback calls for it: custom
 pipeline belongs in `cyclone_render` (game-crate render-boundary rule
 unaffected), worldgen bakes the shore distance as a `Layer2d<u8>` so
 goldens update through the normal drift protocol.
+## The round-24 dependency guard was VACUOUS — fixed forward (round 33)
+
+Re-running the CI guard locally with positive controls proved
+`cargo tree -p cyclone_engine -e normal -i cyclone_game` prints NOTHING
+even when the dependency is real — combining `-p` with `-i` doesn't
+"check if $c depends on the engine", it just filters an inverse graph
+to the empty intersection. The old loop could never fail: CI had been
+about to "pass" spec-00 C2 by silence, not evidence. (Round 24's
+"positive control" validated a different invocation than the one
+shipped — controls must run the guard's exact command.)
+
+The correct detector greps the DEPENDENT's forward tree: a violation
+shows up as `cyclone_engine` inside a game crate's tree, and absence
+of game crates in the engine's own tree is what C2 means. The new
+step ends with two self-controls — the greps must FIRE on a real edge
+(game→engine) and the worldgen tree must be non-empty — so the guard
+fails loudly if it ever goes blind. Ran verbatim locally:
+GUARD_PASS_V2 with controls firing.
+
+`cargo tree` lesson: `-i` answers "who depends on X *within the
+graph of* ..." combinations that are easy to get empty; forward
+`cargo tree -p crate | grep dep` is the one form whose semantics are
+obvious at a glance — use it in scripts.

@@ -42,15 +42,20 @@ jobs:
             echo "cyclone_worldgen depends on bevy"; exit 1
           fi
           # The engine must not reference any game crate on any NORMAL
-          # edge (C2: deleting them still compiles the engine). `cargo
-          # tree -i` exits 0 even when nothing matches, so grep for the
-          # actual dependent instead of trusting the status code.
-          for c in cyclone_game cyclone_render cyclone_ui cyclone worldgen-cli; do
-            if cargo tree -p cyclone_engine -e normal -i "$c" 2>/dev/null |
-                grep -q "cyclone_engine v"; then
-              echo "cyclone_engine depends on game crate $c"; exit 1
-            fi
-          done
+          # edge (C2: deleting them still compiles the engine). Detect
+          # FORWARD on the engine's own tree — `-p A -i B` prints
+          # nothing even when B does depend on A (learned the hard
+          # way: the previous inverse form was vacuous).
+          if cargo tree -p cyclone_engine -e normal |
+              grep -qE "cyclone_game v|cyclone_render v|cyclone_ui v|cyclone v|worldgen-cli v"; then
+            echo "cyclone_engine tree contains a game crate"; exit 1
+          fi
+          # Positive controls: the greps above must FIRE on real
+          # edges, or a silent-pass detector is worthless.
+          cargo tree -p cyclone_worldgen -e normal | grep -q "^cyclone_worldgen v" || {
+            echo "control: worldgen tree empty"; exit 1; }
+          cargo tree -p cyclone_game -e normal | grep -q "cyclone_engine v" || {
+            echo "control: detector blind to a real dependency"; exit 1; }
 
   # Benchmarks are informational; never gate the pipeline on them (spec 02 C4).
   bench:
