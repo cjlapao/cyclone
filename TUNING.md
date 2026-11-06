@@ -14,9 +14,10 @@ unless noted.
 The overlay edits only Fullscreen / VSync / Window size / Camera speed.
 Keys live in the `keys:` block of the settings file (edit it with the
 game closed; a bad file falls back to defaults):
-Linux `~/.config/cyclone-rescue/settings.ron`, Windows
+Linux `~/.config/rescue/settings.ron`, Windows
 `%APPDATA%\cyclone\rescue\settings.ron`, macOS
-`~/Library/Application Support/com.cyclone.rescue/settings.ron`.
+`~/Library/Application Support/com.cyclone.rescue/settings.ron`
+(paths of `directories::ProjectDirs` — verified by running it).
 Binding names = field names below (`up`, `climb`, `boost`, …), each a
 list of key names as in the table (e.g. `boost: ["ControlLeft"]`).
 

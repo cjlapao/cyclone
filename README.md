@@ -30,8 +30,9 @@ Menu → **New Game** → generating screen (live progress) → world preview
 
 Seed formats accepted in “Play Seed…”: 16 hex digits or the 13-char dashed
 form shown in-game. Worldgen knobs: `assets/worldgen/default.ron`;
-keys/display/vsync/fullscreen: `~/.config/com.cyclone.rescue/settings.ron`
-(`directories`-convention config dir; applies live, see `DECISIONS.md`).
+keys/display/vsync/fullscreen: `~/.config/rescue/settings.ron` on Linux
+(`%APPDATA%\cyclone\rescue\` on Windows, `~/Library/Application Support/com.cyclone.rescue/`
+on macOS — applies live, see `DECISIONS.md`; key remaps live there too).
 Display/input options also live in-menu: **Settings** row opens an overlay
 (↑↓ rows · ←→ or Enter adjust · **click a row** to adjust · Esc close) — fullscreen, vsync, window
 size, camera speed; edits apply the same frame and persist. Volume rows
