@@ -96,7 +96,7 @@ pub fn register(app: &mut App) {
 /// place) and relative to the executable (launchers that change the
 /// CWD). First file found wins; an invalid file warns and keeps
 /// built-in defaults.
-fn load_worldgen_config(mut cfg: ResMut<GameConfig>) {
+pub fn load_worldgen_config(mut cfg: ResMut<GameConfig>) {
     let rel = std::path::Path::new("assets")
         .join("worldgen")
         .join("default.ron");
