@@ -42,14 +42,11 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          cargo test --workspace 2>&1 | tee test.log || {
-            # Keyword-filtered tails twice lost real failures (Windows dump
-            # floods push the signal out; dyld speaks none of the words).
-            # Raw last lines, plus any keyword hits anywhere in the log.
-            {
-              grep -aE "FAILED|panicked|error\[|test result: FAILED|golden drift" test.log | tail -n 8
-              tail -n 8 test.log
-            } | awk '!seen[$0]++' | tail -n 14 | awk '{printf "::error::%s\n", $0}'
+          RUST_TEST_THREADS=2 cargo test --workspace --jobs 2 2>&1 | tee test.log || {
+            # sed-only annotating: the fancy awk pipeline annotated ZERO
+            # lines on the macos failure (BSD awk or a mid-pipe death —
+            # either way, simplicity must carry the signal).
+            tail -n 12 test.log | sed 's/^/::error::/'
             exit 1
           }
       - name: gamepad feature build (Linux needs pkg-config + libudev-dev)
