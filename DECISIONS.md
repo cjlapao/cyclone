@@ -849,3 +849,13 @@ giant mesa with a couple of cells poking through. Chain of fixes:
    attempt budget raised to 24 in CLI+test to keep it honest.
 Lesson etched in stone: calibrate a metric against the failure it is
 meant to detect BEFORE trusting it. Mine had certified the bug.
+
+## Round 101 — "one island" closed quantitatively: 10/14 peaks in the spawn frustum
+
+Projected the user's seed (6KS1) through the exact flight camera
+(spawn base+46z, y=26, pitch -18, fov 55 — computed, not eyeballed):
+10 of 14 island peaks land inside the frame; the other 4 are behind
+or beyond the horizon band. With terraces + size-lift the visible
+peaks carry real height contrast now. The spawn-placement claim that
+rides on this is no longer a comment, it's arithmetic (rerun recipe:
+project (centre, peak_level·level_height) through the camera basis).
