@@ -129,3 +129,27 @@ values are free. Dev builds put the counter-evidence in your HUD
 island, seed 6KS1-…" — a number and a world, not just an adjective.
 After three feel passes we promote the settled values
 into defaults and prune this file.
+
+## Continent mode dials (CYCLONE_CONTINENT=1, rounds 154–155)
+
+The terrain-sim pivot: a 1 km² voxel-Earth heightfield, 25 cm
+columns, flown with the same rig. Judge without building: `cargo
+run -p worldgen-cli -- continent --seed <S> --size 4000 --out <dir>`
+→ hillshade.png in ~7 s from the SAME `elevation_m` the mesh uses.
+
+| feel-word | dial (continent.rs) | current |
+| --- | --- | --- |
+| "flat / boring relief" | relief floor `40+80·fbm/160m` terms | 15.0 + 35.0 (post-census calm) |
+| "no mountains anywhere" | orogeny floor `(0.05 + 0.95·mask)` | 0.05 |
+| "peaks not sharp enough" | `ridged()` sharpen exponent `r*r` | r² |
+| "mountains too small" | `max_height_m` (ContinentConfig) | 1100 |
+| "coast geometry too round" | warp amp 150 m / wavelength 350 m | 150/350 |
+| "want more ocean" | land mask smoothstep(0.44, 0.54) | midpoint 0.49 |
+| "detail looks like crumpled foil" | detail amp × 28 m | 1.0 m (was 2.2, the render said so) |
+| "blocky under me" | CELL_VOX (render/cyclone_render) | 8 (2 m mesh cells; 25 cm data awaits the clipmap) |
+
+Character per seed is REAL (census witnesses): seed 42 = strait +
+snow range, 777 = alpine, 2 = lake country. The `seed_two_holds_
+earth_character` test pins seed-2's measured bands — retuning these
+dials SHOULD fail it; re-measure via `census -- --ignored`, then
+update the bands deliberately.

@@ -1,6 +1,10 @@
 # Cyclone Rescue (V2)
 
 Search-and-rescue over a generated archipelago. Bevy **0.20.1** (exact pin).
+
+> **v2 terrain lab**: `CYCLONE_CONTINENT=1 cargo run -p cyclone --features dev`
+> flies a 1 km² voxel-Earth heightfield (25 cm columns) with the same rig —
+> seed it, reroll it, tune it: dial table in [TUNING.md](TUNING.md).
 V1 lives in [`v1/`](v1/); the V2 specs are in [`V2/`](V2/).
 
 ## Run

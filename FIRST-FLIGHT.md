@@ -76,6 +76,19 @@ If a world still feels flat despite #2, the one-knob answer is
    TUNING.md: 13 numbered dials with file:line that still points true.
    "Dial 1 too slow, dial 3 too twitchy" is the loop.
 
+## Terrain-lab mode (the v2 pivot, if you want it today)
+
+`CYCLONE_CONTINENT=1 cargo run -p cyclone --features dev` swaps the
+archipelago for a 1 km² voxel Earth: 25 cm columns, oceans, plains,
+ridged ranges, snow lines — one seed, one planet. New Game spends
+~8 s building (the terminal says so first; the window paints after).
+You spawn 80 m over the centre column; `R` rerolls a whole world.
+Corner line reads CONTINENT (island metrics would lie here, so it
+doesn't quote them). Judge the look without building anything:
+`cargo run -p worldgen-cli -- continent --seed 42 --size 4000 --out
+/tmp/earth` → hillshade.png, same maths as the mesh. TUNING.md has
+the dial table (relief floors, orogeny, snowline, cell size).
+
 ## When something misbehaves
 
 Tell me what you did and what the screen said — every claim above is
