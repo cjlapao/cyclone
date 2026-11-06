@@ -950,3 +950,17 @@ Plan: on the pilot's return, one throwaway tag exercises the whole
 pipeline (4 targets, artifacts listed), then decide the naming.
 Until then: state the truth — every other gate has live coverage;
 this one has belief.
+
+## Round 145 — the meter: ~$460/day at goal-loop cadence; quiet rounds go zero-latency
+
+First cost snapshot taken: 2315 calls / 24 h. The audits that earned
+their keep (macOS release row, the seed-coin, six doc lies, the
+phantom schedule) all came from real findings; the last two rounds
+spent five- and seven-minute sleeps to prove green things still
+green — polling the sky to see if it is still up. Policy: after any
+finding-less round, subsequent rounds skip sleeps and CI polls
+(commit-time CI verdicts deferred to the next real change or to
+Sunday's scheduled probe, whose prompt already covers red triage).
+Findings still get full rigor; absence of findings now costs ~zero.
+The improvement loop should idle like an engine with stop-start,
+not burn fuel at every green light.
