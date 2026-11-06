@@ -7,6 +7,10 @@ description = "Cyclone Rescue — the binary. Wires plugins together, nothing el
 
 [features]
 default = []
+# Physical gamepad support (bevy_gilrs). Linux build deps: pkg-config +
+# libudev-dev (libudev-sys). Input MAPPING is compiled always and
+# event-tested without the feature; this flag adds device I/O only.
+gamepad = ["cyclone_engine/gamepad"]
 # Fast local iteration: Bevy as a dylib + asset hot reload + dev tools.
 # Never ship with it on (spec 00).
 # NOTE: bevy_dev_tools deliberately NOT included — in Bevy 0.20 it

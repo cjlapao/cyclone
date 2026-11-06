@@ -244,6 +244,58 @@ fn menu_backdrop_always_generates() {
     }
 }
 
+/// Spec 00/01: the whole menu must be usable with a gamepad alone.
+/// Bevy 0.20 feeds gamepad buttons through GamepadButtonStateChangedEvent
+/// (production source: bevy_gilrs behind `--features gamepad`); we post
+/// the very same events — no device, no gilrs — and the engine's
+/// GamepadState mirror must drive focus nav and confirm end-to-end.
+#[test]
+fn menu_usable_with_gamepad_only() {
+    use bevy::input::ButtonState;
+    use bevy::input::gamepad::{GamepadButton, GamepadButtonStateChangedEvent};
+    let mut app = flow_app();
+    wait_for(&mut app, "menu", Duration::from_secs(10), |a| {
+        state(a) == AppState::MainMenu && a.world().contains_resource::<MenuFocus>()
+    });
+    let pad = |a: &mut App, btn: GamepadButton, down: bool| {
+        a.world_mut().write_message(GamepadButtonStateChangedEvent {
+            entity: Entity::PLACEHOLDER, // mirror ignores which pad
+            button: btn,
+            state: if down {
+                ButtonState::Pressed
+            } else {
+                ButtonState::Released
+            },
+        });
+        a.update(); // mirror_gamepad + actions + focus_nav consume it
+    };
+    let idx = |a: &App| a.world().resource::<MenuFocus>().index;
+    let start = idx(&app);
+    pad(&mut app, GamepadButton::DPadUp, true);
+    assert_ne!(idx(&app), start, "D-pad up moved focus");
+    pad(&mut app, GamepadButton::DPadUp, false);
+    pad(&mut app, GamepadButton::DPadDown, true);
+    pad(&mut app, GamepadButton::DPadDown, false);
+    assert_eq!(idx(&app), start, "D-pad down returned focus");
+
+    // Walk to New Game (focus id 0 == full_flow's Activated(0)) and press South.
+    let n = app.world().resource::<MenuFocus>().buttons.len();
+    for _ in 0..n {
+        if app.world().resource::<MenuFocus>().index == 0 {
+            break;
+        }
+        pad(&mut app, GamepadButton::DPadDown, true);
+        pad(&mut app, GamepadButton::DPadDown, false);
+    }
+    pad(&mut app, GamepadButton::South, true);
+    wait_for(
+        &mut app,
+        "preview (gamepad)",
+        Duration::from_secs(60),
+        |a| state(a) == AppState::WorldPreview,
+    );
+}
+
 #[test]
 fn settings_panel_opens_edits_live_and_closes() {
     let mut app = flow_app();

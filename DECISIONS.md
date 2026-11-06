@@ -584,3 +584,24 @@ preview panel: "copied ✓" / "copy failed" / "clipboard unavailable"
 Clipboard resource). preview_keys now sends Activated(B_PCOPY)
 instead of duplicating clipboard code — one handler, one truth.
 flow.rs asserts the fallback wording through the real message route.
+## Gamepad on Bevy 0.20: mirror events; GilrsPlugin behind a feature (round 49)
+
+Audit found the engine read `Option<Res<ButtonInput<GamepadButton>>>` —
+a resource **nothing in Bevy 0.20 writes** (whole-stack grep; the state
+moved into the `Gamepad` entity component, fed by
+`GamepadButtonStateChangedEvent` from bevy_gilrs). Every gamepad
+binding was dead code: gamepad-only menus (spec 00/01) could never
+fire, and no test injected gamepad input to notice.
+
+Fix: engine owns `GamepadState` fed by mirroring
+`GamepadButtonStateChangedEvent` (the exact messages InputPlugin
+registers; production source bevy_gilrs, tests inject directly).
+`update_actions` reads the mirror; flow.rs drives the whole
+menu→New Game→preview route with injected D-pad/South events only.
+
+`bevy_gilrs` (only device producer) stays OFF by default: on Linux its
+`libudev-sys` needs pkg-config + libudev headers at build time (verified
+failing here — same failure class as the dev_tools/alsa trim). New
+`gamepad` feature on cyclone_engine + cyclone turns it on; CI installs
+the two packages on ubuntu and `cargo check --features gamepad` guards
+the build. Shipping default remains keyboard-complete.

@@ -39,6 +39,46 @@ pub struct ActionBindings {
     by_action: Vec<(Action, Vec<KeyCode>, Vec<GamepadButton>)>,
 }
 
+// Bevy 0.20 has NO ButtonInput<GamepadButton> resource feed: button state
+// lives in the `Gamepad` entity component, updated from
+// `GamepadButtonStateChangedEvent`, whose production source is
+// `bevy_gilrs` (whose Linux backend needs pkg-config + libudev headers at
+// build time, so GilrsPlugin ships behind the optional `gamepad`
+// feature — DECISIONS round 49). `mirror_gamepad` below bridges those
+// events into `Actions` regardless: with the feature a real pad drives
+// the menus, without it the same code is driven by injected events in
+// tests. Either way the mapping is live code, never a phantom resource.
+
+/// Held buttons mirrored from `GamepadButtonStateChangedEvent`s.
+#[derive(Resource, Default)]
+struct GamepadState {
+    held: BTreeSet<GamepadButton>,
+    newly: BTreeSet<GamepadButton>,
+    newly_released: BTreeSet<GamepadButton>,
+}
+
+fn mirror_gamepad(
+    mut rx: MessageReader<bevy::input::gamepad::GamepadButtonStateChangedEvent>,
+    mut st: ResMut<GamepadState>,
+) {
+    st.newly.clear();
+    st.newly_released.clear();
+    for e in rx.read() {
+        match e.state {
+            bevy::input::ButtonState::Pressed => {
+                if st.held.insert(e.button) {
+                    st.newly.insert(e.button);
+                }
+            }
+            bevy::input::ButtonState::Released => {
+                if st.held.remove(&e.button) {
+                    st.newly_released.insert(e.button);
+                }
+            }
+        }
+    }
+}
+
 /// Spec 01 acceptance: every action also has a gamepad button, so the
 /// game and menus work gamepad-only. Stick axes (view-relative fly, menu
 /// scroll speed) arrive with the helicopter in spec 03; buttons cover
@@ -129,22 +169,24 @@ fn rebuild_bindings(settings: Res<Settings>, mut bindings: ResMut<ActionBindings
 
 fn update_actions(
     kb: Res<ButtonInput<KeyCode>>,
-    gp: Option<Res<ButtonInput<GamepadButton>>>,
+    gp: Res<GamepadState>,
     bindings: Res<ActionBindings>,
     mut actions: ResMut<Actions>,
 ) {
     actions.pressed.clear();
     actions.just_pressed.clear();
     actions.just_released.clear();
-    // ButtonInput<GamepadButton> only exists with gilrs; gamepad input is
-    // treated as optional everywhere (spec 00).
-    let pad = |g: &ButtonInput<GamepadButton>, b: GamepadButton| {
-        (g.pressed(b), g.just_pressed(b), g.just_released(b))
+    let pad = |b: GamepadButton| {
+        (
+            gp.held.contains(&b),
+            gp.newly.contains(&b),
+            gp.newly_released.contains(&b),
+        )
     };
     for (action, keys, pads) in &bindings.by_action {
         let (pd, pjp, pjr): (bool, bool, bool) = pads
             .iter()
-            .map(|b| gp.as_ref().map_or((false, false, false), |g| pad(g, *b)))
+            .map(|b| pad(*b))
             .fold((false, false, false), |a, v| {
                 (a.0 || v.0, a.1 || v.1, a.2 || v.2)
             });
@@ -177,8 +219,10 @@ impl Plugin for ActionsPlugin {
         }
         app.init_resource::<ActionBindings>();
         app.init_resource::<Actions>();
+        app.init_resource::<GamepadState>();
         app.add_systems(Update, rebuild_bindings);
         // Screens read `Actions` this frame, so refresh first.
+        app.add_systems(First, mirror_gamepad.before(update_actions));
         app.add_systems(First, update_actions);
     }
 }

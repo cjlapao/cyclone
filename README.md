@@ -28,6 +28,12 @@ Menu → **New Game** → generating screen (live progress) → world preview
 | — | the **Base Island is warm-tinted** gold in every 3D view |
 | `Esc` | back |
 
+**Gamepad**: menus and flying are fully mappable to a pad (D-pad/South
+etc.). Device I/O is optional: build with `--features gamepad` (on Linux
+first `sudo apt install pkg-config libudev-dev`; macOS/Windows need
+nothing). Without it everything still works by keyboard; the mapping
+itself is event-tested in CI either way.
+
 Seed formats accepted in “Play Seed…”: 16 hex digits or the 13-char dashed
 form shown in-game. Worldgen knobs: `assets/worldgen/default.ron`;
 keys/display/vsync/fullscreen: `~/.config/rescue/settings.ron` on Linux
