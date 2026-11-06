@@ -44,7 +44,10 @@ No hex parser exists: `0x1` parses as base32 digits (X is a Crockford
 digit), which the CLI prints normalized. Worldgen knobs: `assets/worldgen/default.ron`;
 keys/display/vsync/fullscreen: `~/.config/rescue/settings.ron` on Linux
 (`%APPDATA%\cyclone\rescue\config\` on Windows, `~/Library/Application Support/com.cyclone.rescue/`
-on macOS — applies live, see `DECISIONS.md`; key remaps live there too).
+on macOS). The in-game Settings overlay applies changes the same frame
+and writes these files; a hand-edit applies at next launch (a running
+game reads the file once, at boot — no file watcher exists). Key remaps
+live in the same file (remap UI not built yet; see `DECISIONS.md`).
 Display/input options also live in-menu: **Settings** row opens an overlay
 (↑↓ rows · ←→ or Enter adjust · **click a row** to adjust · Esc close) — fullscreen, vsync, window
 size, camera speed; edits apply the same frame and persist. Volume rows
