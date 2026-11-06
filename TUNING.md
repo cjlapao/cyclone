@@ -9,7 +9,16 @@ All camera knobs live in
 [`crates/cyclone_engine/src/camera_rig.rs`](crates/cyclone_engine/src/camera_rig.rs)
 unless noted.
 
-## Controls (defaults; every one remappable in Settings → key rows)
+## Controls (defaults; remap by hand-editing the settings file — no remap UI exists yet)
+
+The overlay edits only Fullscreen / VSync / Window size / Camera speed.
+Keys live in the `keys:` block of the settings file (edit it with the
+game closed; a bad file falls back to defaults):
+Linux `~/.config/cyclone-rescue/settings.ron`, Windows
+`%APPDATA%\cyclone\rescue\settings.ron`, macOS
+`~/Library/Application Support/com.cyclone.rescue/settings.ron`.
+Binding names = field names below (`up`, `climb`, `boost`, …), each a
+list of key names as in the table (e.g. `boost: ["ControlLeft"]`).
 
 | Key | Does |
 |-----|------|
@@ -30,7 +39,7 @@ descends, Ctrl boosts. The in-game HUD and this table match the code
 | # | Dial | Line | Now | Feel it as |
 |---|------|------|-----|-----------|
 | 1 | `FLY_BASE` | :37 | 38 u/s | cruise speed at fov 45; scales with fov (zoom in ⇒ slower) |
-| 2 | `BOOST_X` | :38 | 4.5 | Shift-held multiplier |
+| 2 | `BOOST_X` | :38 | 4.5 | Ctrl-held multiplier |
 | 3 | `LOOK_SENS` | :39 | 0.16 °/px | mouse feel; × `camera_rotation_speed` *(setting)* |
 | 4 | `FOV_MIN` / `FOV_MAX` | :31-32 | 25 / 80 | wheel-zoom ends: 25 = sniper, 80 = wide |
 | 5 | `ORBIT_PITCH` | :35 | −32° | menu/preview tilt (fly-mode look is free) |
