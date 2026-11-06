@@ -1368,6 +1368,16 @@ fn ingame_build(
             col.spawn(theme.small("WASD fly · Space up · Shift down · Ctrl boost".to_string()));
             col.spawn(theme.small("Hold RMB + move to aim · Wheel zoom".to_string()));
             col.spawn(theme.small(format!("Seed {} · Q/E snap view · Esc menu", seed.0)));
+            // Dev builds quote the tuning numbers on the spot, so a
+            // feel-report can cite the data without leaving the game
+            // (TUNING.md: feel-words map to dials via these metrics).
+            #[cfg(feature = "dev")]
+            col.spawn(theme.small(format!(
+                "relief {:.2} · {} islands · {:?}",
+                world.0.metrics.relief_share,
+                world.0.islands.len(),
+                world.0.metrics.difficulty
+            )));
         });
 }
 
