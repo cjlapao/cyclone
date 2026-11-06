@@ -59,7 +59,7 @@ descends, Ctrl boosts. The in-game HUD and this table match the code
 
 The tour says plain `cargo run` (dev profile). Measured on the
 current code and config (160×160, 14 islands): `cargo bench` release
-248 ms per 20-seed sample = ~12 ms/world; a single debug CLI
+262 ms per 20-seed sample = ~13 ms/world (up from 248 with the wider size spread's extra re-rolls); a single debug CLI
 generate 13 ms — dev ≈ release, as designed: the profile compiles
 all deps at opt-level 3 (root Cargo.toml), so `cargo run` gives
 release-speed gameplay with fast incremental rebuilds. The `worldgen
