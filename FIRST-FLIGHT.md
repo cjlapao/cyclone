@@ -20,9 +20,12 @@ watch for:
 
 1. **You spawn OVER the Base Island now**, not beyond the map edge —
    the black void band at the horizon is gone (sea plane got bigger)
-2. **Terrain is terraced**: median 0.76 of each island's land sits at
-   level ≥3 (the flat era was ~0.34); expect real climbs and level-7
-   peaks on the big islands
+2. **Terrain is properly terraced**: islands are now domes with
+   concentric bands (radial quantise) and BIG islands are forced
+   tall — level-5+ summits guaranteed on any radius-14 island, so
+   no big island can collapse into a one-level slab (the old
+   `relief 0.76` number hid exactly that; the honest metric
+   `terracing` now runs 0.53–0.70 vs the flat era's 0.48–0.52)
 3. **Cliff sides are solid** — the see-through slivers in the walls
    were a meshing bug, every wall now skirts to the sea floor
 4. **Sandy coasts are wider and patchy** (sand bleeds a few tiles

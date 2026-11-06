@@ -62,9 +62,11 @@ pub fn stage(ctx: &mut GenCtx) -> Result<(), crate::error::GenError> {
     let noise_seed = hash_pair(ctx.seed.0, crate::rng::stage_stream_id(ctx.attempt, 3));
     let peak_for = |a: Archetype| -> u8 {
         match a {
-            Archetype::Flat => 3,
-            Archetype::Hilly => 5,
-            Archetype::Plateau => 6,
+            // Proper archipelago spread: a "flat" island may still roll
+            // a modest hill on a lucky mult; peaks dominate up top.
+            Archetype::Flat => 4,
+            Archetype::Hilly => 6,
+            Archetype::Plateau => 7,
             Archetype::Peak => 7,
             Archetype::Atoll => 3,
         }
@@ -74,6 +76,7 @@ pub fn stage(ctx: &mut GenCtx) -> Result<(), crate::error::GenError> {
     let mut elev = vec![f64::NEG_INFINITY; (w * h) as usize];
     let mut peak = vec![2u8; (w * h) as usize];
     let mut span = vec![3.0f64; (w * h) as usize]; // max elevation of the winner
+    let mut dist = vec![9.0f64; (w * h) as usize]; // warp-corrected radius of winner
 
     for (si, site) in ctx.sites.iter().enumerate() {
         let (target, amp0) = archetype_profile(site.archetype);
@@ -88,8 +91,22 @@ pub fn stage(ctx: &mut GenCtx) -> Result<(), crate::error::GenError> {
             0.7 + ((hh >> 11) % 601) as f64 / 1000.0
         };
         let amp = amp0 * mult;
-        let peak_lvl = (((peak_for(site.archetype) as f64) * mult).round() as u8)
-            .clamp(3, ctx.cfg.max_level.max(3));
+        // Real islands: bigger footprint, taller summit — radius and
+        // relief are positively correlated in nature AND in taste: a
+        // 300-tile island squeezed through a 0.7 luck-roll gave only
+        // 2-3 climb bands, so one level hogged half the land (the
+        // user's slab; measured biggest-island spread 0.30-0.36 even
+        // post-radial-quantise). Size bonus lifts big sites toward the
+        // archetype ceiling instead of trusting pure luck.
+        let size_lift = 0.85 + 0.30 * ((site.radius - 5.0) / 13.0).clamp(0.0, 1.0);
+        let mut peak_lvl = (peak_for(site.archetype) as f64 * mult * size_lift).round() as u8;
+        // A radius-14+ island ALWAYS has mountain-grade relief room:
+        // its floor is level 5 so at least 4 climb bands exist by
+        // construction — no luck roll may collapse a big island flat.
+        if site.radius >= 14.0 && site.archetype != Archetype::Atoll {
+            peak_lvl = peak_lvl.max(5);
+        }
+        let peak_lvl = peak_lvl.clamp(3, ctx.cfg.max_level.max(3));
         let r = site.radius;
         let (cx, cy) = site.centre;
         let pad = 5i64;
@@ -117,12 +134,19 @@ pub fn stage(ctx: &mut GenCtx) -> Result<(), crate::error::GenError> {
                     elev[i] = e;
                     peak[i] = peak_lvl;
                     span[i] = target + amp;
+                    dist[i] = d + warp;
                 }
             }
         }
     }
 
-    // Quantise: sea / beach / linear 2..=peak (A5.3).
+    // Quantise (A5.3): coast stays the calibrated profile crossing, but
+    // the RISE is radial — level tracks distance from the island centre,
+    // so islands are proper terraced domes: beach ring, climb bands,
+    // capped summit. The e-normalised quantiser squeezed whole islands
+    // onto one level (measured 42% of land at a single level = the user's
+    // "flat mesa" screenshot; relief_share hid it because it measured
+    // height-above-sea, not band spread).
     for y in 0..h {
         for x in 0..w {
             let i = (y * w + x) as usize;
@@ -133,15 +157,24 @@ pub fn stage(ctx: &mut GenCtx) -> Result<(), crate::error::GenError> {
                 1
             } else {
                 let p = peak[i].max(2) as f64;
-                // t^0.72 bias: real archipelagos spend more time in their
-                // upper terraces than a linear ramp admits — the user's
-                // "almost flat" was this linear squeeze onto level 2.
-                let t = (((e - 1.15) / (span[i] - 1.15).max(0.5)).clamp(0.0, 1.0)).powf(0.72);
-                (2.0 + t * (p - 2.0)).round().clamp(2.0, p) as u8
+                // 1 at the centre, 0 at the (warp-corrected) coast; the
+                // outer 30% of land stays level 2 (the island plain), the
+                // rest climbs evenly to the site's peak.
+                let inland = (1.0 - dist[i]).clamp(0.0, 1.0);
+                let t = {
+                    let u = ((inland - 0.12) / 0.88).clamp(0.0, 1.0);
+                    u * (2.0 - u)
+                };
+                // Band-edge jitter so terraces aren't perfect rings:
+                // same-family noise, sub-level amplitude.
+                let jitter =
+                    (fbm(x as f64, y as f64, 0.18, 2, noise_seed ^ 0x007E_A813) - 0.5) * 1.1;
+                (2.0 + t * (p - 2.0) + jitter).round().clamp(2.0, p) as u8
             };
             *ctx.map.height.get_mut(x, y).expect("in bounds") = lvl;
         }
     }
+    let _ = &span;
 
     // Enforce the open-sea margin (A3): nothing but sea near the edge.
     let m = ctx.cfg.margin;

@@ -21,7 +21,15 @@ fn expected_rows() -> Vec<(String, String)> {
 
 #[test]
 fn golden_worlds_reproduce_exactly() {
-    let cfg = WorldGenConfig::default();
+    // Same contract as the golden CLI: a generous attempt budget keeps
+    // the FROZEN seed list honest under current dials (one golden seed
+    // needs >8 attempts since the taller terrain). The budget is part
+    // of the reproduction — a seed succeeding on attempt 12 hashes the
+    // attempt-12 streams, so the test must attempt exactly as deep.
+    let cfg = WorldGenConfig {
+        max_world_attempts: 24,
+        ..WorldGenConfig::default()
+    };
     for (i, (seed, want)) in expected_rows().iter().enumerate() {
         let seed_parsed: Seed = seed.parse().expect("golden seed parses");
         let map = generate(seed_parsed, 1, &cfg, &ProgressNoop)

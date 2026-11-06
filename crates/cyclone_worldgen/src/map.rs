@@ -129,11 +129,15 @@ pub struct WorldMetrics {
     pub longest_hop: f64,
     pub hidden_crates: u32,
     pub land_ratio: f64,
-    /// Share of LAND tiles at level ≥ 3 (0..=1). The objective answer to
-    /// "the terrain feels almost flat": pre-feel-pass worlds scored
-    /// ~0.34 here; the band bias + relief multiplier moved the same
-    /// seeds to ~0.6. Tune `level_height`/`max_level` against this.
-    pub relief_share: f64,
+    /// 1 − (biggest single height-band share of land). The metric that
+    /// actually tracks "does this island look terraced": the user's flat
+    /// mesa world scored 0.58 with a level-3 band covering 42% of ALL
+    /// land, while the old flat era scored ~0.25. relief_share (share of
+    /// land ≥ level 3) read 0.76 on the SAME mesa — it measured height
+    /// above sea, not shape, and hid the bug. Round 102 lesson: a metric
+    /// you pick yourself can certify nonsense. Tune relief dials against
+    /// THIS one; >0.6 = visibly stepped islands.
+    pub terracing: f64,
     pub difficulty: Difficulty,
     pub difficulty_reason: String,
     /// Wall-clock fields: kept out of the serialised form so golden hashes

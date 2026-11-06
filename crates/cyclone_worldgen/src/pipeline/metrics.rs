@@ -368,8 +368,35 @@ pub fn stage(ctx: &mut GenCtx) -> Result<(), GenError> {
         .count() as u32;
     let land = map.height.iter().filter(|&&h| h > 0).count();
     map.metrics.land_ratio = land as f64 / map.len_tiles() as f64;
-    let high = map.height.iter().filter(|&&h| h >= 3).count();
-    map.metrics.relief_share = high as f64 / land.max(1) as f64;
+    // Area-weighted per-island band spread: one global histogram would
+    // call a map flat just for containing many SMALL islands (a 30-tile
+    // islet can't fill 5 bands — geometry, not flatness). Flatness is a
+    // property of each island, weighted by how much land it is, so a
+    // big mesa dominates and islets barely count.
+    let mut num = 0.0f64;
+    let mut den = 0.0f64;
+    for isl in &map.islands {
+        let mut bands = [0u32; 256];
+        let mut n = 0u32;
+        for y in isl.bbox.y0..=isl.bbox.y1 {
+            for x in isl.bbox.x0..=isl.bbox.x1 {
+                let hh = map.height.get(x, y).copied().unwrap_or(0);
+                if hh > 0 {
+                    bands[hh as usize] += 1;
+                    n += 1;
+                }
+            }
+        }
+        // Under ~40 tiles the band count is geometry-limited; such
+        // islets' band-share verdict still counts, weighted by their
+        // (small) area — a big mesa dominates, islets barely accuse.
+        if n > 0 {
+            let top = bands.iter().max().copied().unwrap_or(0) as f64;
+            num += n as f64 * (1.0 - top / n as f64);
+            den += n as f64;
+        }
+    }
+    map.metrics.terracing = if den > 0.0 { num / den } else { 1.0 };
 
     let fuel = ctx.cfg.fuel_range as f64;
     let per_crate = map.metrics.route_len / map.crates.len().max(1) as f64;

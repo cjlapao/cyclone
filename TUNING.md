@@ -90,15 +90,29 @@ fuel_range) is the one to move — the test
 `rejections_match_attempts` guarantees attempts = 1 + reasons, so
 the histogram is trustworthy, not folklore.
 
-## Relief is now a number: `relief_share`
+## Terracing: the number behind "the terrain is flat"
 
-Every generated map reports the share of land at level ≥3 (`stats.txt`
-and the batch `summary.csv`). Measured across 16 fresh seeds at the
-current dials: **median 0.76, worst 0.68** — the "mostly flat" worlds
-you first flew scored ~0.34 and can no longer come out of the
-generator. If a world still feels flat to you despite a high number,
-the knob is `level_height` (vertical squash), not the band spread; if
-it feels like jagged noise, `max_level` is the lever.
+Every generated map reports `terracing` (`stats.txt`, batch
+`summary.csv`, dev-HUD): the area-weighted, per-island share of land
+NOT in the island's dominant height band — i.e. how stepped the
+islands look from above. Measured eras on the same frozen seeds:
+flat era 0.48–0.52, e-curve era 0.62–0.64 but with mesa-big-islands
+(one level holding half an island — the slab screenshot), current
+radial terraces + size-lift **0.53–0.70, median 0.65**, big islands
+0.66–0.76. The `invariants_hold_over_many_seeds` test floors it at
+0.50. If a world reads flat to your eye, `stats.txt` decides: low
+terracing → the shape is the culprit (peak table + size-lift in
+terrain.rs, capped by `max_level`); high terracing → the world just
+looks smooth because steps are short — RAISE `level_height` (world
+units per level) to exaggerate every step in 3D.
+
+### Why the previous number lied
+
+`relief_share` (share of land ≥ level 3) read a proud 0.76 on the
+very world whose screenshot is a flat slab: height above sea and
+*shape* are different properties. A metric picked without checking
+it against the failure it is meant to detect will certify nonsense.
+`terracing` was calibrated on both worlds before any floor was set.
 
 ## Feedback loop
 

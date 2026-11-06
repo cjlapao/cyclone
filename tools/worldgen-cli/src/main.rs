@@ -132,7 +132,7 @@ fn main() -> Result<()> {
                 .collect();
 
             let mut csv = String::from(
-                "seed,attempts,gen_ms,route_len,longest_hop,hidden_crates,land_ratio,relief_share,islands,difficulty\n",
+                "seed,attempts,gen_ms,route_len,longest_hop,hidden_crates,land_ratio,terracing,islands,difficulty\n",
             );
             for m in &ok {
                 let mt = &m.metrics;
@@ -145,7 +145,7 @@ fn main() -> Result<()> {
                     mt.longest_hop,
                     mt.hidden_crates,
                     mt.land_ratio,
-                    mt.relief_share,
+                    mt.terracing,
                     m.islands.len(),
                     mt.difficulty
                 ));
@@ -256,7 +256,14 @@ fn golden_rows() -> Result<Vec<(String, String)>> {
         0xC0FFEE,
         0x9E37_79B9_7F4A_7C15,
     ];
-    let cfg = WorldGenConfig::default();
+    // A generous attempt budget: the golden list is FROZEN across eras
+    // (its hashes are the determinism contract), so a seed that happens
+    // to need luck under current dials must not force a list swap.
+    // Exhausted here is a real regression signal, not a shrug.
+    let cfg = WorldGenConfig {
+        max_world_attempts: 24,
+        ..WorldGenConfig::default()
+    };
     seeds
         .into_par_iter()
         .map(|n| {
@@ -276,7 +283,7 @@ fn write_world(out: &Path, map: &WorldMap, font: &FontArc) -> Result<()> {
     let mt = &map.metrics;
     let mut stats = format!(
         "seed       {}\nround      {}\nattempts   {}\ngen_ms     {}\ndifficulty {:?}: {}\n\n\
-         route_len    {:.2} tiles\nlongest_hop  {:.2} tiles\nhidden_crates {}/{}\nland_ratio   {:.4}\nrelief_share {:.2}  (level>=3 share: ~0.6 terraced, ~0.34 flat-era)\nislands    {}\nprops      {}\nrefugees   {}\n\n",
+         route_len    {:.2} tiles\nlongest_hop  {:.2} tiles\nhidden_crates {}/{}\nland_ratio   {:.4}\nterracing    {:.2}  (1 - biggest band share; >0.6 stepped, ~0.25 flat era, 0.58 mesa bug)\nislands    {}\nprops      {}\nrefugees   {}\n\n",
         map.seed,
         map.round,
         mt.attempts,
@@ -288,7 +295,7 @@ fn write_world(out: &Path, map: &WorldMap, font: &FontArc) -> Result<()> {
         mt.hidden_crates,
         map.crates.len(),
         mt.land_ratio,
-        mt.relief_share,
+        mt.terracing,
         map.islands.len(),
         map.props.len(),
         map.refugees.len(),

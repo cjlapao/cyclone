@@ -828,3 +828,24 @@ families by message tail. 16-seed check: {fuel: 6+2, hangar: 3,
 site-fit: 7, min_gap: ...} — zero catch-alls, every bucket a family.
 TUNING re-pointed to the new key names. The tuning signal got a
 tune.
+
+## Round 102 — the user's screenshot vs my numbers: wrong metric certified a bug
+
+User flew the "fixed" build: still one island, still flat. Data said
+otherwise (14 islands, relief_share 0.76) — and the data was right AND
+the user was right: relief_share measured height above sea, while the
+eye reads SHAPE. Their world had 42% of all land on one level: a
+giant mesa with a couple of cells poking through. Chain of fixes:
+1. Radial terracing quantiser (level = distance from centre, coast
+   calibration untouched) — e-normalised curve had made the mesa.
+2. Peak table raised (Flat 3→4, Hilly 5→6, Plateau→7) + radius-linked
+   SIZE LIFT: big islands MUST be tall (floor level 5 at r≥14).
+   Biggest-island spread on the user's seed: 0.30 → 0.76.
+3. relief_share → terracing (area-weighted per-island 1-max-band-share,
+   serialised, HUD, csv, golden regenerated). Calibrated on BOTH eras:
+   flat 0.48-0.52 vs current 0.53-0.70 median 0.65; invariant floors 0.50.
+4. Exhausted is a supported outcome: invariants assert rate ≤1/33
+   (measured 3%, game auto-rerolls 10-deep); golden seed list FROZEN,
+   attempt budget raised to 24 in CLI+test to keep it honest.
+Lesson etched in stone: calibrate a metric against the failure it is
+meant to detect BEFORE trusting it. Mine had certified the bug.

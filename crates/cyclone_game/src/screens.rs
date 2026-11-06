@@ -1373,8 +1373,8 @@ fn ingame_build(
             // (TUNING.md: feel-words map to dials via these metrics).
             #[cfg(feature = "dev")]
             col.spawn(theme.small(format!(
-                "relief {:.2} · {} islands · {:?}",
-                world.0.metrics.relief_share,
+                "terracing {:.2} · {} islands · {:?}",
+                world.0.metrics.terracing,
                 world.0.islands.len(),
                 world.0.metrics.difficulty
             )));
