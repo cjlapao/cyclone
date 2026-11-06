@@ -9,6 +9,8 @@ V1 lives in [`v1/`](v1/); the V2 specs are in [`V2/`](V2/).
 cargo run -p cyclone        # toolchain: ~/.rustup/toolchains/stable-*/bin
 ```
 
+**First time?** Follow [FIRST-FLIGHT.md](FIRST-FLIGHT.md) — a 10-minute tour that closes the acceptance checklist.
+
 Menu → **New Game** → generating screen (live progress) → world preview
 (orbiting, info panel) → **Enter** to fly around the world freely.
 
