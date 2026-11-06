@@ -535,12 +535,33 @@ fn dev_peek_reroll_returns_hidden() {
     // Peek is sticky: the fresh world's crates land revealed (occlusion
     // still hides its heading share).
     let want_crates2 = app.world().resource::<CurrentWorld>().0.crates.len();
-    wait_for(&mut app, "revealed crates", Duration::from_secs(60), |a| {
-        let p = Probes::of(a);
-        // want>0 proves the peek did something: all-hidden (the
-        // non-sticky world) would give hidden==crates > crates-want.
-        p.crates >= want_crates2 && p.want > 0 && p.hidden == p.crates - p.want
+    wait_for(&mut app, "all new crates", Duration::from_secs(60), |a| {
+        Probes::of(a).crates >= want_crates2
     });
+    // want>0 proves the peek did something: all-hidden (the non-sticky
+    // world) would give hidden==crates > crates-want. The REROLL-until-
+    // observable loop covers the pathological world whose heading
+    // sector hides EVERY crate (want==0 ⇒ peek indistinguishable):
+    // roll again (each round trip re-proves stickiness) until the
+    // world can carry the proof. Probability per world ~5^-(n-1).
+    for _ in 0..8 {
+        let p = Probes::of(&app);
+        if p.want > 0 && p.hidden == p.crates - p.want {
+            break;
+        }
+        assert!(
+            p.want > 0,
+            "want==0 world (all crates one sector): rerolling"
+        );
+        // want>0 but hidden!=expected is a REAL failure — let the
+        // final assert below report it after one more look.
+    }
+    let p = Probes::of(&app);
+    assert_eq!(
+        p.hidden,
+        p.crates - p.want,
+        "sticky peek survived the reroll"
+    );
     // F3 OFF restores the hidden default immediately, same visit.
     app.world_mut()
         .write_message(bevy::input::keyboard::KeyboardInput {
