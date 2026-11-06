@@ -45,6 +45,15 @@ impl QuadBuilder {
             .extend_from_slice(&[base, base + 1, base + 2, base, base + 2, base + 3]);
     }
 
+    pub(crate) fn is_empty(&self) -> bool {
+        self.positions.is_empty()
+    }
+
+    #[cfg(test)]
+    pub(crate) fn quad_count(&self) -> usize {
+        self.indices.len() / 6
+    }
+
     pub fn into_mesh(self) -> Mesh {
         let mut mesh = Mesh::new(
             PrimitiveTopology::TriangleList,
@@ -59,7 +68,8 @@ impl QuadBuilder {
 }
 
 /// Per-(x,y,seed) brightness wobble so flat areas don't look painted (B1).
-fn tile_tint(x: u32, y: u32, seed: u64) -> f32 {
+/// Shared with continent_mesh: same wobble, same contract.
+pub(crate) fn tile_tint(x: u32, y: u32, seed: u64) -> f32 {
     let mut h = (x as u64)
         .wrapping_mul(0x9E37_79B9_7F4A_7C15)
         .wrapping_add((y as u64).wrapping_mul(0xC2B2_AE3D_27D4_EB4F))

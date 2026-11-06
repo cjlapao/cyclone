@@ -1373,6 +1373,13 @@ fn ingame_build(
 ) {
     rig_target.auto_orbit = 0.0; // free fly (was: static iso view)
     let map = &world.0;
+    // Dev builds announce dev terrain-lab mode BEFORE the generator
+    // runs — the 8 s one-time build must not read as a freeze (the
+    // window paints once this system returns).
+    #[cfg(feature = "dev")]
+    if std::env::var("CYCLONE_CONTINENT").is_ok() {
+        eprintln!("continent mode: building 1 km² voxel world (one-time, ~8 s)…");
+    }
     // Start OVER the Base Island, archipelago ahead. Starting beyond
     // the south edge showed the user a black void past the sea plane's
     // edge and one lonely island — the intro screenshot complaint.
@@ -1382,8 +1389,33 @@ fn ingame_build(
         .map_or((map.size.0 as f32 * 0.5, map.size.1 as f32 * 0.5), |i| {
             (i.centre.0 as f32 + 0.5, i.centre.1 as f32 + 0.5)
         });
+    // Continent preview mode (CYCLONE_CONTINENT=1): the world the rig
+    // lands into is the voxel-Earth heightfield, not the archipelago —
+    // start centred, clearing whatever ground is actually there.
+    let continent = std::env::var("CYCLONE_CONTINENT").is_ok();
+    let cont_size: u32 = std::env::var("CYCLONE_CONTINENT_SIZE")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(4000)
+        .clamp(64, 16_000);
+    let clear = if continent {
+        let half = cont_size as f32 * 0.25 * 0.5;
+        let ground = cyclone_render::continent_mesh::surface_height_m(
+            half as f64,
+            half as f64,
+            map.seed.0,
+            cont_size,
+        ) as f32;
+        Some((half, (ground + 80.0).max(120.0), half + 90.0))
+    } else {
+        None
+    };
     for mut rig in &mut rigs {
-        rig.position = Vec3::new(base.0, 26.0, base.1 + 46.0);
+        if let Some((x, y, z)) = clear {
+            rig.position = Vec3::new(x, y, z);
+        } else {
+            rig.position = Vec3::new(base.0, 26.0, base.1 + 46.0);
+        }
         rig.yaw = 0.0;
         rig.pitch = -18.0;
         rig.set_fov(55.0);
@@ -1413,12 +1445,19 @@ fn ingame_build(
             // feel-report can cite the data without leaving the game
             // (TUNING.md: feel-words map to dials via these metrics).
             #[cfg(feature = "dev")]
-            col.spawn(theme.small(format!(
-                "terracing {:.2} · {} islands · {:?}",
-                world.0.metrics.terracing,
-                world.0.islands.len(),
-                world.0.metrics.difficulty
-            )));
+            if continent {
+                col.spawn(theme.small(format!(
+                    "CONTINENT {} m² · 25 cm voxels · R rerolls terrain",
+                    (cont_size as f64 * 0.25) as u32
+                )));
+            } else {
+                col.spawn(theme.small(format!(
+                    "terracing {:.2} · {} islands · {:?}",
+                    world.0.metrics.terracing,
+                    world.0.islands.len(),
+                    world.0.metrics.difficulty
+                )));
+            }
             // Live FPS line — rewrites itself, see dev_fps_refresh.
             #[cfg(feature = "dev")]
             col.spawn((theme.small("-- fps".to_string()), DevFpsText));

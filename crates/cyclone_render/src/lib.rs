@@ -3,6 +3,7 @@
 //!
 //! The only crate besides cyclone_engine allowed to touch render APIs.
 
+pub mod continent_mesh;
 mod props;
 mod terrain;
 
@@ -71,11 +72,53 @@ fn rebuild_world(
     // Shoreline R8 texture for the future sea WGSL material (spec 02 B2).
     let _shore = shore_texture(&map, &mut images);
 
+    // Dev terrain-lab mode (round-155 pivot): CYCLONE_CONTINENT=1 swaps
+    // the archipelago for the voxel-Earth heightfield. Same rig, same
+    // materials, same rebuild path — a preview, not a fork.
+    let continent = std::env::var("CYCLONE_CONTINENT").is_ok();
+    let cont_size: u32 = std::env::var("CYCLONE_CONTINENT_SIZE")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(4000)
+        .clamp(64, 16_000); // voxels; generate_continent caps at 16384
+
     commands.spawn((InWorld, WorldRoot)).with_children(|root| {
         spawn_lights(root);
-        terrain::spawn_terrain(root, &map, &mut meshes, &mut materials, lh);
-        spawn_sea(root, &map, &mut meshes, &sea_mat);
-        props::spawn_props(root, &map, &mut meshes, &mut materials, lh);
+        if continent {
+            let t0 = std::time::Instant::now();
+            println!("continent mode: generating {}² voxel columns…", cont_size);
+            let (c, chunks) = continent_mesh::generate_and_mesh(map.seed.0, cont_size);
+            println!(
+                "continent ready: {} chunks, max {:.0} m, ocean {:.0}%, in {} ms",
+                chunks.len(),
+                c.metrics.max_height_m,
+                c.metrics.ocean_ratio * 100.0,
+                t0.elapsed().as_millis()
+            );
+            let mat = materials.add(StandardMaterial {
+                base_color: Color::WHITE,
+                perceptual_roughness: 0.92,
+                ..default()
+            });
+            spawn_continent_sea(
+                root,
+                c.config.size as f32 * c.config.voxel,
+                &mut meshes,
+                &sea_mat,
+            );
+            for ch in chunks {
+                root.spawn((
+                    InWorld,
+                    Mesh3d(meshes.add(ch.builder.into_mesh())),
+                    MeshMaterial3d(mat.clone()),
+                    Transform::from_xyz(ch.anchor.x, ch.anchor.y, ch.anchor.z),
+                ));
+            }
+        } else {
+            terrain::spawn_terrain(root, &map, &mut meshes, &mut materials, lh);
+            spawn_sea(root, &map, &mut meshes, &sea_mat);
+            props::spawn_props(root, &map, &mut meshes, &mut materials, lh);
+        }
     });
 }
 
@@ -138,6 +181,33 @@ fn spawn_sea(
         ],
         Vec3::Y,
         col,
+    );
+    root.spawn((
+        InWorld,
+        Mesh3d(meshes.add(b.into_mesh())),
+        MeshMaterial3d(sea_mat.clone()),
+    ));
+}
+
+/// Sea at continent extent: one quad, world + generous skirt.
+fn spawn_continent_sea(
+    root: &mut ChildSpawnerCommands,
+    extent_m: f32,
+    meshes: &mut ResMut<Assets<Mesh>>,
+    sea_mat: &Handle<StandardMaterial>,
+) {
+    let pad = 400.0f32;
+    let e = extent_m + pad;
+    let mut b = QuadBuilder::new();
+    b.quad(
+        [
+            Vec3::new(-pad, 0.0, -pad),
+            Vec3::new(-pad, 0.0, e),
+            Vec3::new(e, 0.0, e),
+            Vec3::new(e, 0.0, -pad),
+        ],
+        Vec3::Y,
+        srgb_to_vec4(1.0, 1.0, 1.0),
     );
     root.spawn((
         InWorld,
