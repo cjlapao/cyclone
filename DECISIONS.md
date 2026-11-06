@@ -872,3 +872,18 @@ full-skirt walls), NOT single-sided geometry — do not reach for
 cull_mode NONE as a "fix": it would only hide a future real bug and
 cost fill-rate. Column undersides are never visible (drone cannot
 descend below the sea plane), so the open-bottom boxes need no caps.
+
+## Round 111 — FIRST-FLIGHT tour audited claim-by-claim: two lies found
+
+With the user about to fly BY THIS DOC, every factual claim was
+checked against code: chunked terrain ✓, FOV 25–80 ✓, boost ×4.5
+(BOOST_X) ✓, soft walls FREE_PAD=60 ✓, ceiling 600 ✓, O→0/I→1/L→1
+autocorrect ✓, settings paths ✓. Two claims were FALSE:
+1. "the five supply crates are [on Base Island]" — crates.rs weights
+   by near-base + spread and forces ONE CRATE PER ISLAND (`used` is
+   an island-index set): base may hold zero or one.
+2. "F3 overlay prints FPS, frame ms, world seed and camera position"
+   — F3 reveals hidden crates on preview; dev in-flight corner line
+   quotes terracing/islands/difficulty; there is no FPS overlay.
+Doc claims age like code and rot like prose: audit docs against code
+before sending a user into the world with them.

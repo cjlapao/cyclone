@@ -62,8 +62,10 @@ If a world still feels flat despite #2, the one-knob answer is
      release restores it
    - **Wheel** — zoom (25°–80° FOV); **Q / E** — 90° heading snaps
    - **Esc** — back to preview, same world; Esc again → menu
-   Fly low over Base Island: helipad + hangar + the five supply crates
-   are there (some hidden from certain headings — circle around).
+   Fly low over Base Island: helipad + hangar are there. Supply
+   crates get AT MOST ONE per island — weighted near base, then
+   spread — so a sweep of neighbours finds them; some hide behind
+   high ground from certain headings (circle around).
 6. **Same seed, same world**: reroll a world you liked, copy its seed
    (**C**), quit, **Play Seed…**, **Ctrl+V** to paste (or type it —
    case-insensitive, O/I auto-corrected), Enter — identical world instantly.
@@ -78,5 +80,7 @@ If a world still feels flat despite #2, the one-knob answer is
 
 Tell me what you did and what the screen said — every claim above is
 backed by a headless test or a measurement, so a counterexample is a
-bug with a known location. The F3 overlay (dev feature) prints FPS,
-frame ms, world seed and camera position.
+bug with a known location. Dev builds (`--features dev`) press **F3**
+on the preview to reveal hidden crates (without it they stay honest),
+and the in-flight corner line quotes the tuning numbers — terracing,
+island count, difficulty — right next to your seed.
