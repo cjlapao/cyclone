@@ -476,3 +476,25 @@ extracted vs current), not change-ticks — so apply_settings' writes
 always land, and its now-matching first-frame write is a harmless
 no-op. Live toggling + save-on-change remain apply_settings' job;
 main.rs only owns the cold-start posture.
+## SeaMaterial (custom WGSL sea): deferred with cause (round 31)
+
+Asset audit of the whole shipping surface: font paths exist on disk
+(assets/fonts/LiberationSans-{Bold,Regular}.ttf), no code references
+any .glb/.png/.wav/.wgsl file, the release zips carry `assets/`, and
+empty V1 leftover dirs (models/, shaders/) are untracked so nothing
+dangles. One honest spec gap surfaced: spec 00's *rendering defaults*
+describe a custom `SeaMaterial` (vertex wave, depth tint, shoreline
+foam from a baked distance texture). The sea is a flat
+`StandardMaterial` today. Deliberate deferral:
+
+- it is not an acceptance check (the six C-items are all green);
+- foam needs a new worldgen output (shoreline distance texture),
+  touching the goldens for pure aesthetics;
+- wave amplitude, foam width, and depth tint are exactly the dials
+  the first on-screen flight will critique — tuning them blind
+  headlessly is rework bait.
+
+When spec 05 (polish/audio) or user feedback calls for it: custom
+pipeline belongs in `cyclone_render` (game-crate render-boundary rule
+unaffected), worldgen bakes the shore distance as a `Layer2d<u8>` so
+goldens update through the normal drift protocol.
