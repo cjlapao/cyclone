@@ -806,3 +806,13 @@ line, TUNING anchor. First population reading at current dials:
 median 0.76 across 16 seeds, worst 0.68 — the complaint-era 0.34 is
 generator-unreachable now. Future "it feels X" reports get checked
 against a distribution before any dial moves.
+
+## Round 90 — "ghost islands" investigated: a map.png red herring
+
+Round 87's top-down render showed two labels (Zanoku Shoal, Solaiva
+Rock) on blank water. Auditor instinct said "site with no land =
+wasted island slot" — a real defect class. Measured it instead:
+**0 zero-area islands across 224 islands, 16 seeds.** The islands
+exist; map.png's name labels simply paint over small islands. Data
+honesty survives; the renderer lies cosmetically (small fix someday:
+label offset). Rule reinforced: measure before you mourn.
