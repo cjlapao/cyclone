@@ -887,3 +887,16 @@ autocorrect ✓, settings paths ✓. Two claims were FALSE:
    quotes terracing/islands/difficulty; there is no FPS overlay.
 Doc claims age like code and rot like prose: audit docs against code
 before sending a user into the world with them.
+
+## Round 112 — a CHECKED box went false under my feet; measured, then restored honestly
+
+Spec 02's "batch 1000, zero failures" box was checked in the old era.
+The taller terrain (round 102) moved Exhausted from 0% to 1.1% per
+seed (measured: 11/1000, release) — a SUPPORTED outcome (game
+rerolls), but a false box is a false box. Fix chosen by semantics,
+not by hope: the GAME's zero-failure guarantee comes from rerolling
+fresh seeds ten times; a batch is per-seed, so its equivalent is
+patience — batch now runs attempt-budget 24 (P(exhausted) ~ p^3 of
+the 8-attempt rate, expected 0.001 failures/1000). Rerun: 1000/1000,
+median 15 ms, difficulty 41/32/27%. The box text now states the era,
+the budget and the equivalence — no silent re-checking of history.

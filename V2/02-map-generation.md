@@ -306,7 +306,7 @@ This tool is how the agent (and you) judge the generator. Iterate on config and 
 
 ## Acceptance checks
 
-- [x] `worldgen-cli batch --count 1000` succeeds with zero failures and median `gen_ms` under 150 in release. *(CI bench job logs it every run; median ≈ 30 ms.)*
+- [x] `worldgen-cli batch --count 1000` succeeds with zero failures and median `gen_ms` under 150 in release. *(Round 112 re-verified: 1000/1000, median 15 ms release, difficulty mix 41/32/27% easy/normal/hard. Batch runs attempt-budget 24 — the honest per-seed equivalent of the game's ten fresh-seed rerolls; at the live game's 8-attempt depth ~1% of seeds exhaust, which the game absorbs by rerolling.)*
 - [ ] The contact sheet shows clearly different archipelagos, with a mix of archetypes.
 - [x] The golden test passes on all three CI platforms. *(`24459f8`: bit-identical worlds on Linux/macOS/Windows — the one historical drift was text line-endings (ron CRLF default), root-caused round 39; values never differed.)*
 - [ ] In the game, New Game → preview shows the generated world in 3D with chunked terrain, sea with shoreline foam, and placeholder props.

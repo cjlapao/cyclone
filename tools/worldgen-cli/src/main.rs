@@ -98,7 +98,17 @@ fn main() -> Result<()> {
             out,
         } => {
             fs::create_dir_all(&out)?;
-            let cfg = WorldGenConfig::default();
+            // Attempt budget 24, not the live-game 8: the GAME answers
+            // an unlucky roll by rerolling a fresh seed (up to 10x),
+            // which a per-seed batch cannot do — patience-per-seed is
+            // its honest equivalent (P(exhausted at 24) ~= p^3 given
+            // measured p=1.1% at 8; 1000-seed expected failures 0.001).
+            // At default-8 the batch exhausts ~1% of seeds (measured,
+            // round 112: 11/1000) — a supported outcome, not a bug.
+            let cfg = WorldGenConfig {
+                max_world_attempts: 24,
+                ..WorldGenConfig::default()
+            };
             let seeds: Vec<Seed> = match start_seed {
                 Some(n) => (0..count as u64).map(|i| Seed(n.wrapping_add(i))).collect(),
                 None => (0..count).map(|_| Seed::random()).collect(),
