@@ -83,4 +83,5 @@ backed by a headless test or a measurement, so a counterexample is a
 bug with a known location. Dev builds (`--features dev`) press **F3**
 on the preview to reveal hidden crates (without it they stay honest),
 and the in-flight corner line quotes the tuning numbers — terracing,
-island count, difficulty — right next to your seed.
+island count, difficulty, and a live smoothed **fps · ms/frame** —
+right next to your seed.
