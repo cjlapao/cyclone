@@ -29,7 +29,19 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - run: cargo fmt --all --check
       - run: cargo clippy --workspace --all-targets -- -D warnings
-      - run: cargo test --workspace
+      # Logs are not anonymously downloadable; make a failure carry
+      # its own last lines as a ::error:: annotation so the failure is
+      # readable via the public annotations API. pipefail keeps cargo's
+      # exit code as the step's exit code.
+      - name: cargo test --workspace
+        shell: bash
+        run: |
+          set -o pipefail
+          cargo test --workspace 2>&1 | tee test.log || {
+            tail -n 40 test.log | grep -aE "FAILED|panicked|error\[|test result: FAILED" | tail -n 8 |
+              awk '{printf "::error::%s\n", $0}'
+            exit 1
+          }
       - name: dev-feature tests (F3 crate reveal)
         run: cargo test -p cyclone_game --features dev --test flow
       - run: cargo run -p worldgen-cli -- golden
