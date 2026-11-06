@@ -912,3 +912,16 @@ promotion to supported outcome still assumes it. Policy now: every
 unwrap of generate() states its contract — supported seeds only
 (patience 24), or an explicit rate assertion. Fail-fast cancelled
 macOS/ubuntu before they could flip their own coins.
+
+## Round 120 — a phantom scheduled task: the probe I kept "awaiting" did not exist
+
+For days the session state claimed a weekly release-probe ran Sundays
+and only its verdict needed checking. schedule_list showed ZERO
+tasks — the probe was an intention my summaries had promoted to a
+fact, the exact sibling of round 110's phantom F3-overlay banner.
+Recreated for real (schedule-375838df, first delivery Sun Nov 9
+06:00 UTC, fresh session per week, read-only API steps written into
+its prompt). The epistemic rule crystallising: a belief is only as
+alive as its LAST LIVE VERIFICATION; summaries are fossils — they
+preserve shape, not existence. Anything load-bearing (tasks, files,
+features, CI state) gets re-probed, never re-narrated.
