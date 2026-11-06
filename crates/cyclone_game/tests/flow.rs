@@ -439,6 +439,50 @@ fn leftovers(app: &mut App, st: AppState) -> usize {
         .count()
 }
 
+/// The Esc↔Fly! loop (added round 61) must be enterable over and over:
+/// one world root, no stale HUD, and the same entity footprint every
+/// round — a leak here would only ever show up on the fourth re-entry.
+#[test]
+fn fly_loop_leaks_nothing() {
+    let mut app = flow_app_with(false);
+    wait_for(&mut app, "MainMenu", Duration::from_secs(60), |a| {
+        state(a) == AppState::MainMenu && a.world().contains_resource::<CurrentWorld>()
+    });
+    app.world_mut().write_message(Activated(0)); // New Game
+    wait_for(&mut app, "preview", Duration::from_secs(60), |a| {
+        state(a) == AppState::WorldPreview
+    });
+    let base_entities = app.world().entities().len();
+    for round in 1..=3 {
+        tap(&mut app, KeyCode::Enter); // focused Fly! activates
+        wait_for(&mut app, "InGame", Duration::from_secs(30), |a| {
+            state(a) == AppState::InGame
+        });
+        tap(&mut app, KeyCode::Escape); // → preview of the SAME world
+        wait_for(&mut app, "WorldPreview", Duration::from_secs(30), |a| {
+            state(a) == AppState::WorldPreview
+        });
+        let mut roots = app
+            .world_mut()
+            .query_filtered::<Entity, With<cyclone_render::WorldRoot>>();
+        assert_eq!(
+            roots.iter(app.world()).count(),
+            1,
+            "round {round}: one world"
+        );
+        assert_eq!(
+            leftovers(&mut app, AppState::InGame),
+            0,
+            "round {round}: no stale HUD"
+        );
+        let n = app.world().entities().len();
+        assert!(
+            n.abs_diff(base_entities) <= 200,
+            "round {round}: entity footprint grew {base_entities} → {n}"
+        );
+    }
+}
+
 /// Spec 01 preview screen: buttons for the mouse, crates hidden, Tab
 /// top-down — the parts of the preview the old keyboard-only test
 /// never exercised.
