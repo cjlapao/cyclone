@@ -124,5 +124,8 @@ it against the failure it is meant to detect will certify nonsense.
 
 Say what you felt ("cruise feels slow over water", "gold too strong",
 "look drags") — each row maps to one commit; tests cover behaviour,
-values are free. After three feel passes we promote the settled values
+values are free. Dev builds put the counter-evidence in your HUD
+(fps · ms, terracing, seed), so "slow" arrives as "44 fps over the big
+island, seed 6KS1-…" — a number and a world, not just an adjective.
+After three feel passes we promote the settled values
 into defaults and prune this file.
