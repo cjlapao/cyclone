@@ -59,13 +59,17 @@ descends, Ctrl boosts. The in-game HUD and this table match the code
 
 The tour says plain `cargo run` (dev profile). Measured on the
 current code and config (160×160, 14 islands): `cargo bench` release
-262 ms per 20-seed sample = ~13 ms/world (up from 248 with the wider size spread's extra re-rolls); a single debug CLI
+198 ms per 18-seed sample = ~11 ms/world (re-measured round 116,
+after the bench pool became "generable seeds from 1..=20" = 18 — the
+faster number vs the 20-seed era's 262 ms/13 ms partly *is* that
+filter: the exhausted seeds' full 8-attempt burn no longer lands in
+the sample); a single debug CLI
 generate 13 ms — dev ≈ release, as designed: the profile compiles
 all deps at opt-level 3 (root Cargo.toml), so `cargo run` gives
 release-speed gameplay with fast incremental rebuilds. The `worldgen
 benchmark` CI job logs the same bench every push (its runner is
-~2× slower: ~26 ms/world; the bench times 20 seeds per criterion
-sample — divide by 20 before comparing). Worst reroll frame measured
+~2× slower; the bench times 18 seeds per criterion sample — divide
+by 18 before comparing). Worst reroll frame measured
 in-app (dev, ignored `reroll_hitch` test): 3.8 ms — under a quarter
 of the 16.6 ms 60 Hz budget. If a feel complaint ever smells like
 stutter, the first question is "dev or release?" — and the answer
