@@ -442,6 +442,15 @@ fn leftovers(app: &mut App, st: AppState) -> usize {
 /// The Esc↔Fly! loop (added round 61) must be enterable over and over:
 /// one world root, no stale HUD, and the same entity footprint every
 /// round — a leak here would only ever show up on the fourth re-entry.
+/// LIVE entities, not the entity-table length: Bevy reserves entity
+/// slots in power-of-two arcs, so `entities().len()` can double
+/// (512 → 1024) while live count is flat — the exact ghost the
+/// footprint assert caught on a runner whose allocation arc crossed.
+fn live_entities(app: &mut App) -> usize {
+    let mut q = app.world_mut().query::<Entity>();
+    q.iter(app.world()).count()
+}
+
 #[test]
 fn fly_loop_leaks_nothing() {
     let mut app = flow_app_with(false);
@@ -456,16 +465,7 @@ fn fly_loop_leaks_nothing() {
     // streams in over frames, and sampling on the entry frame caught
     // half a world (512 of 1024) on a loaded macOS runner — every
     // round then "grew" by the missing half. Stable twice = settled.
-    let mut base_entities = app.world().entities().len();
-    for _ in 0..600 {
-        app.update();
-        std::thread::sleep(Duration::from_millis(2));
-        let n = app.world().entities().len();
-        if n == base_entities {
-            break;
-        }
-        base_entities = n;
-    }
+    let base_entities = live_entities(&mut app);
     for round in 1..=3 {
         tap(&mut app, KeyCode::Enter); // focused Fly! activates
         wait_for(&mut app, "InGame", Duration::from_secs(30), |a| {
@@ -488,7 +488,7 @@ fn fly_loop_leaks_nothing() {
             0,
             "round {round}: no stale HUD"
         );
-        let n = app.world().entities().len();
+        let n = live_entities(&mut app);
         assert!(
             n.abs_diff(base_entities) <= 200,
             "round {round}: entity footprint grew {base_entities} → {n}"
