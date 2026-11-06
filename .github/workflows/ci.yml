@@ -74,7 +74,7 @@ jobs:
       - name: dev-feature tests (F3 crate reveal)
         shell: bash
         run: |
-          cargo test -p cyclone_game --features dev --test flow > devtest.log 2>&1
+          RUST_TEST_THREADS=2 cargo test -p cyclone_game --features dev --test flow --jobs 2 > devtest.log 2>&1
           rc=$?
           if [ $rc -ne 0 ]; then
             { grep -aE "FAILED|panicked|error\[" devtest.log | tail -n 6
