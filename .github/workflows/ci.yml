@@ -47,6 +47,9 @@ jobs:
               tail -n 14 | awk '{printf "::error::%s\n", $0}'
             exit 1
           }
+      - name: dev-feature bin check (handoff command builds)
+        shell: bash
+        run: cargo check -p cyclone --features dev
       - name: dev-feature tests (F3 crate reveal)
         run: cargo test -p cyclone_game --features dev --test flow
       - run: cargo run -p worldgen-cli -- golden

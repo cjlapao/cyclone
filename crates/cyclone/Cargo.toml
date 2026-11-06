@@ -9,10 +9,13 @@ description = "Cyclone Rescue — the binary. Wires plugins together, nothing el
 default = []
 # Fast local iteration: Bevy as a dylib + asset hot reload + dev tools.
 # Never ship with it on (spec 00).
+# NOTE: bevy_dev_tools deliberately NOT included — in Bevy 0.20 it
+# pulls bevy_audio (rodio→cpal→alsa), which needs alsa system headers
+# we do not otherwise depend on, and no code uses its APIs (F3 overlay
+# is ours). Re-add only together with the alsa dev package.
 dev = [
   "bevy/dynamic_linking",
   "bevy/file_watcher",
-  "bevy/bevy_dev_tools",
   "cyclone_game/dev",
 ]
 

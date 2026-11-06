@@ -561,3 +561,16 @@ now go fully green; spec 00 C6 closes with it.
 Lesson recorded: the region-fingerprint + hash-free (len/lines)
 technique turned an unreadable-logs platform failure into a two-CI-
 cycle closed case. Keep it in the test.
+## dev feature: dropped bevy_dev_tools — it hijacked the handoff command (round 43)
+
+`cargo run -p cyclone --features dev` — the F3 handoff command — was
+BROKEN on any Linux box without alsa headers: in Bevy 0.20
+`bevy/bevy_dev_tools` pulls `bevy_audio` → rodio → cpal → alsa
+(cargo tree -i alsa-sys proves the chain), and this machine has no
+pkg-config. Nothing in our code touches dev_tools APIs (the F3
+overlay is ours; grep is empty), so the feature now enables only
+dynamic_linking + file_watcher + cyclone_game/dev. CI blind spot
+that hid it: no job ever resolved the BIN crate's dev feature graph
+(dev-flow tests the game crate only) — now closed with
+`cargo check -p cyclone --features dev` on all three OSes.
+Re-add dev_tools only together with the alsa dev package.
