@@ -26,9 +26,10 @@ Menu → **New Game** → generating screen (live progress) → world preview
 | `R` | reroll a new world (preview) |
 | `C` | copy seed to clipboard (preview) |
 | `Tab` | preview: flat top-down map toggle |
+| `Ctrl+V` | Play Seed field: paste a seed from the clipboard |
 | `F3` | **dev builds only** (`--features dev`): reveal crates on preview — rotate with Q/E to watch them hide per heading |
 | — | the **Base Island is warm-tinted** gold in every 3D view |
-| `Esc` | back |
+| `Esc` | back, chain-wise: flight → **preview of the world you just flew** → menu |
 
 **Gamepad**: menus and flying are fully mappable to a pad (D-pad/South
 etc.). Device I/O is optional: build with `--features gamepad` (on Linux
@@ -62,7 +63,10 @@ cargo bench -p cyclone_worldgen              # ~26 ms/world mean, ~53 ms p95 (re
 `generate` writes a labelled top-down `map.png` (props, `H` helipads, `X`
 crates — red = hidden from some heading, refugee dots, island names),
 `world.ron` and `stats.txt`. `batch` writes `summary.csv` plus a
-`contact-sheet.png` of the first 64 worlds.
+`contact-sheet.png` of the first 64 worlds. Worlds roll one of five
+layout styles (scatter, cluster, chain, sparse — density-scaled), so
+batches show real variety, not jittered clones; the golden files lock
+it all byte-identical across Windows/macOS/Linux.
 
 
 ## Workspace
