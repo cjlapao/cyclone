@@ -696,3 +696,23 @@ per-visit reset for a debug tool you toggle deliberately. Locked by
 flow test dev_peek_reroll_returns_hidden (compiles only with the dev
 feature; CI's fmt/clippy/test now build --features dev too where the
 flow suite runs).
+
+## Round 67/68 postmortem — the three-commit CI red had TWO independent causes
+
+1. **dev_peek flaky assert** (ubuntu, 947aa81→618cd88): F3-peek-ON was
+   asserted as hidden==0, but peek-ON means "occlusion alone decides" —
+   hidden==crates−want, nonzero whenever the heading hides any crate;
+   frame timing decided per run. c2d75e7 made it provable: wait for the
+   complete crate set (count from CurrentWorld — props spawn over
+   frames), then hidden==crates−want AND want>0 (unsatisfiable if the
+   sticky reveal didn't happen).
+2. **Runner concurrency OOM** (macOS, 899ea44): `cargo test --workspace`
+   died with an EMPTY annotated tail — 17 debug test binaries at full
+   ncpu on the RAM-thin macos pool is a silent-kill pattern. Fixed:
+   `RUST_TEST_THREADS=2 cargo test --workspace --jobs 2`; annotator
+   also simplified to sed-only (the awk pipeline annotated zero lines
+   when it mattered — observability must be dumber than the failure).
+
+Both fixes green on all three OSes at 7a0d8e8. Observability upgrades
+made en route (raw-tail annotations on both test steps) paid for
+themselves immediately: keyword-only filters were blind twice.
