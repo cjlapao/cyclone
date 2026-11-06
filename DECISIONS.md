@@ -685,3 +685,14 @@ paste_dirty flag makes the label re-render through the existing path.
 Clipboard absent (CI) or fetch error → "clipboard unavailable" on the
 error line — never silent. First draft failed clippy's 7-arg cap by
 growing menu_seed_input; the split is the better design anyway.
+
+## Round 66 — dev F3 crate-peek is a STICKY session mode (was ambiguous)
+
+Spec 01 hides crates on the preview; the dev overlay's F3 reveals them
+for occlusion demos. What a reroll WHILE revealed should do was never
+decided. Chosen: the peek persists — new world's crates revealed too,
+F3-off restores the hidden default on the current screen. Sticky beats
+per-visit reset for a debug tool you toggle deliberately. Locked by
+flow test dev_peek_reroll_returns_hidden (compiles only with the dev
+feature; CI's fmt/clippy/test now build --features dev too where the
+flow suite runs).

@@ -483,6 +483,65 @@ fn fly_loop_leaks_nothing() {
     }
 }
 
+/// Dev-feature preview: F3 peeks the crates, and the peek is a sticky
+/// session mode — a reroll while ON reveals the NEW world's crates too
+/// (turning it OFF via F3 restores the spec-01 hidden default on the
+/// current screen). Sticky beats per-visit reset for a debug tool.
+#[cfg(feature = "dev")]
+#[test]
+fn dev_peek_reroll_returns_hidden() {
+    let mut app = flow_app_with(false);
+    app.init_resource::<Probes>();
+    app.add_systems(Last, probe_system);
+    wait_for(&mut app, "MainMenu", Duration::from_secs(60), |a| {
+        state(a) == AppState::MainMenu && a.world().contains_resource::<CurrentWorld>()
+    });
+    app.world_mut().write_message(Activated(0));
+    wait_for(&mut app, "preview", Duration::from_secs(60), |a| {
+        state(a) == AppState::WorldPreview
+    });
+    assert!(Probes::of(&app).crates > 0);
+    // The dev peek reads the raw key-event stream, not ButtonInput.
+    app.world_mut()
+        .write_message(bevy::input::keyboard::KeyboardInput {
+            key_code: KeyCode::F3,
+            logical_key: bevy::input::keyboard::Key::F3,
+            state: bevy::input::ButtonState::Pressed,
+            text: None,
+            repeat: false,
+            window: bevy::ecs::entity::Entity::PLACEHOLDER,
+        });
+    app.update();
+    assert_eq!(Probes::of(&app).hidden, 0, "F3 reveals every crate");
+    tap(&mut app, KeyCode::KeyR); // reroll WHILE revealed
+    wait_for(&mut app, "new preview", Duration::from_secs(60), |a| {
+        state(a) == AppState::WorldPreview
+    });
+    // Peek is sticky: the fresh world's crates are visible as they land.
+    wait_for(&mut app, "revealed crates", Duration::from_secs(60), |a| {
+        let p = Probes::of(a);
+        p.crates > 0 && p.hidden == 0
+    });
+    // F3 OFF restores the hidden default immediately, same visit.
+    app.world_mut()
+        .write_message(bevy::input::keyboard::KeyboardInput {
+            key_code: KeyCode::F3,
+            logical_key: bevy::input::keyboard::Key::F3,
+            state: bevy::input::ButtonState::Pressed,
+            text: None,
+            repeat: false,
+            window: bevy::ecs::entity::Entity::PLACEHOLDER,
+        });
+    app.update();
+    let p = Probes::of(&app);
+    assert!(
+        p.crates > 0 && p.hidden == p.crates,
+        "F3 off re-hides ({}/{})",
+        p.hidden,
+        p.crates
+    );
+}
+
 /// Spec 01 preview screen: buttons for the mouse, crates hidden, Tab
 /// top-down — the parts of the preview the old keyboard-only test
 /// never exercised.
