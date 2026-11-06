@@ -1,5 +1,8 @@
 name: ci
 
+permissions:
+  contents: write
+
 on:
   push:
     branches: [main]
@@ -81,6 +84,24 @@ jobs:
               tail -n 6 devtest.log; } | sed 's/^/::error::/' | head -n 12
             exit $rc
           fi
+      - name: upload failure evidence to ci-diagnostics branch
+        if: failure()
+        continue-on-error: true
+        env:
+          RUN_OS: ${{ runner.os }}
+        run: |
+          set -x
+          mkdir -p ev && mv test.log devtest.log ev/ 2>/dev/null || true
+          (df -h .; (vm_stat || free -m) 2>/dev/null | head -n 6) > ev/runner-state.txt 2>&1
+          echo "$RUN_OS ${{ github.sha }}" > ev/which.txt
+          git config user.name "ci-evidence"
+          git config user.email "ci@localhost"
+          git checkout --orphan ci-diagnostics
+          git rm -rqf . 2>/dev/null || true
+          cp -r ev/* . && rm -rf ev
+          git add -A && git commit -m "failure evidence ${{ github.sha }} ($RUN_OS)"
+          git push -f "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}" ci-diagnostics
+        timeout-minutes: 2
       - name: annotate dev-test failure (runner state included)
         if: failure()
         shell: bash
