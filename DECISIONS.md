@@ -754,3 +754,16 @@ credential prompts (retired — public run pages render annotator
 output ANONYMOUSLY, which is where three reds finally confessed),
 and the fly_loop 'settle' loop went back out as unnecessary once
 the quantity was right.
+
+## Round 85 — the user's first run found what no test could: the bin's plugin stack
+
+`StatesPlugin` added twice = hard panic at boot (DefaultPlugins carries
+it; our engine added it unconditionally for the headless tests' sake).
+Every existing test builds MinimalPlugins apps — the bin's real stack
+(DefaultPlugins + ours) was constructed NOWHERE. Now guarded with
+`is_plugin_added` (the same reflex `ActionsPlugin` already used for
+InputPlugin — one site had it, one didn't), regression test
+`bin_plugin_stack.rs` constructs the colliding pair, and the headless
+bin run reaches winit's display gate — the deepest boot this box can
+verify. Lesson recorded: a plugin an app can never run is a plugin
+that can panic before any test does.

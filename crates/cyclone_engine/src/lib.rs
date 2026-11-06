@@ -51,9 +51,14 @@ pub struct CycloneEnginePlugin;
 
 impl Plugin for CycloneEnginePlugin {
     fn build(&self, app: &mut App) {
-        // Headless tests skip DefaultPlugins; own the state plumbing anyway.
-        app.add_plugins(bevy::state::app::StatesPlugin)
-            .init_state::<AppState>();
+        // DefaultPlugins (the bin) already carries StatesPlugin —
+        // adding it twice is a hard panic, and only a REAL run (never
+        // the headless MinimalPlugins tests) walks that path. The bin
+        // first tripped this on the user's machine; guard, don't assume.
+        if !app.is_plugin_added::<bevy::state::app::StatesPlugin>() {
+            app.add_plugins(bevy::state::app::StatesPlugin);
+        }
+        app.init_state::<AppState>();
         app.add_plugins((
             settings::SettingsPlugin,
             input::ActionsPlugin,
