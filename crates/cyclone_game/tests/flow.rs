@@ -805,9 +805,20 @@ fn new_game_seeds_differ() {
             assert_ne!(seeds[i], seeds[j], "random_seed reused within 6 draws");
         }
     }
-    let cfg = WorldGenConfig::default();
-    let a = generate(seeds[0], 1, &cfg, &ProgressNoop).unwrap();
-    let b = generate(seeds[1], 1, &cfg, &ProgressNoop).unwrap();
+    // Patience budget 24: Exhausted is a SUPPORTED outcome (~1.1% of
+    // seeds at the live 8; measured round 112), and an unwrap on it
+    // made this test a ~2% coin — a red run here was the same class
+    // of contradiction the round-105 bench fix removed (the round-117
+    // annotator proved it in one line: panicked right here). Deepened
+    // patience is the batch's equivalence (round 112 DECISIONS);
+    // distinct-seeds-different-worlds is the intent under test, not
+    // luck-attempt-8.
+    let cfg = WorldGenConfig {
+        max_world_attempts: 24,
+        ..WorldGenConfig::default()
+    };
+    let a = generate(seeds[0], 1, &cfg, &ProgressNoop).expect("seed exhausts even at patience 24");
+    let b = generate(seeds[1], 1, &cfg, &ProgressNoop).expect("seed exhausts even at patience 24");
     assert_ne!(
         a.to_ron(),
         b.to_ron(),
