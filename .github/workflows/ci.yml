@@ -86,12 +86,14 @@ jobs:
           fi
       - name: upload failure evidence to ci-diagnostics branch
         if: failure()
-        continue-on-error: true
+        # HARD step: continue-on-error showed a dead push as "success"
+        # for a whole run — the step's own conclusion must be honest.
         env:
           RUN_OS: ${{ runner.os }}
         run: |
-          set -x
-          mkdir -p ev && mv test.log devtest.log ev/ 2>/dev/null || true
+          set -ex
+          mkdir -p ev
+          for f in test.log devtest.log; do [ -f "$f" ] && cp "$f" ev/ || true; done
           (df -h .; (vm_stat || free -m) 2>/dev/null | head -n 6) > ev/runner-state.txt 2>&1
           echo "$RUN_OS ${{ github.sha }}" > ev/which.txt
           git config user.name "ci-evidence"
