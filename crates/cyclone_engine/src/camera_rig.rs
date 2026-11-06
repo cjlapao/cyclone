@@ -165,6 +165,9 @@ fn refresh_bounds(world: Res<CurrentWorld>, mut bounds: ResMut<WorldBounds>) {
 }
 
 /// Mouse-look, wheel zoom, 90° snaps (run before the fly system).
+// 9 small parameters by design: the aim system *is* the fan-in of mouse,
+// settings, camera and cursor state; splitting would only scatter it.
+#[expect(clippy::too_many_arguments, reason = "fan-in system, see doc")]
 fn rig_look(
     mut rigs: Query<&mut CameraRig, With<Camera>>,
     actions: Res<Actions>,
@@ -173,6 +176,8 @@ fn rig_look(
     mouse: Option<Res<ButtonInput<MouseButton>>>,
     mut motion: MessageReader<MouseMotion>,
     mut wheel: MessageReader<MouseWheel>,
+    target: Res<RigTarget>,
+    mut cursors: Query<&mut bevy::window::CursorOptions>,
 ) {
     let mut turn = 0i8;
     if actions.just_pressed(Action::RotateCamLeft) {
@@ -182,10 +187,22 @@ fn rig_look(
         turn += 1;
     }
 
-    // Aim: hold Right Mouse + move (no pointer-grab feature in this build).
+    // Aim: hold Right Mouse + move. While held in free-fly mode the OS
+    // cursor is grabbed (Locked where supported, X11 falls back to
+    // Confined) — without this, aiming died at the window edge once the
+    // cursor ran out of screen (the classic free-cam complaint).
     let rmb_held = mouse
         .as_deref()
         .is_some_and(|b| b.pressed(MouseButton::Right));
+    let grab = rmb_held && target.auto_orbit == 0.0;
+    for mut c in &mut cursors {
+        c.grab_mode = if grab {
+            bevy::window::CursorGrabMode::Locked
+        } else {
+            bevy::window::CursorGrabMode::None
+        };
+        c.visible = !grab;
+    }
     let mut look = Vec2::ZERO;
     let sens = LOOK_SENS * settings.camera_rotation_speed.clamp(0.1, 4.0);
     for m in motion.read() {
@@ -359,6 +376,46 @@ impl Plugin for CameraRigPlugin {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// RMB aim must grab the OS cursor in free-fly mode: without a grab
+    /// the cursor hits the window edge, motion deltas stop, and aiming
+    /// silently dies — the classic free-camera complaint.
+    #[test]
+    fn rmb_grabs_cursor_in_free_fly() {
+        use bevy::window::{CursorGrabMode, CursorOptions, Window};
+        let mut app = App::new();
+        app.add_plugins((
+            bevy::MinimalPlugins,
+            bevy::input::InputPlugin,
+            crate::input::ActionsPlugin,
+            CameraRigPlugin,
+        ));
+        app.insert_resource(crate::settings::Settings::default());
+        app.world_mut()
+            .spawn((Window::default(), CursorOptions::default()));
+        app.update();
+        fn grab_of(a: &mut App) -> CursorGrabMode {
+            let mut q = a.world_mut().query::<&CursorOptions>();
+            q.single(a.world()).unwrap().grab_mode
+        }
+        assert!(matches!(grab_of(&mut app), CursorGrabMode::None));
+        app.world_mut()
+            .resource_mut::<ButtonInput<MouseButton>>()
+            .press(MouseButton::Right);
+        app.update();
+        assert!(
+            matches!(grab_of(&mut app), CursorGrabMode::Locked),
+            "RMB in free-fly must lock the cursor (X11 downgrades to Confined at runtime)"
+        );
+        app.world_mut()
+            .resource_mut::<ButtonInput<MouseButton>>()
+            .release(MouseButton::Right);
+        app.update();
+        assert!(
+            matches!(grab_of(&mut app), CursorGrabMode::None),
+            "release must free the cursor"
+        );
+    }
 
     #[test]
     fn heading_snaps_track_quadrants() {

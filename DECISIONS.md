@@ -605,3 +605,13 @@ failing here — same failure class as the dev_tools/alsa trim). New
 `gamepad` feature on cyclone_engine + cyclone turns it on; CI installs
 the two packages on ubuntu and `cargo check --features gamepad` guards
 the build. Shipping default remains keyboard-complete.
+## RMB aims with the OS cursor grabbed (round 50)
+
+Aim worked until the cursor hit the window edge: motion deltas stop,
+camera freezes, user blames LOOK_SENS. Now holding RMB in free-fly mode
+sets `CursorOptions { grab_mode: Locked, visible: false }` (winit
+downgrades Locked→Confined on X11 — motion still continuous inside the
+window; macOS Locked is native). Release restores the cursor. Gated on
+free-fly (`auto_orbit == 0`) so menus/preview never grab. Engine test
+spawns a headless Window+CursorOptions and asserts press→Locked→
+release→None.
