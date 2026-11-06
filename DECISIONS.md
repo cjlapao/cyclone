@@ -936,3 +936,17 @@ via the same API on every CI OS); prose did. New cross-check habit
 beyond doc-vs-code and doc-vs-measurement: read TWO docs against
 each other — a lie only survives when nothing is compared to
 anything.
+
+## Round 140 — the last untested machine: the release workflow has 0% live coverage
+
+Repo census: worktree clean, no stashes, single branch, HEAD ==
+origin. Tags: NONE — so `Release binaries` (tag-triggered) has run
+exactly zero times; every CI-green streak ever counted covered it
+only as 'skipped'. The M1 <3 s spec box will be judged on a RELEASE
+build, and the artifact pipeline feeding that era has never been
+exercised once. Deliberate non-action: tags are user-facing naming
+decisions (semver, channel) — not the agent's to invent unasked.
+Plan: on the pilot's return, one throwaway tag exercises the whole
+pipeline (4 targets, artifacts listed), then decide the naming.
+Until then: state the truth — every other gate has live coverage;
+this one has belief.
