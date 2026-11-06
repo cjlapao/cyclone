@@ -19,7 +19,10 @@ Optional before you start — tune the world knobs first:
    Dark island backdrop, orbiting camera. Menu navigable with mouse
    and keys (↑↓ + Enter; Esc backs out).
 2. **Settings (3rd button)** — Fullscreen, VSync, window size, camera
-   speed edit live. The file it writes: `~/.config/rescue/settings.ron`.
+   speed edit live. The file it writes is `settings.ron` under the OS
+   config dir (verified against the `directories` crate): Linux
+   `~/.config/rescue/`, macOS `~/Library/Application Support/com.cyclone.rescue/`,
+   Windows `%APPDATA%\cyclone\rescue\config\`.
 3. **New Game** → Generating (≥300 ms, honest progress) → **World
    Preview**: your fresh archipelago in orbiting 3D — chunked terrain,
    sea, foam ring, props. Press **Tab** for top-down.
