@@ -61,8 +61,9 @@ jobs:
         run: |
           set -o pipefail
           cargo test -p cyclone_game --features dev --test flow 2>&1 | tee devtest.log || {
-            tail -n 300 devtest.log | grep -aE "FAILED|panicked|error\[|test result: FAILED|signal|abort" |
-              tail -n 14 | awk '{printf "::error::%s\n", $0}'
+            # Raw tail, unfiltered: keyword greps missed the macOS failure
+            # twice (dyld messages match none of them). Last 12 lines speak.
+            tail -n 12 devtest.log | awk '{printf "::error::%s\n", $0}'
             exit 1
           }
       - run: cargo run -p worldgen-cli -- golden
