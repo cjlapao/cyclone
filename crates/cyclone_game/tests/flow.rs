@@ -521,8 +521,23 @@ fn dev_peek_reroll_returns_hidden() {
         });
     app.update();
     // Revealed = occlusion decides (spec 02): exactly this heading's
-    // hidden-from crates stay hidden — that IS the demo.
+    // hidden-from crates stay hidden — that IS the demo. POLLED, not
+    // sampled: occlusion re-applies a frame or two after the toggle,
+    // and a loaded CI machine widens that window — the single-shot
+    // read here was the CI-only flake (green x30 locally, red on
+    // whichever runner blinked).
+    let mut revealed = false;
+    for _ in 0..300 {
+        let p = Probes::of(&app);
+        if p.want > 0 && p.hidden == p.crates - p.want {
+            revealed = true;
+            break;
+        }
+        app.update();
+        std::thread::sleep(Duration::from_millis(2));
+    }
     let p = Probes::of(&app);
+    assert!(revealed, "occlusion never decided the revealed set");
     assert_eq!(
         p.hidden,
         p.crates - p.want,
@@ -534,28 +549,43 @@ fn dev_peek_reroll_returns_hidden() {
     });
     // Peek is sticky: the fresh world's crates land revealed (occlusion
     // still hides its heading share).
-    let want_crates2 = app.world().resource::<CurrentWorld>().0.crates.len();
-    wait_for(&mut app, "all new crates", Duration::from_secs(60), |a| {
-        Probes::of(a).crates >= want_crates2
-    });
+    let mut want_crates2 = app.world().resource::<CurrentWorld>().0.crates.len();
     // want>0 proves the peek did something: all-hidden (the non-sticky
-    // world) would give hidden==crates > crates-want. The REROLL-until-
-    // observable loop covers the pathological world whose heading
-    // sector hides EVERY crate (want==0 ⇒ peek indistinguishable):
-    // roll again (each round trip re-proves stickiness) until the
-    // world can carry the proof. Probability per world ~5^-(n-1).
+    // world) would give hidden==crates > crates-want. A world whose
+    // heading sector hides EVERY crate (want==0, ~5^-(n-1)) can't
+    // carry the proof — reroll it away (each round trip re-exercises
+    // stickiness). Occlusion catches up with spawned crates a frame
+    // or two later, so the predicate is polled, not sampled once.
+    let mut settled = false;
     for _ in 0..8 {
-        let p = Probes::of(&app);
-        if p.want > 0 && p.hidden == p.crates - p.want {
+        wait_for(&mut app, "all new crates", Duration::from_secs(60), |a| {
+            Probes::of(a).crates >= want_crates2
+        });
+        for _ in 0..300 {
+            let p = Probes::of(&app);
+            if p.crates >= want_crates2 && p.want > 0 && p.hidden == p.crates - p.want {
+                settled = true;
+                break;
+            }
+            if p.want == 0 {
+                break; // unobservable world: reroll it away below
+            }
+            app.update();
+            std::thread::sleep(Duration::from_millis(2));
+        }
+        if settled {
             break;
         }
-        assert!(
-            p.want > 0,
-            "want==0 world (all crates one sector): rerolling"
+        tap(&mut app, KeyCode::KeyR);
+        wait_for(
+            &mut app,
+            "reroll away want==0",
+            Duration::from_secs(60),
+            |a| state(a) == AppState::WorldPreview,
         );
-        // want>0 but hidden!=expected is a REAL failure — let the
-        // final assert below report it after one more look.
+        want_crates2 = app.world().resource::<CurrentWorld>().0.crates.len();
     }
+    assert!(settled, "sticky peek never became observable");
     let p = Probes::of(&app);
     assert_eq!(
         p.hidden,
