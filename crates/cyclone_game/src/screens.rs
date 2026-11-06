@@ -1294,13 +1294,21 @@ fn ingame_build(
     mut rigs: Query<&mut CameraRig>,
 ) {
     rig_target.auto_orbit = 0.0; // free fly (was: static iso view)
-    let (w, h) = world.0.size;
+    let map = &world.0;
+    // Start OVER the Base Island, archipelago ahead. Starting beyond
+    // the south edge showed the user a black void past the sea plane's
+    // edge and one lonely island — the intro screenshot complaint.
+    let base = map
+        .islands
+        .first()
+        .map_or((map.size.0 as f32 * 0.5, map.size.1 as f32 * 0.5), |i| {
+            (i.centre.0 as f32 + 0.5, i.centre.1 as f32 + 0.5)
+        });
     for mut rig in &mut rigs {
-        // Start off the south edge, archipelago ahead (heading 0).
-        rig.position = Vec3::new(w as f32 * 0.5, 58.0, h as f32 + 42.0);
+        rig.position = Vec3::new(base.0, 26.0, base.1 + 46.0);
         rig.yaw = 0.0;
-        rig.pitch = -25.0;
-        rig.set_fov(52.0);
+        rig.pitch = -18.0;
+        rig.set_fov(55.0);
     }
 
     // Corner hints until spec 05's HUD exists (free camera is new muscle).

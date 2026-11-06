@@ -21,6 +21,19 @@ pub fn stage(ctx: &mut GenCtx) -> Result<(), GenError> {
                 0 if sd > 2 => Surface::Sea,
                 0 => Surface::Shallow,
                 1 => Surface::Sand,
+                // Sand bleeds a few tiles uphill in PATCHES (user
+                // feedback: "more sand on the borders, does not always
+                // need to go around"): hash speckle keeps some level-2
+                // coast tiles sandy, others grass — natural, ragged.
+                2 if sd <= 4
+                    && !crate::noise::hash_pair(
+                        crate::noise::hash_pair(x as u64, y as u64) ^ ctx.map.seed.0,
+                        0x5A50_4453,
+                    )
+                    .is_multiple_of(3) =>
+                {
+                    Surface::Sand
+                }
                 2..=5 => Surface::Grass,
                 _ => Surface::Rock,
             };

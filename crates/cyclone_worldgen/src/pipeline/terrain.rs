@@ -69,9 +69,21 @@ pub fn stage(ctx: &mut GenCtx) -> Result<(), crate::error::GenError> {
     let mut peak = vec![2u8; (w * h) as usize];
     let mut span = vec![3.0f64; (w * h) as usize]; // max elevation of the winner
 
-    for site in &ctx.sites {
-        let (target, amp) = archetype_profile(site.archetype);
-        let peak_lvl = peak_for(site.archetype);
+    for (si, site) in ctx.sites.iter().enumerate() {
+        let (target, amp0) = archetype_profile(site.archetype);
+        // Per-site relief multiplier: same archetype rolls different
+        // altitudes island to island (user feedback: "islands need
+        // different sizes, altitude, etc"). Deterministic hash, 0.7..1.3.
+        let mult = {
+            let hh = crate::noise::hash_pair(
+                noise_seed,
+                crate::rng::stage_stream_id(ctx.attempt, 300 + si as u32),
+            );
+            0.7 + ((hh >> 11) % 601) as f64 / 1000.0
+        };
+        let amp = amp0 * mult;
+        let peak_lvl = (((peak_for(site.archetype) as f64) * mult).round() as u8)
+            .clamp(3, ctx.cfg.max_level.max(3));
         let r = site.radius;
         let (cx, cy) = site.centre;
         let pad = 5i64;
@@ -115,8 +127,11 @@ pub fn stage(ctx: &mut GenCtx) -> Result<(), crate::error::GenError> {
                 1
             } else {
                 let p = peak[i].max(2) as f64;
-                let t = (e - 1.15) / (span[i] - 1.15).max(0.5);
-                (2.0 + t * (p - 2.0)).floor().clamp(2.0, p) as u8
+                // t^0.72 bias: real archipelagos spend more time in their
+                // upper terraces than a linear ramp admits — the user's
+                // "almost flat" was this linear squeeze onto level 2.
+                let t = (((e - 1.15) / (span[i] - 1.15).max(0.5)).clamp(0.0, 1.0)).powf(0.72);
+                (2.0 + t * (p - 2.0)).round().clamp(2.0, p) as u8
             };
             *ctx.map.height.get_mut(x, y).expect("in bounds") = lvl;
         }

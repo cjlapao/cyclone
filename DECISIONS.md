@@ -767,3 +767,19 @@ InputPlugin — one site had it, one didn't), regression test
 bin run reaches winit's display gate — the deepest boot this box can
 verify. Lesson recorded: a plugin an app can never run is a plugin
 that can panic before any test does.
+
+## Round 87 — first real-screen feedback: generator + framing overhaul
+
+User flew it. Four complaints, four root causes, all fixed:
+flat terrain (linear quantisation squeezed islands onto level 2 →
+t^0.72 band bias + round + per-site 0.7–1.3 relief multiplier +
+level_height 0.5→0.9: share≥level-3 went 0.34→0.63, peak now
+reachable); "only one island" (flight spawned beyond the map edge
+over the sea plane's black void — other islands existed ALL ALONG;
+now spawns over Base Island, sea pad 160); see-through cliffs (walls
+terminated at neighbour tops leaving sliver gaps — full skirts to
+sea floor, sealed by construction); thin sand (level-1-only band →
+patchy sand through level 2 within 4 of shore). island_radius widened
+(5,18) — 4,20 overloaded the validators (attempts exhausted, caught
+by the rejections invariant test doing its job). Golden regenerated
+(height grid changed by design).

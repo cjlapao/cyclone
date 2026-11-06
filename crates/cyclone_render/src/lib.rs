@@ -123,7 +123,9 @@ fn spawn_sea(
     sea_mat: &Handle<StandardMaterial>,
 ) {
     let (w, h) = map.size;
-    let pad = 40.0f32;
+    // Generous skirt: from any flight spawn or wall-bounce the horizon
+    // must be sea, never the clear-colour void (intro-screenshot band).
+    let pad = 160.0f32;
     let (ex, ez) = (w as f32, h as f32);
     let mut b = QuadBuilder::new();
     let col = srgb_to_vec4(1.0, 1.0, 1.0);

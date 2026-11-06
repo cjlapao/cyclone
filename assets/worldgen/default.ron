@@ -6,11 +6,11 @@
     size: (160, 160),          // world tiles
     margin: 12,                // open-sea border
     island_count: 14,          // includes Base Island
-    island_radius: (6, 16),    // normal island base radius
+    island_radius: (5, 18),    // normal island base radius (min,max — spread = size variety)
     base_radius: (10, 14),     // Base Island radius
     min_gap: 6,                // water between coastlines
     max_level: 7,              // 0 sea, 1 beach, 2..=7 land
-    level_height: 0.5,         // world units per level
+    level_height: 0.9,         // world units per level (vertical relief scale)
     fuel_range: 70,            // full-tank flight distance (tiles)
     helipads_extra: (3, 5),    // pads beyond Base Island
     crates: 5,                 // supply crates

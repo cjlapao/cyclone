@@ -1,8 +1,9 @@
 //! Terrain: 16×16-tile chunk prisms with vertex colours (spec 02 B1).
 //!
 //! Every land tile becomes a box column: top quad at `height ×
-//! LEVEL_HEIGHT`, side walls down to the neighbour tile's top (or −0.5 at
-//! the coast). Flat shading via per-face normals + hard vertex colours.
+//! LEVEL_HEIGHT`, side walls always skirted to the sea floor (−0.5) —
+//! neighbour-top termination left see-through slivers in cliff stacks.
+//! Flat shading via per-face normals + hard vertex colours.
 
 use bevy::asset::RenderAssetUsages;
 use bevy::mesh::Indices;
@@ -202,7 +203,13 @@ fn build_tile(
         if nb >= level {
             continue;
         }
-        let bottom = if nb == 0 { SEA_FLOOR } else { nb as f32 * lh };
+        // Full skirt to the sea floor, always. Terminating the wall at
+        // the neighbour's top looked sealed top-down but left sliver
+        // gaps the user could see through where column stacks didn't
+        // line up (the screenshot's holes). Hidden under neighbour or
+        // water anyway — sealed by construction beats clever culling.
+        let _ = nb;
+        let bottom = SEA_FLOOR;
         let rocky = cliff & (1 << dir) != 0;
         let col = if rocky {
             srgb_to_vec4(ROCK.0 * tint, ROCK.1 * tint, ROCK.2 * tint)
