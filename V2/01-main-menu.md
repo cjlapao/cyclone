@@ -94,8 +94,8 @@ Actions:
 
 - [ ] Boot to a usable main menu in under 3 s in release on an M1 Mac.
 - [ ] Whole menu usable with keyboard only, mouse only, and gamepad only.
-- [ ] New Game produces a different world every time (seed differs, preview differs).
-- [ ] Play Seed with a copied seed reproduces the exact same world.
+- [x] New Game produces a different world every time (seed differs, preview differs). *(`new_game_seeds_differ` + CI batch uniqueness.)*
+- [x] Play Seed with a copied seed reproduces the exact same world. *(`play_seed_shows_identical_world` asserts terrain/crates/helipads bit-identical; goldens now pass on all three CI OSes.)*
 - [ ] Reroll ten times in a row with no frame hitch over 50 ms on the main thread.
-- [ ] Settings changes apply instantly and persist across restarts.
-- [ ] No entities from MainMenu remain after entering WorldPreview (check with an entity count debug overlay).
+- [x] Settings changes apply instantly and persist across restarts. *(`settings_panel_opens_edits_live_and_closes` + engine disk round-trip tests.)*
+- [x] No entities from MainMenu remain after entering WorldPreview (check with an entity count debug overlay). *(`flow.rs` asserts `leftovers(...) == 0` on both transitions.)*

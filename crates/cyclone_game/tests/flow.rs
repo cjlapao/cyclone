@@ -453,3 +453,25 @@ fn key_msg(app: &mut App, code: KeyCode) {
     }
     app.update();
 }
+
+/// Spec 01 acceptance: New Game produces a different world every time —
+/// the randomness comes from `random_seed()`, and distinct seeds must
+/// yield distinct worlds (checked on the serialized bytes, not just seeds).
+#[test]
+fn new_game_seeds_differ() {
+    use cyclone_worldgen::{ProgressNoop, generate};
+    let seeds: Vec<_> = (0..6).map(|_| cyclone_engine::random_seed()).collect();
+    for i in 0..seeds.len() {
+        for j in (i + 1)..seeds.len() {
+            assert_ne!(seeds[i], seeds[j], "random_seed reused within 6 draws");
+        }
+    }
+    let cfg = WorldGenConfig::default();
+    let a = generate(seeds[0], 1, &cfg, &ProgressNoop).unwrap();
+    let b = generate(seeds[1], 1, &cfg, &ProgressNoop).unwrap();
+    assert_ne!(
+        a.to_ron(),
+        b.to_ron(),
+        "two New Games produced identical worlds"
+    );
+}
