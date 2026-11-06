@@ -249,6 +249,53 @@ fn menu_backdrop_always_generates() {
 /// (production source: bevy_gilrs behind `--features gamepad`); we post
 /// the very same events — no device, no gilrs — and the engine's
 /// GamepadState mirror must drive focus nav and confirm end-to-end.
+/// Spec 01 C4 (main-thread hitch) MEASURED headless: after reaching
+/// preview, reroll ten times and time EVERY app.update() frame. World
+/// rebuild is synchronous; the worst frame is exactly the number the
+/// 50 ms box judges. Run: cargo test -p cyclone_game --test flow reroll -- --ignored --nocapture
+#[test]
+#[ignore = "manual hitch measurement"]
+fn reroll_hitch_measurement() {
+    let mut app = flow_app();
+    wait_for(&mut app, "menu", Duration::from_secs(10), |a| {
+        state(a) == AppState::MainMenu && a.world().contains_resource::<MenuFocus>()
+    });
+    app.world_mut().write_message(Activated(0)); // New Game
+    wait_for(&mut app, "preview", Duration::from_secs(60), |a| {
+        state(a) == AppState::WorldPreview
+    });
+    use std::time::Instant;
+    let mut worst = 0f64;
+    let mut frames = 0u32;
+    for round in 0..10 {
+        app.world_mut().write_message(Activated(21)); // B_PREROLL reroute
+        // Stay in Generating→Preview; time every frame until preview again.
+        let deadline = std::time::Instant::now() + Duration::from_secs(60);
+        loop {
+            let t = Instant::now();
+            app.update();
+            let ms = t.elapsed().as_secs_f64() * 1000.0;
+            if ms > 2.0 {
+                println!("round {round}: frame {ms:.1} ms (state {:?})", state(&app));
+            }
+            worst = worst.max(ms);
+            frames += 1;
+            if state(&app) == AppState::WorldPreview && round > 0 {
+                break;
+            }
+            if state(&app) == AppState::WorldPreview && round == 0 {
+                break;
+            }
+            assert!(
+                Instant::now() < deadline,
+                "reroll {round} never reached preview"
+            );
+        }
+    }
+    println!("WORST FRAME = {worst:.1} ms over {frames} frames");
+    assert!(worst < 50.0, "hitch {worst:.1} ms exceeds the 50 ms budget");
+}
+
 #[test]
 fn menu_usable_with_gamepad_only() {
     use bevy::input::ButtonState;

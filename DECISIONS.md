@@ -625,3 +625,11 @@ post-regeneration CI proved byte-identical reproduction on
 ubuntu+windows+macos. Benchmark note: mean gen 14→26 ms, p95 53 ms,
 22% of seeds retry once — still an order of magnitude below the
 300 ms Generating floor.
+## Reroll hitch measured headless (round 55)
+
+rebuild_world is synchronous by design; the spec-01 50 ms box was
+assumed on-screen-only, but app.update() timing in the offscreen flow
+app captures all main-thread ECS work (terrain/sea/props meshes,
+materials, shore texture upload prep). 10 rerolls × 5789 frames:
+worst frame 3.6 ms. GPU-side transfer is the only unrepresented
+phase; kept the test as --ignored manual diagnostic.
