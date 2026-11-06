@@ -783,3 +783,16 @@ patchy sand through level 2 within 4 of shore). island_radius widened
 (5,18) — 4,20 overloaded the validators (attempts exhausted, caught
 by the rejections invariant test doing its job). Golden regenerated
 (height grid changed by design).
+
+## Round 87b — the mac flake decoded: auto seeds must self-heal, not strand
+
+CI's dev-test flaked on the exact code path the feel pass made riskier:
+a machine-rolled New Game seed that exhausts the attempt budget left
+the Generating screen waiting on an error the player must click past
+— and the flow test waiting forever with it. Random seeds are OUR
+choice, so Exhausted on one is OUR problem: auto seeds now reroll a
+fresh seed in the worker (stage label: "Rolling a luckier seed…",
+10 tries), menu backdrop loops 6. Typed seeds stay single-shot — the
+user's seed is a promise, not a lottery ticket. Also caught by honest
+gates this round: `gen` is a reserved keyword in edition 2024, and
+pipe-to-tail masks cargo's exit code (use `${PIPESTATUS[0]}`).

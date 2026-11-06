@@ -40,6 +40,12 @@ pub struct GameConfig(pub WorldGenConfig);
 #[derive(Resource)]
 pub struct PendingGen {
     pub seed: Seed,
+    /// True for machine-rolled seeds: on Exhausted the worker rerolls a
+    /// fresh seed instead of stranding the player on the error screen
+    /// (the feel pass made rejections likelier; a random seed that needs
+    /// more than 8 attempts exists — waiting forever on one WAS the mac CI flake).
+    /// Typed seeds stay single-shot and honest.
+    pub auto: bool,
 }
 
 pub fn register(app: &mut App) {
@@ -225,9 +231,18 @@ fn menu_build(
     mut rig_target: ResMut<RigTarget>,
 ) {
     // Background island: a fresh small world, generated inline (~10 ms).
-    let seed = random_seed();
     let cfg = menu_bg_config();
-    match run_generate(seed, &cfg, &cyclone_worldgen::ProgressNoop) {
+    // Backdrop is decorative: on the rare Exhausted seed, roll on.
+    let mut seed = random_seed();
+    let mut bg = run_generate(seed, &cfg, &cyclone_worldgen::ProgressNoop);
+    for _ in 0..6 {
+        if bg.is_ok() {
+            break;
+        }
+        seed = random_seed();
+        bg = run_generate(seed, &cfg, &cyclone_worldgen::ProgressNoop);
+    }
+    match bg {
         Ok(map) => {
             let (w, h) = map.size;
             let centre = Vec3::new(w as f32 * 0.5, 0.0, h as f32 * 0.5);
@@ -417,8 +432,11 @@ fn menu_seed_input(
                 Ok(seed) => {
                     menu.seed_mode = false;
                     match pending.as_mut() {
-                        Some(p) => p.seed = seed,
-                        None => commands.insert_resource(PendingGen { seed }),
+                        Some(p) => {
+                            p.seed = seed;
+                            p.auto = false;
+                        }
+                        None => commands.insert_resource(PendingGen { seed, auto: false }),
                     }
                     next.set(AppState::Generating);
                     return;
@@ -467,8 +485,11 @@ fn menu_activate(
             B_NEW => {
                 let seed = random_seed();
                 match pending.as_mut() {
-                    Some(p) => p.seed = seed,
-                    None => commands.insert_resource(PendingGen { seed }),
+                    Some(p) => {
+                        p.seed = seed;
+                        p.auto = true;
+                    }
+                    None => commands.insert_resource(PendingGen { seed, auto: true }),
                 }
                 next.set(AppState::Generating);
             }
@@ -780,7 +801,7 @@ fn gen_start(
     game_cfg: Res<GameConfig>,
     mut rig_target: ResMut<RigTarget>,
 ) {
-    let seed = pending.map(|p| p.seed).unwrap_or_else(random_seed);
+    let (seed, auto) = pending.map_or((random_seed(), true), |p| (p.seed, p.auto));
     commands.remove_resource::<PendingGen>();
     let cfg = game_cfg.0.clone();
     rig_target.auto_orbit = 2.0; // background keeps moving (spec 01)
@@ -790,6 +811,7 @@ fn gen_start(
     let prog = Arc::new(AtomicU32::new(0));
     {
         let (stage_t, prog_t, cfg_t) = (stage.clone(), prog.clone(), cfg.clone());
+        let stage_w = stage.clone(); // reroll status line (stage_t moves into progress)
         let slot_done = slot.clone();
         // get_or_init: TaskPoolPlugin normally initialises this, but an app
         // without it (tests, custom builds) panics inside `get()`.
@@ -799,7 +821,19 @@ fn gen_start(
                     stage: stage_t,
                     prog: prog_t,
                 };
-                let result = run_generate(seed, &cfg_t, &progress);
+                // Auto seeds self-heal a rare Exhausted by rerolling;
+                // typed seeds report honestly, exactly as entered.
+                let mut seed = seed;
+                let mut result = run_generate(seed, &cfg_t, &progress);
+                if auto {
+                    let mut rolls = 0;
+                    while result.is_err() && rolls < 10 {
+                        rolls += 1;
+                        *stage_w.lock().unwrap() = "Rolling a luckier seed…";
+                        seed = random_seed();
+                        result = run_generate(seed, &cfg_t, &progress);
+                    }
+                }
                 slot_t_result(&slot_done, result);
             })
             .detach();
@@ -1034,6 +1068,7 @@ fn gen_activate(
             B_RETRY => {
                 commands.insert_resource(PendingGen {
                     seed: random_seed(),
+                    auto: true,
                 });
                 // set() re-runs OnEnter schedules even for the same state.
                 next.set(AppState::Generating);
@@ -1239,6 +1274,7 @@ fn preview_activate(
             B_PREROLL => {
                 commands.insert_resource(PendingGen {
                     seed: random_seed(),
+                    auto: true,
                 });
                 next.set(AppState::Generating);
             }
@@ -1273,6 +1309,7 @@ fn preview_keys(
     if actions.just_pressed(Action::Reroll) {
         commands.insert_resource(PendingGen {
             seed: random_seed(),
+            auto: true,
         });
         next.set(AppState::Generating);
     } else if actions.just_pressed(Action::Back) {
