@@ -1380,6 +1380,11 @@ fn ingame_build(
     if std::env::var("CYCLONE_CONTINENT").is_ok() {
         eprintln!("continent mode: building 1 km² voxel world (one-time, ~8 s)…");
     }
+    // The renderer builds the planet only while this is true — set at
+    // the one place that knows the pilot is actually flying.
+    if std::env::var("CYCLONE_CONTINENT").is_ok() {
+        commands.insert_resource(cyclone_render::ContinentLive(true));
+    }
     // Start OVER the Base Island, archipelago ahead. Starting beyond
     // the south edge showed the user a black void past the sea plane's
     // edge and one lonely island — the intro screenshot complaint.
