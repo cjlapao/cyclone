@@ -37,6 +37,10 @@ Display/input options also live in-menu: **Settings** row opens an overlay
 size, camera speed; edits apply the same frame and persist. Volume rows
 arrive with the audio engine (spec 05).
 
+Flying feel off? Every dial (speed, mouse sensitivity, zoom ends,
+orbit framing, tints…) is mapped to a file:line in
+**[TUNING.md](TUNING.md)** — one-line edits, warm rebuilds.
+
 ## Judging the generator (spec 02 tooling)
 
 ```sh
