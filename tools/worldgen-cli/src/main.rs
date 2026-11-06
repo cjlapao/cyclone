@@ -47,6 +47,16 @@ enum Cmd {
         #[arg(long)]
         config: Option<PathBuf>,
     },
+    /// Voxel continent (v2 terrain core): hillshade.png + stats.txt.
+    Continent {
+        #[arg(long)]
+        seed: String,
+        /// Voxels per side (4000 = 1 km at the 0.25 m default).
+        #[arg(long, default_value_t = 2048)]
+        size: u32,
+        #[arg(long)]
+        out: PathBuf,
+    },
     /// N worlds → summary.csv + contact-sheet.png; exits non-zero if any
     /// world fails or breaks an invariant.
     Batch {
@@ -63,6 +73,54 @@ enum Cmd {
         #[arg(long)]
         update: bool,
     },
+}
+
+/// Earth-colour ramp with a NW light-source hillshade — the eyes-on
+/// check for "looks like planet Earth": ocean blue, plains green,
+/// hills ochre, rock grey, snow white, all lit by column gradients.
+fn hillshade(c: &cyclone_worldgen::Continent) -> Result<RgbaImage> {
+    let size = c.config.size as usize;
+    let vm = c.config.voxel as f64;
+    let mut img = RgbaImage::new(c.config.size, c.config.size);
+    let h = |x: usize, y: usize| c.heights[y * size + x] as f64 * vm;
+    for y in 0..size {
+        for x in 0..size {
+            let hm = h(x, y);
+            let (r, g, b) = if hm <= 0.0 {
+                (28u8, 64, 120) // ocean
+            } else if hm < 12.0 {
+                (180, 168, 120) // sand shore
+            } else if hm < 260.0 {
+                (60, 120 - (hm / 6.0) as u8, 46) // plains → dark green
+            } else if hm < 600.0 {
+                (140, 120, 70) // hills ochre
+            } else if hm < 900.0 {
+                (120, 118, 116) // rock
+            } else {
+                (235, 238, 240) // snow
+            };
+            // slope lighting from 4 m neighbours (clamped edges)
+            let xl = x.saturating_sub(16);
+            let xr = (x + 16).min(size - 1);
+            let yu = y.saturating_sub(16);
+            let yd = (y + 16).min(size - 1);
+            let gx = (h(xr, y) - h(xl, y)) / ((xr - xl) as f64 * vm);
+            let gy = (h(x, yd) - h(x, yu)) / ((yd - yu) as f64 * vm);
+            let lit =
+                (0.75 + (0.9 * (-gx - gy) / (1.0 + gx * gx + gy * gy).sqrt())).clamp(0.35, 1.35);
+            img.put_pixel(
+                x as u32,
+                y as u32,
+                image::Rgba([
+                    (r as f64 * lit).min(255.0) as u8,
+                    (g as f64 * lit).min(255.0) as u8,
+                    (b as f64 * lit).min(255.0) as u8,
+                    255,
+                ]),
+            );
+        }
+    }
+    Ok(img)
 }
 
 fn main() -> Result<()> {
@@ -90,6 +148,39 @@ fn main() -> Result<()> {
                 map.islands.len(),
                 map.metrics.difficulty,
                 out.display()
+            );
+        }
+        Cmd::Continent { seed, size, out } => {
+            fs::create_dir_all(&out)?;
+            let seed = seed.parse::<cyclone_worldgen::Seed>()?.0;
+            let t0 = std::time::Instant::now();
+            let c = cyclone_worldgen::generate_continent(
+                seed,
+                &cyclone_worldgen::ContinentConfig {
+                    size,
+                    ..Default::default()
+                },
+            )?;
+            let ms = t0.elapsed().as_millis();
+            hillshade(&c)?.save(out.join("hillshade.png"))?;
+            fs::write(
+                out.join("stats.txt"),
+                format!(
+                    "seed {} size {} voxel {}m gen {} ms\nocean {:.3} flat {:.3} high {:.3} mountain {:.4} max {:.0} m\n",
+                    seed,
+                    c.config.size,
+                    c.config.voxel,
+                    ms,
+                    c.metrics.ocean_ratio,
+                    c.metrics.flat_ratio,
+                    c.metrics.high_ratio,
+                    c.metrics.mountain_ratio,
+                    c.metrics.max_height_m
+                ),
+            )?;
+            println!(
+                "continent seed {seed}: {size}² columns in {ms} ms — {} (hillshade.png written)",
+                c.metrics.max_height_m.round()
             );
         }
         Cmd::Batch {

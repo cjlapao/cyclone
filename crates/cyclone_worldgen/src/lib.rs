@@ -6,6 +6,7 @@
 //! `WorldMap` on every platform.
 
 pub mod config;
+pub mod continent;
 pub mod error;
 pub mod pipeline;
 pub use pipeline::tile_tint;
@@ -17,6 +18,9 @@ pub mod rng;
 pub mod seed;
 
 pub use config::WorldGenConfig;
+pub use continent::{
+    Continent, ContinentConfig, ContinentMetrics, elevation_m, generate_continent,
+};
 pub use error::GenError;
 pub use grid::Grid;
 pub use map::{

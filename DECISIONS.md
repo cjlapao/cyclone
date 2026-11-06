@@ -964,3 +964,24 @@ Sunday's scheduled probe, whose prompt already covers red triage).
 Findings still get full rigor; absence of findings now costs ~zero.
 The improvement loop should idle like an engine with stop-start,
 not burn fuel at every green light.
+
+## Round 154 — THE PIVOT: voxel Earth heightfield replaces island worry
+
+Pilot's call after flying: "still just one island, blocks with no
+face — make it a voxel Minecraft-style terrain generator, 1 km
+world, 25 cm voxels, Earth relief (flats/hills/mountains), render
+the top layer." continent.rs answers the generator half:
+heightfield of u16 voxel columns (Minecraft's data shape, Earth's
+relief spectrum: warp → land mask → orogeny → ridged ranges →
+plains floor → detail). 16M columns = 6.7 s single-thread release;
+columns are pure functions (determinism contract inherited,
+rayon-proof). Metrics computed FROM the data (terracing's law).
+Calibration before assertion, twice over: first census caught a
+43 m flat world AND a 14%-mountain world at the same dials (mask
+gates were all-or-nothing); relief floors fixed the flatlands,
+detail 2.2→1.0 m after the first FULL-RES RENDER showed crumpled-
+foil plains — the render was the critic no histogram could be.
+Seed-character is a FEATURE (42 = coastal plain, 777 = alpine):
+bands pinned for seed 2; retuning must re-measure to pass.
+Next: chunked surface mesh in cyclone_render (top-layer rendering
+is native to the representation) + free-fly over the continent.
