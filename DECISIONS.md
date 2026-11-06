@@ -925,3 +925,14 @@ its prompt). The epistemic rule crystallising: a belief is only as
 alive as its LAST LIVE VERIFICATION; summaries are fossils — they
 preserve shape, not existence. Anything load-bearing (tasks, files,
 features, CI state) gets re-probed, never re-narrated.
+
+## Round 123 — doc-vs-doc triangulation: the Windows settings path liar
+
+TUNING.md and FIRST-FLIGHT.md disagreed on %APPDATA% depth by one
+level. The crate source settled it (directories-6.0.0 win.rs:75:
+app_data_roaming.join("config")) — TUNING was wrong for anyone
+hand-editing bindings on Windows. Runtime never lied (tests write
+via the same API on every CI OS); prose did. New cross-check habit
+beyond doc-vs-code and doc-vs-measurement: read TWO docs against
+each other — a lie only survives when nothing is compared to
+anything.
