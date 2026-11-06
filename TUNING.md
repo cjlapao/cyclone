@@ -70,7 +70,9 @@ release-speed gameplay with fast incremental rebuilds. The `worldgen
 benchmark` CI job logs the same bench every push (its runner is
 ~2× slower; the bench times 18 seeds per criterion sample — divide
 by 18 before comparing). Worst reroll frame measured
-in-app (dev, ignored `reroll_hitch` test): 3.8 ms — under a quarter
+in-app (dev, ignored `reroll_hitch` test): 3.8 ms worst of 5014 frames
+(re-measured round 133, post terrain-overhaul — the taller terraces cost
+nothing measurable; the number predates them and survived them) — under a quarter
 of the 16.6 ms 60 Hz budget. If a feel complaint ever smells like
 stutter, the first question is "dev or release?" — and the answer
 should not matter.
