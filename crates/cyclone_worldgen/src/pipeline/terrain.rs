@@ -4,9 +4,15 @@
 //!
 //! Calibration note: the sea cut is e ≥ 0.75, so each archetype curve is
 //! tuned to cross that level at ≈0.85 of the site radius — the spec treats
-//! `island_radius` as the real land radius (its own island-area checks
-//! assume π r²), and the fuel geometry of A5.6 only closes when the land
-//! actually reaches the radius the packing worked with.
+//! `island_radius` as the real land radius, and the fuel geometry of A5.6
+//! only closes when the land actually reaches the radius the packing
+//! worked with. NOTE (round 92, measured): there is NO area validator —
+//! land radius holds by construction (profile crossing) and the merged-
+//! islands check guards adjacency. Measured fill ratios (area/bbox-disc)
+//! run 0.77–1.17 for disc islands and 0.42–0.49 for atolls, whose rings
+//! legitimately hold less — a π r² gate would wrongly reject the
+//! archetype. If the profile is ever retuned, re-measure fill before
+//! trusting fuel math, don't go looking for a validator that isn't there.
 
 use crate::map::Archetype;
 use crate::noise::fbm;
