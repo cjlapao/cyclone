@@ -71,7 +71,10 @@ pub fn register(app: &mut App) {
         Update,
         preview_dev_toggle.run_if(in_state(AppState::WorldPreview)),
     );
-    app.add_systems(OnEnter(AppState::WorldPreview), preview_build);
+    app.add_systems(
+        OnEnter(AppState::WorldPreview),
+        (drain_stale_activations, preview_build).chain(),
+    );
     app.add_systems(OnExit(AppState::WorldPreview), preview_show_props);
     app.add_systems(
         Update,
@@ -996,6 +999,14 @@ struct PreviewShowProps(
     bool,
 );
 
+/// An `Activated` written the same frame a state change fires can sit
+/// unconsumed until the screen is next entered — e.g. Enter at preview
+/// queues Fly! behind the exit, and the next visit to preview would
+/// auto-fly. Enter always starts with an empty queue.
+fn drain_stale_activations(mut rx: MessageReader<Activated>) {
+    for _ in rx.read() {}
+}
+
 fn preview_build(
     mut commands: Commands,
     world: Option<Res<CurrentWorld>>,
@@ -1161,7 +1172,9 @@ fn preview_activate(
 ) {
     for act in rx.read() {
         match act.0 {
-            B_PFLY => next.set(AppState::InGame),
+            B_PFLY => {
+                next.set(AppState::InGame);
+            }
             B_PREROLL => {
                 commands.insert_resource(PendingGen {
                     seed: random_seed(),
@@ -1201,8 +1214,6 @@ fn preview_keys(
             seed: random_seed(),
         });
         next.set(AppState::Generating);
-    } else if actions.just_pressed(Action::Confirm) {
-        next.set(AppState::InGame);
     } else if actions.just_pressed(Action::Back) {
         next.set(AppState::MainMenu);
     } else if actions.just_pressed(Action::CopySeed) {
@@ -1256,7 +1267,10 @@ fn ingame_build(
 
 fn ingame_keys(actions: Res<Actions>, mut next: ResMut<NextState<AppState>>) {
     if actions.just_pressed(Action::Back) {
-        next.set(AppState::MainMenu);
+        // Esc returns to the PREVIEW of the same world (CurrentWorld is
+        // untouched, so no rebuild); Back/Escape on the preview quits to
+        // the menu. Reroll after escaping replaces the world.
+        next.set(AppState::WorldPreview);
     }
 }
 

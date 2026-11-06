@@ -72,6 +72,10 @@ fn flow_app() -> App {
 fn flow_app_with(auto: bool) -> App {
     let mut app = App::new();
     app.add_plugins(MinimalPlugins)
+        // Real per-frame input clearing: without InputPlugin, ButtonInput
+        // just-pressed flags persist forever and a stale Enter re-fires
+        // preview Confirm.
+        .add_plugins(bevy::input::InputPlugin)
         .add_plugins(AssetPlugin::default())
         .init_asset::<Mesh>()
         .init_asset::<Image>()
@@ -86,6 +90,11 @@ fn flow_app_with(auto: bool) -> App {
             (
                 press_key(KeyCode::Enter, "confirm").run_if(in_state(AppState::WorldPreview)),
                 press_key(KeyCode::Escape, "back").run_if(in_state(AppState::InGame)),
+                press_key(KeyCode::Escape, "quit").run_if(
+                    |s: Res<State<AppState>>, f: Res<OnceFlag>| {
+                        *s.get() == AppState::WorldPreview && f.seen.contains("back")
+                    },
+                ),
             ),
         );
     }

@@ -646,3 +646,30 @@ min-dim/160 so custom small configs stay solvable (that test caught
 fixed-distance anchors failing a 96×96 world). Style histogram over
 64 worlds is roughly uniform; goldens regenerated for the new
 pipeline, 300-seed invariants green, batch 64/64 ok, median 20 ms.
+
+## Round 61 — Esc returns to the world preview (same world), plus two latent bugs it exposed
+
+The first-flight tour promised "Esc → preview, same world; Esc → menu",
+but the code Esc'd straight to MainMenu. Made the promise true — Esc
+now re-enters WorldPreview with CurrentWorld untouched (no rebuild; the
+preview's orbit camera shows the world you just flew; Escape/Back at
+preview then quits to menu; Reroll there replaces the world).
+
+Reworking the headless flow harness for the two-press flow exposed TWO
+real-game latent bugs, now fixed:
+
+1. **Double activation on Enter at preview.** `preview_keys` moved to
+   InGame on `Action::Confirm` AND focus_nav queued `Activated(focused
+   button)` for the same press — if the state exit beat preview_activate
+   consuming the message, the stale Activated sat in the queue and
+   auto-fired Fly! on the NEXT preview visit. Confirm branch removed
+   from preview_keys (single source: Enter activates the focused button,
+   default focus = Fly!, identical UX); belt-and-braces: preview OnEnter
+   now drains any stale Activated before building UI.
+2. **Harness lacked InputPlugin**, so ButtonInput just-pressed flags
+   never cleared — tests ran on input semantics the real game never has.
+   flow_app now adds InputPlugin (and press_key labels are per-stage:
+   "quit" Esc only fires once "back" has already been seen).
+
+Flow suite 7/7 incl. full Boot→Menu→Gen→Preview→Fly→Esc→Preview→Esc→
+Menu on random styled worlds.
