@@ -368,6 +368,8 @@ pub fn stage(ctx: &mut GenCtx) -> Result<(), GenError> {
         .count() as u32;
     let land = map.height.iter().filter(|&&h| h > 0).count();
     map.metrics.land_ratio = land as f64 / map.len_tiles() as f64;
+    let high = map.height.iter().filter(|&&h| h >= 3).count();
+    map.metrics.relief_share = high as f64 / land.max(1) as f64;
 
     let fuel = ctx.cfg.fuel_range as f64;
     let per_crate = map.metrics.route_len / map.crates.len().max(1) as f64;

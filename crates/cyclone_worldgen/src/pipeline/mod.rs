@@ -148,6 +148,7 @@ pub(crate) fn blank_map(seed: Seed, round: u32, cfg: &WorldGenConfig) -> WorldMa
             longest_hop: 0.0,
             hidden_crates: 0,
             land_ratio: 0.0,
+            relief_share: 0.0,
             difficulty: crate::map::Difficulty::Normal,
             difficulty_reason: String::new(),
             gen_ms: 0,

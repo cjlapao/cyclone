@@ -132,12 +132,12 @@ fn main() -> Result<()> {
                 .collect();
 
             let mut csv = String::from(
-                "seed,attempts,gen_ms,route_len,longest_hop,hidden_crates,land_ratio,islands,difficulty\n",
+                "seed,attempts,gen_ms,route_len,longest_hop,hidden_crates,land_ratio,relief_share,islands,difficulty\n",
             );
             for m in &ok {
                 let mt = &m.metrics;
                 csv.push_str(&format!(
-                    "{},{},{},{:.2},{:.1},{},{:.4},{},{:?}\n",
+                    "{},{},{},{:.2},{:.1},{},{:.4},{:.2},{},{:?}\n",
                     m.seed,
                     mt.attempts,
                     mt.gen_ms,
@@ -145,6 +145,7 @@ fn main() -> Result<()> {
                     mt.longest_hop,
                     mt.hidden_crates,
                     mt.land_ratio,
+                    mt.relief_share,
                     m.islands.len(),
                     mt.difficulty
                 ));
@@ -275,7 +276,7 @@ fn write_world(out: &Path, map: &WorldMap, font: &FontArc) -> Result<()> {
     let mt = &map.metrics;
     let mut stats = format!(
         "seed       {}\nround      {}\nattempts   {}\ngen_ms     {}\ndifficulty {:?}: {}\n\n\
-         route_len    {:.2} tiles\nlongest_hop  {:.2} tiles\nhidden_crates {}/{}\nland_ratio   {:.4}\nislands    {}\nprops      {}\nrefugees   {}\n\n",
+         route_len    {:.2} tiles\nlongest_hop  {:.2} tiles\nhidden_crates {}/{}\nland_ratio   {:.4}\nrelief_share {:.2}  (level>=3 share: ~0.6 terraced, ~0.34 flat-era)\nislands    {}\nprops      {}\nrefugees   {}\n\n",
         map.seed,
         map.round,
         mt.attempts,
@@ -287,6 +288,7 @@ fn write_world(out: &Path, map: &WorldMap, font: &FontArc) -> Result<()> {
         mt.hidden_crates,
         map.crates.len(),
         mt.land_ratio,
+        mt.relief_share,
         map.islands.len(),
         map.props.len(),
         map.refugees.len(),

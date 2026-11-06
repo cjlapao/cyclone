@@ -796,3 +796,13 @@ fresh seed in the worker (stage label: "Rolling a luckier seed…",
 user's seed is a promise, not a lottery ticket. Also caught by honest
 gates this round: `gen` is a reserved keyword in edition 2024, and
 pipe-to-tail masks cargo's exit code (use `${PIPESTATUS[0]}`).
+
+## Round 89 — the user's "almost flat" became a metric: relief_share
+
+Feel-words map to dials only when the feel has a number. New
+WorldMetrics.relief_share (level≥3 share of land): serialized like
+land_ratio, golden regenerated deliberately, batch csv column, stats
+line, TUNING anchor. First population reading at current dials:
+median 0.76 across 16 seeds, worst 0.68 — the complaint-era 0.34 is
+generator-unreachable now. Future "it feels X" reports get checked
+against a distribution before any dial moves.

@@ -86,6 +86,16 @@ fuel_range) is the one to move — the test
 `rejections_match_attempts` guarantees attempts = 1 + reasons, so
 the histogram is trustworthy, not folklore.
 
+## Relief is now a number: `relief_share`
+
+Every generated map reports the share of land at level ≥3 (`stats.txt`
+and the batch `summary.csv`). Measured across 16 fresh seeds at the
+current dials: **median 0.76, worst 0.68** — the "mostly flat" worlds
+you first flew scored ~0.34 and can no longer come out of the
+generator. If a world still feels flat to you despite a high number,
+the knob is `level_height` (vertical squash), not the band spread; if
+it feels like jagged noise, `max_level` is the lever.
+
 ## Feedback loop
 
 Say what you felt ("cruise feels slow over water", "gold too strong",

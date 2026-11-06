@@ -129,6 +129,11 @@ pub struct WorldMetrics {
     pub longest_hop: f64,
     pub hidden_crates: u32,
     pub land_ratio: f64,
+    /// Share of LAND tiles at level ≥ 3 (0..=1). The objective answer to
+    /// "the terrain feels almost flat": pre-feel-pass worlds scored
+    /// ~0.34 here; the band bias + relief multiplier moved the same
+    /// seeds to ~0.6. Tune `level_height`/`max_level` against this.
+    pub relief_share: f64,
     pub difficulty: Difficulty,
     pub difficulty_reason: String,
     /// Wall-clock fields: kept out of the serialised form so golden hashes
