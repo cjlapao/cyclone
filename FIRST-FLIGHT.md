@@ -13,6 +13,29 @@ Optional before you start — tune the world knobs first:
 `assets/worldgen/default.ron` (commented; e.g. `island_count: 10`,
 `island_radius: (8, 22)`, `size: (200, 200)`).
 
+## Since your last flight (the feel pass)
+
+You flew a build before these landed — what changed, and what to
+watch for:
+
+1. **You spawn OVER the Base Island now**, not beyond the map edge —
+   the black void band at the horizon is gone (sea plane got bigger)
+2. **Terrain is terraced**: median 0.76 of each island's land sits at
+   level ≥3 (the flat era was ~0.34); expect real climbs and level-7
+   peaks on the big islands
+3. **Cliff sides are solid** — the see-through slivers in the walls
+   were a meshing bug, every wall now skirts to the sea floor
+4. **Sandy coasts are wider and patchy** (sand bleeds a few tiles
+   uphill in speckles, per your note that it shouldn't ring the whole
+   island)
+5. **Island sizes vary a lot more** — islets of 5 tiles sit beside
+   18-tile islands, and same-archetype islands roll different
+   altitudes; press `Tab` on the preview to see the whole archipelago
+
+If a world still feels flat despite #2, the one-knob answer is
+`level_height` in `assets/worldgen/default.ron` (vertical squash).
+`R` rerolls a whole new archipelago at any time.
+
 ## The tour
 
 1. **Boot → menu** *(box: window opens, <3 s)*
