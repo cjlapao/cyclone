@@ -24,7 +24,9 @@ fn app_with_world() -> App {
     app.add_plugins(MinimalPlugins);
     app.add_plugins(CycloneEnginePlugin); // brings InputPlugin + Actions + rig
     let map =
-        generate(Seed(1), 1, &WorldGenConfig::default(), &ProgressNoop).expect("world for bounds");
+        generate(Seed(1), 1, &WorldGenConfig::default(), &ProgressNoop)
+            .expect("frozen seed 1 must generate at live dials (canary, not coin)") // fixed seed: deterministic canary (round-117 policy)
+;
     app.insert_resource(CurrentWorldOf(std::sync::Arc::new(map)));
     let cam = app
         .world_mut()

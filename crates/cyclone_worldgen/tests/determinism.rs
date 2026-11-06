@@ -4,8 +4,15 @@ use cyclone_worldgen::*;
 use proptest::prelude::*;
 
 fn gen_world(seed: Seed, round: u32) -> WorldMap {
+    // Contract (round-117 policy): the FROZEN seed list must generate
+    // at the LIVE dial set and the LIVE attempt budget. Fixed seeds
+    // are deterministic canaries, not coins — a red here means a dial
+    // change moved a specific seed's luck, which is signal, not
+    // noise. (Random-seed generation is different: see flow.rs
+    // new_game_seeds_differ for the patience-24 supported-outcome
+    // contract.)
     let cfg = WorldGenConfig::default();
-    generate(seed, round, &cfg, &ProgressNoop).expect("generation must succeed")
+    generate(seed, round, &cfg, &ProgressNoop).expect("frozen seed must generate at live dials")
 }
 
 fn snapshot(m: &WorldMap) -> String {

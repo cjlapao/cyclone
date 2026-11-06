@@ -234,8 +234,8 @@ fn play_seed_shows_identical_world() {
     // GameConfig holds the full-round config the app will generate with
     // (WorldConfig is the menu backdrop's until generation completes).
     let seed: Seed = "0000-0000-00042".parse().unwrap();
-    let want =
-        generate(seed, 1, &WorldGenConfig::default(), &ProgressNoop).expect("direct generate");
+    let want = generate(seed, 1, &WorldGenConfig::default(), &ProgressNoop)
+        .expect("frozen seed 42 must generate at live dials (canary, not coin)");
     let typed = seed.to_string(); // e.g. "0000-0000-00042"
 
     app.world_mut().write_message(cyclone_ui::Activated(1)); // Play Seed
