@@ -900,3 +900,15 @@ patience — batch now runs attempt-budget 24 (P(exhausted) ~ p^3 of
 the 8-attempt rate, expected 0.001 failures/1000). Rerun: 1000/1000,
 median 15 ms, difficulty 41/32/27%. The box text now states the era,
 the budget and the equivalence — no silent re-checking of history.
+
+## Round 117 — the annotator paid for itself: "Windows flake" was partly an unwrap coin
+
+ae780a4 (docs-only!) went red on Windows; annotation quoted
+new_game_seeds_differ panicking at its two .unwrap()s on RANDOM
+seeds at budget 8 — with 1.1% exhaustion measured, a ~2%/run coin,
+not OS weather. Third instance of the same root contradiction as
+rounds 105 (bench) and 112 (batch): code that predates Exhausted's
+promotion to supported outcome still assumes it. Policy now: every
+unwrap of generate() states its contract — supported seeds only
+(patience 24), or an explicit rate assertion. Fail-fast cancelled
+macOS/ubuntu before they could flip their own coins.
