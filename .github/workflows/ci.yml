@@ -147,6 +147,15 @@ jobs:
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
             artifact: cyclone-linux-x86_64
+          # The <3 s M1 spec box is judged on a RELEASE build — without
+          # this row the box had no artifact to test (round-140's gap
+          # note, found one step deeper: static proof found a missing
+          # target, not just an untested pipeline). macos-latest is
+          # Apple Silicon; no system libs needed (FIRST-FLIGHT's own
+          # claim, now load-bearing here).
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            artifact: cyclone-macos-aarch64
           - os: windows-latest
             target: x86_64-pc-windows-msvc
             artifact: cyclone-windows-x86_64
