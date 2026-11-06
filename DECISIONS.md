@@ -537,3 +537,27 @@ annotation against those values tells us WHICH region of the world
 drifts (c0 config/head, c1 config-identical across seeds — constant
 in every golden, c2 bulk terrain, c3 tail sites) before touching a
 line of generator code.
+## Windows golden drift: CLOSED — ron's platform-default new_line (round 39)
+
+The fingerprint table paid for itself in one CI cycle:
+
+    Windows: len=2226907 lines=130074 c0..c3 all equal to Linux
+    Linux:   len=2096834 lines=130074
+
+2226907 − 2096834 = 130073 = lines − 1: one byte per line boundary,
+every VALUE hash identical. The worlds were bit-identical all along —
+ron-0.10.1's PrettyConfig default new_line is `if cfg!(not(target_os
+= "windows")) { "\n" } else { "\r\n" }` (ser/mod.rs:350): CRLF on
+Windows BY DESIGN. All generators/serializers that feed hashed bytes
+now pin `.new_line("\n")` (WorldMap::to_ron, WorldGenConfig::to_ron,
+Settings::save_to_disk + its round-trip test). Golden hashes did NOT
+change (LF was already Linux behaviour), which retroactively
+confirms the goldens always captured the values correctly.
+
+Spec 02 C3 (cross-OS byte identity) was NEVER violated at the value
+level — the drift was purely the text terminator. Windows CI should
+now go fully green; spec 00 C6 closes with it.
+
+Lesson recorded: the region-fingerprint + hash-free (len/lines)
+technique turned an unreadable-logs platform failure into a two-CI-
+cycle closed case. Keep it in the test.

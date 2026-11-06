@@ -66,7 +66,9 @@ impl WorldGenConfig {
     }
 
     pub fn to_ron(&self) -> String {
-        let pretty = ron::ser::PrettyConfig::new().struct_names(true);
+        let pretty = ron::ser::PrettyConfig::new()
+            .struct_names(true)
+            .new_line("\n");
         ron::ser::to_string_pretty(self, pretty).expect("config always serialises")
     }
 

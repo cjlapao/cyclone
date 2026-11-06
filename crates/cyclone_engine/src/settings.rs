@@ -133,7 +133,10 @@ impl Settings {
         let Some(path) = Self::file_path() else {
             return;
         };
-        if let Ok(text) = ron::ser::to_string_pretty(self, ron::ser::PrettyConfig::default()) {
+        // new_line pinned: ron's PrettyConfig default is CRLF on Windows,
+        // and our byte-stability rules allow no platform-varying output.
+        let pretty = ron::ser::PrettyConfig::default().new_line("\n");
+        if let Ok(text) = ron::ser::to_string_pretty(self, pretty) {
             let _ = std::fs::write(path, text);
         }
     }
@@ -234,7 +237,8 @@ mod tests {
             window_height: 1440,
             ..default()
         };
-        let text = ron::ser::to_string_pretty(&s, ron::ser::PrettyConfig::default()).unwrap();
+        let text = ron::ser::to_string_pretty(&s, ron::ser::PrettyConfig::default().new_line("\n"))
+            .unwrap();
         let back: Settings = ron::from_str(&text).unwrap();
         assert_eq!(back, s);
         assert_eq!(back.keys, s.keys);
