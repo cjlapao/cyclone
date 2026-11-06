@@ -26,7 +26,56 @@ fn golden_worlds_reproduce_exactly() {
         let seed_parsed: Seed = seed.parse().expect("golden seed parses");
         let map = generate(seed_parsed, 1, &cfg, &ProgressNoop)
             .unwrap_or_else(|e| panic!("golden row {i} ({seed}) failed: {e}"));
-        let got = blake3::hash(map.to_ron().as_bytes()).to_hex().to_string();
-        assert_eq!(got, *want, "golden drift on seed {seed}");
+        let ron_text = map.to_ron();
+        let got = blake3::hash(ron_text.as_bytes()).to_hex().to_string();
+        if got != *want {
+            // Windows CI once drifted with no other signal: report a
+            // fingerprint table so the annotation itself localises the
+            // differing region (compare with local values for same seed).
+            let lines: Vec<&str> = ron_text.lines().collect();
+            let n = lines.len();
+            let chunk = |a: usize, b: usize| -> String {
+                let joined = lines[a.min(n)..b.min(n)].join("\n");
+                blake3::hash(joined.as_bytes()).to_hex()[..8].to_string()
+            };
+            panic!(
+                "golden drift seed {seed}: len={} lines={} c0={} c1={} c2={} c3={}",
+                ron_text.len(),
+                n,
+                chunk(0, 200),
+                chunk(200, 2000),
+                chunk(2000, 20000),
+                chunk(20000, n),
+            );
+        }
+    }
+}
+
+/// Diagnostic companion: prints the SAME fingerprint table the drift
+/// panic emits, so a Windows annotation can be diffed against local
+/// (reference) values region by region. Run with --nocapture.
+#[test]
+#[ignore = "manual diagnostic; prints the golden fingerprint table"]
+fn golden_fingerprints() {
+    let cfg = WorldGenConfig::default();
+    for (seed, want) in expected_rows() {
+        let seed_parsed: Seed = seed.parse().unwrap();
+        let map = generate(seed_parsed, 1, &cfg, &ProgressNoop).unwrap();
+        let ron_text = map.to_ron();
+        let lines: Vec<&str> = ron_text.lines().collect();
+        let n = lines.len();
+        let chunk = |a: usize, b: usize| -> String {
+            let joined = lines[a.min(n)..b.min(n)].join("\n");
+            blake3::hash(joined.as_bytes()).to_hex()[..8].to_string()
+        };
+        println!(
+            "seed {seed} want={want} len={} lines={} c0={} c1={} c2={} c3={}",
+            ron_text.len(),
+            n,
+            chunk(0, 200),
+            chunk(200, 2000),
+            chunk(2000, 20000),
+            chunk(20000, n),
+        );
     }
 }

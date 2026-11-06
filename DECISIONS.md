@@ -521,3 +521,19 @@ GUARD_PASS_V2 with controls firing.
 graph of* ..." combinations that are easy to get empty; forward
 `cargo tree -p crate | grep dep` is the one form whose semantics are
 obvious at a glance — use it in scripts.
+## Windows golden drift: self-locating fingerprints (round 36)
+
+The annotations trick paid off: Windows fails `golden_worlds_reproduce
+_exactly` (assert_eq drift, first row) — and it has since the very
+first V2 CI run. The generator source is provably OS-pure (integer
+hash, libm-only transcendentals, exact f32→f64 promotions, no
+HashMap/time/RNG anywhere in the pipeline), so the drift is a
+codegen/libm boundary we cannot see from Linux. Since Windows logs
+are anonymously unreachable, the golden test now PANICS with a
+fingerprint table (byte length, line count, 4 chunk-hashes of the
+RON) — and an `#[ignore]`d companion prints the same table locally
+(kept in /tmp/golden_fingerprints_local.txt). Diffing the Windows
+annotation against those values tells us WHICH region of the world
+drifts (c0 config/head, c1 config-identical across seeds — constant
+in every golden, c2 bulk terrain, c3 tail sites) before touching a
+line of generator code.
