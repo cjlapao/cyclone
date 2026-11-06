@@ -463,3 +463,16 @@ want the full default parallelism. On this box (15 GB / 8 cores)
 `-j 2` is the right call for any release-mode cargo job; debug builds
 never needed it because `debug = "line-tables-only"` and
 `codegen-units = 1` (release) already keep per-process RSS modest.
+## Window opens AT the saved settings (round 30)
+
+`main.rs` created the window at a hardcoded 1280×800/AutoVsync and
+relied on `apply_settings` to resize on frame one — so a restart after
+saving 1920×1080-or-fullscreen flashed a wrong-sized windowed frame
+first. `main.rs` now builds the `Window` directly from
+`Settings::load()` (resolution, fullscreen mode, present_mode).
+Verified-safe facts from the 0.20 renderer (`view/window/mod.rs`):
+swapchain reactions are VALUE diffs (`present_mode_changed` compares
+extracted vs current), not change-ticks — so apply_settings' writes
+always land, and its now-matching first-frame write is a harmless
+no-op. Live toggling + save-on-change remain apply_settings' job;
+main.rs only owns the cold-start posture.
