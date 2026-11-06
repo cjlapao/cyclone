@@ -1219,7 +1219,7 @@ fn ingame_build(
             DespawnOnExit(AppState::InGame),
         ))
         .with_children(|col| {
-            col.spawn(theme.small("WASD fly · Space/Shift up · Ctrl boost".to_string()));
+            col.spawn(theme.small("WASD fly · Space up · Shift down · Ctrl boost".to_string()));
             col.spawn(theme.small("Hold RMB + move to aim · Wheel zoom".to_string()));
             col.spawn(theme.small(format!("Seed {} · Q/E snap view · Esc menu", seed.0)));
         });

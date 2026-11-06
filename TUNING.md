@@ -9,6 +9,24 @@ All camera knobs live in
 [`crates/cyclone_engine/src/camera_rig.rs`](crates/cyclone_engine/src/camera_rig.rs)
 unless noted.
 
+## Controls (defaults; every one remappable in Settings → key rows)
+
+| Key | Does |
+|-----|------|
+| `W`/`↑` `S`/`↓` `A`/`←` `D`/`→` | fly forward/back/left/right |
+| `Space` / `Shift` | climb / descend |
+| `Ctrl` | boost (×4.5 — dial 2) |
+| hold `RMB` + mouse | look (`LOOK_SENS` dial 3) |
+| wheel | FOV zoom (25°–80°, dials 4–5) |
+| `Q` / `E` | snap view 90° left/right |
+| `Tab` | top-down (preview) |
+| `R` / `C` | reroll / copy seed (preview) |
+| `Esc` | menu/back | `P` pause `M` map |
+
+*Correction note: earlier chat notes said "Shift boost" — wrong; Shift
+descends, Ctrl boosts. The in-game HUD and this table match the code
+(`settings.rs` `KeyBindings::default`).*
+
 | # | Dial | Line | Now | Feel it as |
 |---|------|------|-----|-----------|
 | 1 | `FLY_BASE` | :37 | 38 u/s | cruise speed at fov 45; scales with fov (zoom in ⇒ slower) |
