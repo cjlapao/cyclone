@@ -467,8 +467,13 @@ fn render_png(map: &WorldMap, font: &FontArc) -> Result<RgbaImage> {
     // Island names, centred under each island centre with a shadow.
     for isl in &map.islands {
         let (tw, _) = text_size(14.0, font, &isl.name);
-        let x = (isl.centre.0 * PX).saturating_sub(tw / 2) as i32;
-        let y = (isl.centre.1 * PX).min(h * PX - 14) as i32;
+        // Labels live BELOW each island's bbox, never over its centre:
+        // centred text painted over small islands made them read as
+        // "ghost islands" (labels on blank water — round 90). The
+        // island's own tiles stay the truth; the name is a caption.
+        let cx = (isl.bbox.x0 + isl.bbox.x1) / 2;
+        let x = (cx * PX).saturating_sub(tw / 2) as i32;
+        let y = ((isl.bbox.y1 + 1) * PX + 2).min(h * PX - 14) as i32;
         draw_text_mut(
             &mut img,
             Rgba([0, 0, 0, 255]),
