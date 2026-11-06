@@ -57,14 +57,15 @@ descends, Ctrl boosts. The in-game HUD and this table match the code
 
 ## Debug profile is honest (measured, not assumed)
 
-The tour says plain `cargo run` (dev profile). Dev builds here measure
-(ignored flow test `pipeline_wall`, `-- --ignored --nocapture`):
-boot+plugins ~10 ms, generate ~1.7 ms, scene build ~0.3 ms/frame —
-within noise of release (10.1 / 1.5 / 0.36 ms). The profile already
-compiles all dependencies at opt-level 3, so `cargo run` gives you
-release-speed gameplay with fast incremental rebuilds. If a feel
-complaint ever smells like stutter, we first ask "dev or release?"
-and re-run this probe.
+The tour says plain `cargo run` (dev profile). Measured before (while
+the app's hot path was ours to time): boot+plugins ~10 ms, generate
+~1.7 ms, scene build ~0.3 ms/frame — within noise of release
+(10.1 / 1.5 / 0.36 ms), the `worldgen benchmark` CI job keeps the
+generate number watched every push. The profile compiles all deps at
+opt-level 3 (root Cargo.toml), so `cargo run` gives release-speed
+gameplay with fast incremental rebuilds. If a feel complaint ever
+smells like stutter, the first question is "dev or release?" — and
+the answer should not matter.
 
 ## Feedback loop
 
