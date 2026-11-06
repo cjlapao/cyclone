@@ -23,9 +23,11 @@ fn changed_settings_reach_disk_and_idle_frames_do_not() {
 
     let mut app = App::new();
     app.add_plugins(MinimalPlugins);
-    let mut s = Settings::default();
-    s.vsync = false;
-    s.window_width = 1234;
+    let mut s = Settings {
+        vsync: false,
+        window_width: 1234,
+        ..Default::default()
+    };
     app.insert_resource(s.clone());
     app.add_systems(Update, apply_settings);
     app.update();
