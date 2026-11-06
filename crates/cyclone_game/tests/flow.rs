@@ -172,7 +172,25 @@ fn full_flow_offscreen() {
         "corner control-hints are on screen while flying"
     );
 
-    // Esc (injected) → MainMenu with a fresh small background.
+    // Esc (injected) → WorldPreview of the SAME world (terrain survives;
+    // only the UI swaps), then the second Esc → MainMenu background.
+    wait_for(
+        &mut app,
+        "back to WorldPreview",
+        Duration::from_secs(60),
+        |a| state(a) == AppState::WorldPreview,
+    );
+    {
+        let mut roots = app
+            .world_mut()
+            .query_filtered::<Entity, With<cyclone_render::WorldRoot>>();
+        assert_eq!(
+            roots.iter(app.world()).count(),
+            1,
+            "the world you flew is still on screen at the preview"
+        );
+    }
+    // ...with a fresh small background after the second Esc.
     wait_for(&mut app, "back to MainMenu", Duration::from_secs(60), |a| {
         state(a) == AppState::MainMenu && a.world().resource::<CurrentWorld>().0.size.0 == 88
     });
