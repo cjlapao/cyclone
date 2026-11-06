@@ -256,11 +256,14 @@ fn rig_fly(
         if actions.pressed(Action::Down) {
             dir -= rig.forward();
         }
+        // Strafe stays in the horizontal plane: yaw-only, so looking up
+        // or down never drags the camera vertically while sidestepping.
+        let yaw_only = Quat::from_rotation_y(rig.yaw.to_radians());
         if actions.pressed(Action::Right) {
-            dir += rig.rotation() * Vec3::X;
+            dir += yaw_only * Vec3::X;
         }
         if actions.pressed(Action::Left) {
-            dir -= rig.rotation() * Vec3::X;
+            dir -= yaw_only * Vec3::X;
         }
         if actions.pressed(Action::Climb) {
             dir += Vec3::Y;
@@ -463,5 +466,50 @@ mod tests {
         assert_eq!(rig.fov_target, FOV_MIN);
         rig.set_fov(500.0);
         assert_eq!(rig.fov_target, FOV_MAX);
+    }
+
+    /// A/D strafe must stay horizontal even while pitched hard: pre-fix
+    /// the strafe vector used full rotation (pitch included) so a
+    /// side-step turned into a climb.
+    #[test]
+    fn strafe_ignores_pitch() {
+        let mut app = App::new();
+        app.add_plugins((
+            bevy::MinimalPlugins,
+            bevy::input::InputPlugin,
+            crate::input::ActionsPlugin,
+            CameraRigPlugin,
+        ));
+        app.insert_resource(crate::settings::Settings::default());
+        let mut rig = CameraRig::new();
+        rig.position = Vec3::new(0.0, 50.0, 0.0);
+        rig.pitch = 70.0; // looking almost straight up
+        app.world_mut().spawn((
+            Camera::default(),
+            rig,
+            Transform::from_xyz(0.0, 50.0, 0.0),
+            Projection::Perspective(PerspectiveProjection::default()),
+        ));
+        app.update();
+        app.world_mut()
+            .resource_mut::<bevy::input::ButtonInput<bevy::input::keyboard::KeyCode>>()
+            .press(bevy::input::keyboard::KeyCode::KeyD);
+        // Headless frames are microseconds of wall time; run the fly
+        // simulation at 5000× so a 30-frame hold moves a visible distance.
+        app.world_mut()
+            .resource_mut::<bevy::time::Time<bevy::time::Virtual>>()
+            .set_relative_speed(5000.0);
+        for _ in 0..30 {
+            app.update();
+        }
+        let mut q = app.world_mut().query::<&Transform>();
+        let t = q.single(app.world()).unwrap();
+        // moved right (yaw 0 ⇒ +X) and NOT upward despite 70° pitch
+        assert!(t.translation.x > 1.0, "strafe x {}", t.translation.x);
+        assert!(
+            (t.translation.y - 50.0).abs() < 0.01,
+            "strafe y {}",
+            t.translation.y
+        );
     }
 }
