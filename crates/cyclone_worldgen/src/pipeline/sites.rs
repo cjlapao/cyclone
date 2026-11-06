@@ -16,6 +16,7 @@
 //!   heading (±0.7 rad) → meandering island snake across the map.
 //! - **Sparse**: wide annulus + large-biased radii → fewer, bigger islands
 //!   with long open water (the fuel graph does the rest).
+//!
 //! If too few sites fit, retry with all radii scaled ×0.9 (up to 3 times),
 //! then Retry (the attempt index reseeds everything, styles included).
 
