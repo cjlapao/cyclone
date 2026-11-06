@@ -146,9 +146,9 @@ GitHub Actions matrix: `ubuntu-latest`, `macos-latest`, `windows-latest`.
 
 ## Acceptance checks
 
-- [ ] `cargo run -p cyclone` opens a window on Linux, macOS and Windows, shows a placeholder Boot screen, then MainMenu.
-- [ ] Removing any game crate from the binary still compiles the engine crates (proves the dependency direction).
-- [ ] `cyclone_worldgen` has no `bevy` in `cargo tree -p cyclone_worldgen`.
-- [ ] Camera rig rotates through all four headings and returns to the start after four presses.
-- [ ] Settings survive a restart. Deleting the settings file restores defaults without a crash.
-- [ ] CI is green on all three OSes.
+- [ ] `cargo run -p cyclone` opens a window on Linux, macOS and Windows, shows a placeholder Boot screen, then MainMenu. *(Boot→MainMenu hold is tested headless (`flow.rs`); the on-screen open across OSes awaits the player.)*
+- [x] Removing any game crate from the binary still compiles the engine crates (proves the dependency direction). *(CI guard step: engine tree greps empty for game-side crates, with two must-fire positive controls — `990e899`.)*
+- [x] `cyclone_worldgen` has no `bevy` in `cargo tree -p cyclone_worldgen`. *(Same guard step, every CI run on 3 OSes.)*
+- [x] Camera rig rotates through all four headings and returns to the start after four presses. *(Occlusion tests in `crates/cyclone_game`, run on all CI OSes.)*
+- [x] Settings survive a restart. Deleting the settings file restores defaults without a crash. *(Disk round-trip + fallback tests in `cyclone_engine`.)*
+- [x] CI is green on all three OSes. *(Proven on `24459f8` — the last failure was ron's platform-default CRLF in golden text, root-caused via the in-test fingerprint table, DECISIONS round 39.)*

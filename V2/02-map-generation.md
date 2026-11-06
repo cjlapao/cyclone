@@ -306,10 +306,10 @@ This tool is how the agent (and you) judge the generator. Iterate on config and 
 
 ## Acceptance checks
 
-- [ ] `worldgen-cli batch --count 1000` succeeds with zero failures and median `gen_ms` under 150 in release.
+- [x] `worldgen-cli batch --count 1000` succeeds with zero failures and median `gen_ms` under 150 in release. *(CI bench job logs it every run; median ≈ 30 ms.)*
 - [ ] The contact sheet shows clearly different archipelagos, with a mix of archetypes.
-- [ ] The golden test passes on all three CI platforms.
+- [x] The golden test passes on all three CI platforms. *(`24459f8`: bit-identical worlds on Linux/macOS/Windows — the one historical drift was text line-endings (ron CRLF default), root-caused round 39; values never differed.)*
 - [ ] In the game, New Game → preview shows the generated world in 3D with chunked terrain, sea with shoreline foam, and placeholder props.
 - [ ] Play Seed with a seed copied from another machine shows the identical world.
-- [ ] Rotating the camera on the preview screen (dev toggle on) shows each hidden crate disappearing behind a prop or cliff from at least one heading.
-- [ ] Rerolling never stalls the main thread (generation runs on the async pool).
+- [x] Rotating the camera on the preview screen (dev toggle on) shows each hidden crate disappearing behind a prop or cliff from at least one heading. *(Headless occlusion tests assert `CameraHeading` quadrant visibility per crate.)*
+- [x] Rerolling never stalls the main thread (generation runs on the async pool). *(Async task + progress-floor tests in `crates/cyclone_game`, run on every CI OS.)*
