@@ -106,10 +106,11 @@ pub fn elevation_m(x_m: f64, y_m: f64, seed: u64, cfg: &ContinentConfig) -> f64 
 
     // Relief normalisation: raw masks are all-or-nothing per seed (the
     // round-154 census caught a 43 m flat world AND a 14%-mountain
-    // world at these settings). Every land column pays a floor of
-    // relief — measured, not vibes: seed 42 needed +170 m to escape
-    // flatland, so the floor spans 80–220 m — and the orogeny floor
-    // (0.25) guarantees belts wherever there is land.
+    // world at the same settings). First fix (floor 80+140·fbm, orogeny
+    // floor 0.25) over-corrected: the census came back 68–90% highlands
+    // — plains had vanished. The calm dials below are the measured
+    // middle: gentle swell everywhere (15–50 m), grand relief only in
+    // the belts (orogeny floor 0.05 lets a rare ridge whisper off-cue).
     let base = plains
         + 15.0
         + 35.0 * fbm(wx / 160.0, wy / 160.0, 1.0, 3, seed ^ 0xA11C)
