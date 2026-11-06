@@ -17,7 +17,7 @@ The overlay edits only Fullscreen / VSync / Window size / Camera speed.
 Keys live in the `keys:` block of the settings file (edit it with the
 game closed; a bad file falls back to defaults):
 Linux `~/.config/rescue/settings.ron`, Windows
-`%APPDATA%\cyclone\rescue\settings.ron`, macOS
+`%APPDATA%\cyclone\rescue\config\settings.ron` (the crate appends `config` — verified in directories-6.0.0 win.rs:75), macOS
 `~/Library/Application Support/com.cyclone.rescue/settings.ron`
 (paths of `directories::ProjectDirs` — verified by running it).
 Binding names = field names below (`up`, `climb`, `boost`, …), each a
