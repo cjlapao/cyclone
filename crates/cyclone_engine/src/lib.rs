@@ -65,7 +65,9 @@ impl Plugin for CycloneEnginePlugin {
 
 /// Apply window-affecting settings changes live (spec 01: "changes apply
 /// instantly") and persist the file.
-fn apply_settings(
+/// Pub so the persistence wiring has an integration test
+/// (`tests/settings_persist.rs`) that the panel test can't reach.
+pub fn apply_settings(
     settings: Res<Settings>,
     mut saved: Local<Option<Settings>>,
     mut windows: Query<&mut Window>,
