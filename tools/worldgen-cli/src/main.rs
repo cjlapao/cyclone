@@ -171,30 +171,7 @@ fn main() -> Result<()> {
             let mut rejects: std::collections::BTreeMap<String, u32> = Default::default();
             for m in &ok {
                 for r in &m.metrics.rejections {
-                    // Rejection strings arrive shaped: "aN: <verdict>" or
-                    // "aN: validation: A; B; C" (validate() joins issues).
-                    // Unwrap both wrappers, split joined issues, and
-                    // normalise instance text (numbers/coords) to "#" so
-                    // "sites 9 and 10" and "sites 3 and 4" are ONE bucket.
-                    let body = r.split_once(": ").map_or(r.as_str(), |x| x.1);
-                    let body = body.strip_prefix("validation: ").unwrap_or(body);
-                    for issue in body.split("; ") {
-                        let key: String = issue
-                            .chars()
-                            .map(|c| if c.is_ascii_digit() { '#' } else { c })
-                            .collect();
-                        let key = key.replace("##", "#").replace("##", "#");
-                        let key = key.split(" (").next().unwrap_or(&key).to_owned();
-                        // Fuel-family collapse: names inside the message
-                        // ("island Nukesi Bay out of fuel reach") would
-                        // make every seed its own bucket.
-                        let key = if key.contains("out of fuel reach") {
-                            "island out of fuel reach".to_owned()
-                        } else if key.contains("closer than min_gap") {
-                            "pair closer than min_gap".to_owned()
-                        } else {
-                            key
-                        };
+                    for key in reject_keys(r) {
                         *rejects.entry(key).or_default() += 1;
                     }
                 }
@@ -555,4 +532,90 @@ fn contact_sheet(path: &Path, maps: &[&WorldMap], font: &FontArc) -> Result<()> 
     }
     sheet.save(path)?;
     Ok(())
+}
+
+/// One recorded rejection -> the histogram keys it contributes.
+///
+/// Rejection strings arrive shaped: "aN: <verdict>" or
+/// "aN: validation: A; B; C" (validate() joins its issues). Unwrap
+/// both wrappers, split joined issues, normalise instance text
+/// (digits -> `#`, trailing "(instances)" cut), and collapse the
+/// families whose messages embed island NAMES (per-seed, would make
+/// every seed its own bucket): "… out of fuel reach" and
+/// "… closer than min_gap" each become one stable key.
+fn reject_keys(rejection: &str) -> Vec<String> {
+    let body = rejection
+        .split_once(": ")
+        .map_or(rejection, |x| x.1)
+        .strip_prefix("validation: ")
+        .unwrap_or(rejection.split_once(": ").map_or(rejection, |x| x.1));
+    body.split("; ")
+        .map(|issue| {
+            let key: String = issue
+                .chars()
+                .map(|c| if c.is_ascii_digit() { '#' } else { c })
+                .collect();
+            let key = key.replace("##", "#").replace("##", "#");
+            // Trailing-instance cut ONLY when the message ends with ')'
+            // ("… sites fit (style 2)"): mid-sentence parens like
+            // "land at (#,#) inside the sea margin" must survive whole.
+            let key = if issue.ends_with(')') {
+                key.split(" (").next().unwrap_or(&key).to_owned()
+            } else {
+                key
+            };
+            if key.contains("out of fuel reach") {
+                "island out of fuel reach".to_owned()
+            } else if key.contains("closer than min_gap") {
+                "pair closer than min_gap".to_owned()
+            } else {
+                key
+            }
+        })
+        .collect()
+}
+
+#[cfg(test)]
+mod reject_tests {
+    use super::reject_keys;
+
+    #[test]
+    fn attempt_prefix_and_validation_wrapper_unwrap() {
+        assert_eq!(
+            reject_keys("a3: no room for the base hangar"),
+            ["no room for the base hangar"]
+        );
+        let k = reject_keys(
+            "a1: validation: Base Island has no helipad; land at (2,9) inside the sea margin",
+        );
+        assert_eq!(
+            k,
+            [
+                "Base Island has no helipad",
+                "land at (#,#) inside the sea margin"
+            ]
+        );
+    }
+
+    #[test]
+    fn names_collapse_families() {
+        assert_eq!(
+            reject_keys(
+                "a0: validation: island Nukesi Bay out of fuel reach (51); island Zephi Cay out of fuel reach (47)"
+            ),
+            ["island out of fuel reach", "island out of fuel reach"]
+        );
+        assert_eq!(
+            reject_keys("a2: pair X Y closer than min_gap 6"),
+            ["pair closer than min_gap"]
+        );
+    }
+
+    #[test]
+    fn digit_runs_collapse_once() {
+        assert_eq!(
+            reject_keys("a7: only 11 of 14 island sites fit (style 2)"),
+            ["only # of # island sites fit"]
+        );
+    }
 }
