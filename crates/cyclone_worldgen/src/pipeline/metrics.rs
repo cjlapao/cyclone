@@ -275,6 +275,85 @@ pub fn validate(map: &WorldMap, cfg: &WorldGenConfig) -> Vec<String> {
         }
     }
 
+    // Spec 02: each island is exactly one 4-connected component, and
+    // coastlines of different islands keep cfg.min_gap tiles of water
+    // between them (Euclidean on land cells: Chebyshev gaps used by the
+    // placer are a lower bound for Euclidean, so this is not stricter
+    // than generation, just measurable).
+    let mut cells: Vec<Vec<(u32, u32)>> = vec![Vec::new(); map.islands.len()];
+    for y in 0..h {
+        for x in 0..w {
+            let i = map.island_of.raw(x, y);
+            if i != u8::MAX && (i as usize) < cells.len() {
+                cells[i as usize].push((x, y));
+            }
+        }
+    }
+    for (i, isl) in map.islands.iter().enumerate() {
+        let list = &cells[i];
+        if list.len() as u32 != isl.area {
+            issues.push(format!(
+                "island {} area {} != {} island_of tiles",
+                isl.name,
+                isl.area,
+                list.len()
+            ));
+        }
+        let mut seen = vec![false; (w * h) as usize];
+        let mut stack = vec![list[0]];
+        seen[list[0].1 as usize * w as usize + list[0].0 as usize] = true;
+        let mut reached = 1u32;
+        while let Some((x, y)) = stack.pop() {
+            for (dx, dy) in [(1i64, 0i64), (-1, 0), (0, 1), (0, -1)] {
+                let (nx, ny) = (x as i64 + dx, y as i64 + dy);
+                if nx < 0 || ny < 0 || nx >= w as i64 || ny >= h as i64 {
+                    continue;
+                }
+                let (nx, ny) = (nx as u32, ny as u32);
+                let k = ny as usize * w as usize + nx as usize;
+                if !seen[k] && map.island_of.raw(nx, ny) == i as u8 {
+                    seen[k] = true;
+                    reached += 1;
+                    stack.push((nx, ny));
+                }
+            }
+        }
+        if reached as usize != list.len() {
+            issues.push(format!(
+                "island {} is not one component ({}/{} tiles reached)",
+                isl.name,
+                reached,
+                list.len()
+            ));
+        }
+    }
+    let gap2 = (cfg.min_gap * cfg.min_gap).max(1);
+    for i in 0..map.islands.len() {
+        for j in i + 1..map.islands.len() {
+            let (a, b) = (&map.islands[i].bbox, &map.islands[j].bbox);
+            let near = a.x0.saturating_sub(cfg.min_gap) <= b.x1
+                && b.x0.saturating_sub(cfg.min_gap) <= a.x1
+                && a.y0.saturating_sub(cfg.min_gap) <= b.y1
+                && b.y0.saturating_sub(cfg.min_gap) <= a.y1;
+            if !near {
+                continue;
+            }
+            for &(ax, ay) in &cells[i] {
+                for &(bx, by) in &cells[j] {
+                    let dx = ax.abs_diff(bx);
+                    let dy = ay.abs_diff(by);
+                    if dx * dx + dy * dy < gap2 {
+                        issues.push(format!(
+                            "islands {} & {} closer than min_gap {}",
+                            map.islands[i].name, map.islands[j].name, cfg.min_gap
+                        ));
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
     issues
 }
 

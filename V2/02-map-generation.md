@@ -211,13 +211,13 @@ Rules, applied per island, using the island's own stream:
 
 Final invariants checked in code (and again in tests):
 
-- [ ] Exactly `island_count` islands, each one component, none touching (`min_gap` respected along coastlines, measured with `shore_dist`).
-- [ ] Nothing but sea within `margin` of the world edge.
-- [ ] Base Island has a helipad and a hangar.
-- [ ] Fuel graph connected; every island in reach (step 6 rules).
-- [ ] Exactly `crates` crates on distinct non-base islands, each on a walkable tile.
-- [ ] At least `hidden_crates_min` crates hidden from 1–3 headings; no crate hidden from all 4.
-- [ ] No prop footprint overlaps another, a helipad, a crate or a refugee.
+- [x] Exactly `island_count` islands, each one component, none touching (`min_gap` respected along coastlines, measured with `shore_dist`). *(round 53: `validate()` gained the single-4-connected-component check (BFS per island + area↔grid consistency) and a pairwise Euclidean min_gap check with bbox pre-filter; validate gates generation (violations → retry) and `invariants_hold_over_many_seeds` passes 300 seeds with zero issues.)*
+- [x] Nothing but sea within `margin` of the world edge. *(validate sea-margin check, 300 seeds green, gates generation.)*
+- [x] Base Island has a helipad and a hangar. *(validate; same 300-seed gate.)*
+- [x] Fuel graph connected; every island in reach (step 6 rules). *(validate Kruskal 0.8 + reach 0.4; 300 seeds green.)*
+- [x] Exactly `crates` crates on distinct non-base islands, each on a walkable tile. *(validate; 300 seeds green.)*
+- [x] At least `hidden_crates_min` crates hidden from 1–3 headings; no crate hidden from all 4. *(validate; 300 seeds green.)*
+- [x] No prop footprint overlaps another, a helipad, a crate or a refugee. *(validate footprint sweep; 300 seeds green.)*
 
 ### A6. Public API
 
