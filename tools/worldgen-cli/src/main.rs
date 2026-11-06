@@ -171,9 +171,32 @@ fn main() -> Result<()> {
             let mut rejects: std::collections::BTreeMap<String, u32> = Default::default();
             for m in &ok {
                 for r in &m.metrics.rejections {
-                    *rejects
-                        .entry(r.split(": ").nth(1).unwrap_or(r).to_owned())
-                        .or_default() += 1;
+                    // Rejection strings arrive shaped: "aN: <verdict>" or
+                    // "aN: validation: A; B; C" (validate() joins issues).
+                    // Unwrap both wrappers, split joined issues, and
+                    // normalise instance text (numbers/coords) to "#" so
+                    // "sites 9 and 10" and "sites 3 and 4" are ONE bucket.
+                    let body = r.split_once(": ").map_or(r.as_str(), |x| x.1);
+                    let body = body.strip_prefix("validation: ").unwrap_or(body);
+                    for issue in body.split("; ") {
+                        let key: String = issue
+                            .chars()
+                            .map(|c| if c.is_ascii_digit() { '#' } else { c })
+                            .collect();
+                        let key = key.replace("##", "#").replace("##", "#");
+                        let key = key.split(" (").next().unwrap_or(&key).to_owned();
+                        // Fuel-family collapse: names inside the message
+                        // ("island Nukesi Bay out of fuel reach") would
+                        // make every seed its own bucket.
+                        let key = if key.contains("out of fuel reach") {
+                            "island out of fuel reach".to_owned()
+                        } else if key.contains("closer than min_gap") {
+                            "pair closer than min_gap".to_owned()
+                        } else {
+                            key
+                        };
+                        *rejects.entry(key).or_default() += 1;
+                    }
                 }
             }
             println!("batch rejects: {rejects:?}");

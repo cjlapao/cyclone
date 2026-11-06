@@ -816,3 +816,15 @@ wasted island slot" — a real defect class. Measured it instead:
 exist; map.png's name labels simply paint over small islands. Data
 honesty survives; the renderer lies cosmetically (small fix someday:
 label offset). Rule reinforced: measure before you mourn.
+
+## Round 95 — rejection histogram was lying: grouping fixed
+
+Fresh sheets showed a catch-all `validation` bucket and
+name-fragmented keys. Causes: validate() joins issues under one
+"validation: " prefix with "; " separators, and island names vary
+per seed. The CLI keyer now unwraps both wrappers, splits joined
+issues, normalises digits to #, and collapses the fuel/min_gap
+families by message tail. 16-seed check: {fuel: 6+2, hangar: 3,
+site-fit: 7, min_gap: ...} — zero catch-alls, every bucket a family.
+TUNING re-pointed to the new key names. The tuning signal got a
+tune.

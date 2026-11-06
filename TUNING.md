@@ -74,9 +74,13 @@ should not matter.
 ## What the generator rejects (measured tuning signal)
 
 `worldgen-cli batch` prints `batch rejects: {…}` — every validator
-verdict that cost a re-roll, live. Observed mix since the size
-spread (5..18) landed: `fuel reach` leads, `no room for the base
-hangar` next — both point at `island_radius` spread or `fuel_range`.
+verdict that cost a re-roll, live. Keys are normalised (numbers →
+`#`, island names collapsed), so families group honestly:
+`island out of fuel reach`, `fuel graph disconnected`, `no room for
+the base hangar`, `pair closer than min_gap`, `only # of # island
+sites fit`. Observed mix since the size spread (5..18) landed: the
+fuel family leads, hangar-room next — both point at `island_radius`
+spread or `fuel_range`.
 A `fuel reach` rejection means the route solver couldn't link pads
 under `fuel_range`. Note: in-game, machine-rolled seeds quietly
 reroll past an Exhausted budget ("Rolling a luckier seed…"), so what
