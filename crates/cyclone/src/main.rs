@@ -30,12 +30,17 @@ fn main() {
         },
         ..default()
     };
-    App::new()
-        .add_plugins(DefaultPlugins.set(WindowPlugin {
-            primary_window: Some(window),
-            ..default()
-        }))
-        // CycloneGamePlugin wires the engine layer itself.
-        .add_plugins((WorldBuilderPlugin, CycloneUiPlugin, CycloneGamePlugin))
-        .run();
+    let mut app = App::new();
+    app.add_plugins(DefaultPlugins.set(WindowPlugin {
+        primary_window: Some(window),
+        ..default()
+    }));
+    // CycloneGamePlugin wires the engine layer itself.
+    app.add_plugins((WorldBuilderPlugin, CycloneUiPlugin, CycloneGamePlugin));
+    // Dev builds measure the thing feel-reports argue about: the dev
+    // HUD corner prints smoothed FPS from this store (TUNING's
+    // honest-numbers rule, now in-flight as well as in-docs).
+    #[cfg(feature = "dev")]
+    app.add_plugins(bevy::diagnostic::FrameTimeDiagnosticsPlugin::default());
+    app.run();
 }

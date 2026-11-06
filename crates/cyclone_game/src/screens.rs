@@ -94,6 +94,8 @@ pub fn register(app: &mut App) {
     );
 
     app.add_systems(OnEnter(AppState::InGame), ingame_build);
+    #[cfg(feature = "dev")]
+    app.add_systems(Update, dev_fps_refresh.run_if(in_state(AppState::InGame)));
     app.add_systems(Update, ingame_keys.run_if(in_state(AppState::InGame)));
 }
 
@@ -1322,6 +1324,45 @@ fn preview_keys(
 
 // ------------------------------------------------------------- In game ----
 
+/// Marker for the dev-HUD line that rewrites itself with smoothed FPS
+/// (FrameTimeDiagnosticsPlugin is added by the binary under `dev`).
+#[cfg(feature = "dev")]
+#[derive(Component)]
+struct DevFpsText;
+
+/// Half-second rewrite: `{fps} fps · {ms} ms`. Reads the SAME store
+/// `LogDiagnosticsPlugin` would log — no second measurement invented,
+/// and `Option<Res>` so the headless harness (no diagnostics plugin)
+/// runs the system as a no-op instead of panicking on a missing
+/// resource. Feel-words ("looks slow") become quotable numbers mid-
+/// flight; TUNING's rule, live.
+#[cfg(feature = "dev")]
+fn dev_fps_refresh(
+    mut q: Query<&mut Text, With<DevFpsText>>,
+    store: Option<Res<bevy::diagnostic::DiagnosticsStore>>,
+    time: Res<Time>,
+    mut acc: Local<f32>,
+) {
+    *acc += time.delta_secs();
+    if *acc < 0.5 {
+        return;
+    }
+    *acc = 0.0;
+    let Some(store) = store else { return };
+    let fps = store
+        .get(&bevy::diagnostic::FrameTimeDiagnosticsPlugin::FPS)
+        .and_then(|d| d.smoothed());
+    let ms = store
+        .get(&bevy::diagnostic::FrameTimeDiagnosticsPlugin::FRAME_TIME)
+        .and_then(|d| d.smoothed());
+    for mut text in &mut q {
+        *text = Text::from(match (fps, ms) {
+            (Some(f), Some(m)) => format!("{f:.0} fps · {m:.1} ms frame"),
+            _ => "-- fps".to_string(),
+        });
+    }
+}
+
 fn ingame_build(
     mut commands: Commands,
     world: Res<CurrentWorld>,
@@ -1378,6 +1419,9 @@ fn ingame_build(
                 world.0.islands.len(),
                 world.0.metrics.difficulty
             )));
+            // Live FPS line — rewrites itself, see dev_fps_refresh.
+            #[cfg(feature = "dev")]
+            col.spawn((theme.small("-- fps".to_string()), DevFpsText));
         });
 }
 
