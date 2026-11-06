@@ -57,7 +57,14 @@ jobs:
         shell: bash
         run: cargo check -p cyclone --features dev
       - name: dev-feature tests (F3 crate reveal)
-        run: cargo test -p cyclone_game --features dev --test flow
+        shell: bash
+        run: |
+          set -o pipefail
+          cargo test -p cyclone_game --features dev --test flow 2>&1 | tee devtest.log || {
+            tail -n 300 devtest.log | grep -aE "FAILED|panicked|error\[|test result: FAILED|signal|abort" |
+              tail -n 14 | awk '{printf "::error::%s\n", $0}'
+            exit 1
+          }
       - run: cargo run -p worldgen-cli -- golden
       - name: Dependency direction (spec 00 C2/C3)
         shell: bash
