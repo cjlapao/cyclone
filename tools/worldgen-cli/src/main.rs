@@ -308,10 +308,14 @@ fn tile_color(map: &WorldMap, x: u32, y: u32, max_h: u8) -> Rgba<u8> {
     let mut base = surface_base(map.surface.raw(x, y));
     if map.surface.raw(x, y) == Surface::Grass {
         let t = (h0.min(max_h) as f32 / max_h.max(1) as f32).clamp(0.0, 1.0);
+        // Stronger ramp (mix up to 0.8 at the top): Flat/Hilly/Plateau/Peak
+        // must be identifiable from the sheet alone — level colour is the
+        // signal that survives thumbnail downscaling.
+        let t = t * t.sqrt(); // push mid-levels apart, keep lowlands green
         base = [
-            base[0] + (196.0 - base[0]) * t * 0.45,
-            base[1] + (168.0 - base[1]) * t * 0.35,
-            base[2] + (96.0 - base[2]) * t * 0.35,
+            base[0] + (238.0 - base[0]) * t * 0.80,
+            base[1] + (230.0 - base[1]) * t * 0.55,
+            base[2] + (200.0 - base[2]) * t * 0.50,
         ];
     }
     // Slope toward NW: positive when the NW faces are lit by the sun.
