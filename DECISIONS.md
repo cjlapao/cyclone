@@ -1086,3 +1086,39 @@ each:
    CLI sheet — the sheet is the game's satellite photo.
    Dev knob CYCLONE_CONTINENT_SCALE=1 shrinks the 1 km world 5× so a
    screen shows it whole (relief 5× flatter — accepted preview trade).
+
+## Round 179 — islands are a point process; the sea reads distance, not membership
+
+Pilot pasted an aerial photo: small green islands, sand rings, turquoise
+shelves, deep blue beyond — "a few that fit the map, randomly", plus
+"more definition" at the 25 cm voxel.
+
+- **Islands: stamp, don't threshold.** Cutting the fbm's upper tail was
+  built, census-tested and THROWN AWAY: the field's high tail is one
+  correlated cluster plus noise minima — one big island and fifty 9 m
+  specks, the opposite of the photo. The shipped mask hashes a 340 m
+  lattice: a coin keeps ~45% of sites, each kept site stamps a cosine
+  blob (radius 90–200 m, seeded squish), max-composed. Sizes/spacing
+  are constants (they cannot drift by seed); placement/count/shape are
+  the random part. elevation_m's island branch puts SEA at mask 0.5:
+  coast has zero relief (beach), core full relief. Continent mode is
+  byte-identical — the canary never moved.
+- **Beaches are sea-adjacency, not river-adjacency.** `near_wet` read
+  the WATER array, which only holds rivers — island shores had no
+  sand. Now: height-0 neighbour = sea = shore, in renderer and sheet.
+  A 1 m fringe column is beach sand, not the void-black "skip" case.
+- **The sea shade reads DISTANCE, not membership.** Shelf ramps
+  turquoise→navy over 150 m (the photo's band); the sheet side uses a
+  Felzenszwalb–Huttenlocher exact two-pass transform after the brute
+  scan turned out to be 16e9 samples. Three numeric lessons:
+  BIG=1e18 vanished when f64 rounded +p² back onto it (source erased
+  at its own site); BIG=1e13 met a real distance and faked nearer
+  land (vertical bands); shipped: normalised voxels², BIG=1e8, every
+  border exact. The isolated repro printed [inf,inf,0,inf,inf] —
+  keep printing until the arithmetic confesses.
+- **The block was never the voxel.** 25 cm was always the spec; the
+  mesh cell (CELL_VOX=8 → 2 m) was the visible cube. Now 4 → 1 m;
+  the sparse chunk drop keeps the sea at one quad, so islands pay
+  only for land. Live spawn (CYCLONE_ISLANDS through the real path)
+  is test-guarded: crates gone, 3 meshes, one root, both B0004
+  components standing.

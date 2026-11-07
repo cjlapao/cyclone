@@ -148,13 +148,16 @@ run -p worldgen-cli -- continent --seed <S> --size 4000 --out <dir>`
 | "coast geometry too round" | warp amp 150 m / wavelength 350 m | 150/350 |
 | "want more ocean" | land mask smoothstep(0.44, 0.54) | midpoint 0.49 |
 | "detail looks like crumpled foil" | detail amp × 28 m | 1.0 m (was 2.2, the render said so) |
-| "blocky under me" | CELL_VOX (render/cyclone_render) | 8 (2 m mesh cells; 25 cm data awaits the clipmap) |
+| "blocky under me" | CELL_VOX (render/cyclone_render) | 4 (1 m mesh cells at 25 cm voxels — the VOXEL was always 25 cm, the MESH CELL was the visible cube; sea stays one quad via sparse drop) |
 | "no rivers / too many rivers" | `CATCH` (carve_rivers, continent.rs) | 25k columns ≈ 1.6 km² of rain to earn a stream (3k over-carved a canyon — round-177 crater) |
 | "rivers too thin / too wide" | flood window `1 + acc/(4·CATCH)` cap | 1–17 cells (≈0.25–4 m) |
 | "rivers should flood more" | surface fill `bed + depth·2/3` | 2/3 of the cut holds water |
 | "world is a traffic light of bands" | biome aridity fbm (earth_rgb, continent_mesh) | /300 m wavelength; cuts 0.30/0.55/0.78 (forest/grass/scrub/desert); altitude only above 95 m |
 | "sea is a flat blue table" | sea bathymetry fade | shelf cyan → basin navy over 1 km from shore; buckets 100 voxels (25 m) |
 | "colours band wrongly" | `earth_rgb` cuts (continent_mesh) + CLI mirror | 14/95/175/245 m — they MUST ride the relief band; the old 260/600/900 lived above a world that no longer exists |
+| "a few islands like this photo" | `ContinentConfig.islands` (CYCLONE_ISLANDS=1) | point-process stamps on a 340 m lattice: coin 0.45, cosine blobs r=90–200 m, seeded squish; fbm tail-cut REJECTED by census (one island + gravel) |
+| "islands have no beaches" | `near_wet` = river OR height-0 neighbour | beaches are sea-ADJACENCY; the water array only holds rivers |
+| "shelf too wide / sea banded" | shelf ramp 150 m; sheet DTM normalised voxels² BIG=1e8 | f64 ulp: BIG must beat every true d² yet keep +p² exact — 1e18 erased sources, 1e13 faked distances |
 
 Rivers are DETERMINISTIC HYDROLOGY, not painted lines: D8 flow
 accumulation over the real grid (counting-sort descent), carve where
