@@ -50,6 +50,11 @@ fn main() {
             }
         }
     }
+    // Centre probe: island mode makes the map centre OCEAN for most
+    // seeds — the spawn scan's reason to exist (round 169).
+    let ext = c.config.size as f64 * c.config.voxel as f64 * 0.5;
+    let mid = cyclone_worldgen::elevation_m(ext, ext, seed, &cfg);
+    println!("centre ({ext:.0}, {ext:.0}) m: {mid:.2} m elevation");
     blobs.sort_by_key(|b| std::cmp::Reverse(b.0));
     println!("seed 99: {} blobs", blobs.len());
     for (cells, h) in blobs.iter().take(4) {
