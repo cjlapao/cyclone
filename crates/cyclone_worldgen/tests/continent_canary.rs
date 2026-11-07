@@ -23,23 +23,23 @@ fn continent_seed2_512_digest() {
     h.update(&bytemuck_bytes(&c.heights));
     let m = c.metrics;
     let digest = h.finalize().to_string();
-    // Frozen on Linux 2026-11-06 (round 159). CI runs this SAME test on
+    // Re-pinned round 176 (relief rebalance 1100→300 m) on Linux. CI runs this SAME test on
     // macOS + Windows: agreement there is the cross-platform identity
     // proof the island golden gives the map; drift here = platform
     // libm/dial drift, red before any human eye is asked to judge.
     assert_eq!(
         digest,
-        "7155df30e7b882a4d7e85f85818d56de9fac386f7d3f8db2461a6e8eb6fa4061"
+        "f905b36ec061e31ca9916e4db5cd844be1ed7ae8469c3d9d29a6f781d1d5f2a6"
     );
     // Metrics are ratios of integer counts — a one-column change moves
     // them ~4e-6, so 1e-9 tolerance still sees every single-column
     // drift while surviving decimal round-trip of these literals.
     // (The DIGEST is the bit-exact witness; these are tripwires.)
     assert!(m.ocean_ratio == 0.0);
-    assert!((m.flat_ratio - 0.000907897949).abs() < 1e-9);
-    assert!((m.high_ratio - 0.772171020508).abs() < 1e-9);
-    assert!((m.mountain_ratio - 0.076244354248).abs() < 1e-9);
-    assert_eq!(m.max_height_m, 861.25); // voxel multiples: exact in f64
+    assert!((m.flat_ratio - 0.038093566895).abs() < 1e-9);
+    assert!((m.high_ratio - 0.684650421143).abs() < 1e-9);
+    assert!((m.mountain_ratio - 0.017299652100).abs() < 1e-9);
+    assert_eq!(m.max_height_m, 236.25); // voxel multiples: exact in f64
 }
 
 fn bytemuck_bytes(v: &[u16]) -> Vec<u8> {

@@ -31,7 +31,7 @@ impl Default for ContinentConfig {
         Self {
             size: 4000,
             voxel: 0.25,
-            max_height_m: 1100.0,
+            max_height_m: 300.0,
         }
     }
 }
@@ -98,7 +98,7 @@ pub fn elevation_m(x_m: f64, y_m: f64, seed: u64, cfg: &ContinentConfig) -> f64 
 
     // Relief layers (all warped).
     let plains = 6.0 + 46.0 * fbm(wx / 90.0, wy / 90.0, 1.0, 4, seed ^ 0xF141);
-    let ridge = ridged(wx / 130.0, wy / 130.0, 1.0, 5, seed ^ 0x142D1);
+    let ridge = ridged(wx / 260.0, wy / 260.0, 1.0, 5, seed ^ 0x142D1);
     // 1.0 m, not 2.2: the first full-res render showed plains reading
     // as crumpled foil — detail belongs on mountain flanks (where it
     // sits against 100 m+ relief), not shouting across flatlands.
@@ -114,7 +114,7 @@ pub fn elevation_m(x_m: f64, y_m: f64, seed: u64, cfg: &ContinentConfig) -> f64 
     let base = plains
         + 15.0
         + 35.0 * fbm(wx / 160.0, wy / 160.0, 1.0, 3, seed ^ 0xA11C)
-        + (cfg.max_height_m as f64 - 240.0) * ridge * (0.05 + 0.95 * orogen);
+        + (cfg.max_height_m as f64 - 80.0) * ridge * (0.05 + 0.95 * orogen);
     (land * (base + detail)).max(0.0)
 }
 
@@ -170,10 +170,13 @@ fn measure(h: &[u16], cfg: &ContinentConfig) -> ContinentMetrics {
         }
         land += 1;
         m.max_height_m = m.max_height_m.max(hm);
-        if hm >= 250.0 {
+        // Bands ride the CURRENT relief scale (round-176 rebalance:
+        // pilot's flight found 900 m peaks in a 1 km world read as a
+        // tower; ceiling is 300 m now, so census cuts follow).
+        if hm >= 120.0 {
             m.high_ratio += 1.0;
         }
-        if hm >= 600.0 {
+        if hm >= 210.0 {
             m.mountain_ratio += 1.0;
         }
         let x = i % size;
@@ -230,19 +233,25 @@ mod tests {
         )
         .unwrap();
         let m = c.metrics;
+        // Bands re-pinned from the round-176 census (post-rebalance:
+        // 300 m ceiling; pilot's flight found 900 m peaks on a 1 km
+        // world read as a tower). Measured: ocean .185 flat .434
+        // mountain .0013 max 236 — bands sit generously around it.
+        // Flat band widened UP: gentler slopes are the whole point of
+        // the rebalance, and the slope census counts rolling hills.
         assert!(
-            m.ocean_ratio > 0.08 && m.ocean_ratio < 0.30,
+            m.ocean_ratio > 0.10 && m.ocean_ratio < 0.30,
             "ocean {}",
             m.ocean_ratio
         );
         assert!(
-            m.flat_ratio > 0.08 && m.flat_ratio < 0.30,
+            m.flat_ratio > 0.25 && m.flat_ratio < 0.60,
             "flat {}",
             m.flat_ratio
         );
-        assert!(m.mountain_ratio < 0.08, "mountain {}", m.mountain_ratio);
+        assert!(m.mountain_ratio < 0.05, "mountain {}", m.mountain_ratio);
         assert!(
-            m.max_height_m > 500.0 && m.max_height_m < 1200.0,
+            m.max_height_m > 150.0 && m.max_height_m < 285.0,
             "max {}",
             m.max_height_m
         );

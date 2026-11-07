@@ -1451,9 +1451,13 @@ fn ingame_build(
             // (TUNING.md: feel-words map to dials via these metrics).
             #[cfg(feature = "dev")]
             if continent {
+                // Square KILOMETRES, not metres: a 1000 m side is a
+                // km² world — the old line quoted the side as if it
+                // were the area (a 1000× unit lie).
+                let km = cont_size as f64 * 0.25 / 1000.0;
                 col.spawn(theme.small(format!(
-                    "CONTINENT {} m² · 25 cm voxels · R rerolls terrain",
-                    (cont_size as f64 * 0.25) as u32
+                    "CONTINENT {:.2} km² · 25 cm voxels · R rerolls terrain",
+                    km * km
                 )));
             } else {
                 col.spawn(theme.small(format!(

@@ -90,11 +90,11 @@ fn hillshade(c: &cyclone_worldgen::Continent) -> Result<RgbaImage> {
                 (28u8, 64, 120) // ocean
             } else if hm < 12.0 {
                 (180, 168, 120) // sand shore
-            } else if hm < 260.0 {
+            } else if hm < 95.0 {
                 (60, 120 - (hm / 6.0) as u8, 46) // plains → dark green
-            } else if hm < 600.0 {
+            } else if hm < 175.0 {
                 (140, 120, 70) // hills ochre
-            } else if hm < 900.0 {
+            } else if hm < 245.0 {
                 (120, 118, 116) // rock
             } else {
                 (235, 238, 240) // snow

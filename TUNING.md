@@ -142,14 +142,18 @@ run -p worldgen-cli -- continent --seed <S> --size 4000 --out <dir>`
 | "flat / boring relief" | relief floor `40+80·fbm/160m` terms | 15.0 + 35.0 (post-census calm) |
 | "no mountains anywhere" | orogeny floor `(0.05 + 0.95·mask)` | 0.05 |
 | "peaks not sharp enough" | `ridged()` sharpen exponent `r*r` | r² |
-| "mountains too small" | `max_height_m` (ContinentConfig) | 1100 |
+| "mountains too small" | `max_height_m` (ContinentConfig) | 300 (round-176 rebalance: the flight said 900 m peaks on a 1 km world read as a tower) |
+| "slopes too steep / crumpled" | ridge wavelength `ridged(wx/N …)` | 260 m (was 130; half as steep) |
+| "mountains start too high up" | ridge onset `(max_height_m − 80)` | 80 (was 240 on the old ceiling) |
 | "coast geometry too round" | warp amp 150 m / wavelength 350 m | 150/350 |
 | "want more ocean" | land mask smoothstep(0.44, 0.54) | midpoint 0.49 |
 | "detail looks like crumpled foil" | detail amp × 28 m | 1.0 m (was 2.2, the render said so) |
 | "blocky under me" | CELL_VOX (render/cyclone_render) | 8 (2 m mesh cells; 25 cm data awaits the clipmap) |
+| "colours band wrongly" | `earth_rgb` cuts (continent_mesh) + CLI mirror | 14/95/175/245 m — they MUST ride the relief band; the old 260/600/900 lived above a world that no longer exists |
 
-Character per seed is REAL (census witnesses): seed 42 = strait +
-snow range, 777 = alpine, 2 = lake country. The `seed_two_holds_
+Character per seed is REAL (round-176 census, post-rebalance):
+seed 42 = 40% ocean strait country w/ ridged highlands, 2 = 24%
+ocean rolling green, 777 = open sea coast, 1 = a landlocked plain. The `seed_two_holds_
 earth_character` test pins seed-2's measured bands — retuning these
 dials SHOULD fail it; re-measure via `census -- --ignored`, then
 update the bands deliberately.

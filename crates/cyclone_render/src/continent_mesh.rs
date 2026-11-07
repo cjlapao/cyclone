@@ -39,13 +39,18 @@ fn earth_rgb(h_m: f32, tint: f32) -> Vec4 {
     let (r, g, b) = if h_m < 2.0 {
         return Vec4::splat(0.0); // unused: ocean columns are skipped
     } else if h_m < 14.0 {
+        // Breakpoints ride the CURRENT relief band (300 m ceiling,
+        // round-176 rebalance): the old 260/600/900 cuts lived above a
+        // world that no longer exists, so every slope read as one flat
+        // ochre slab. Bands from the census: flat ~<50, high 120+,
+        // mountain 210+.
         (0.855f32, 0.769, 0.545) // sand
-    } else if h_m < 260.0 {
-        let t = (h_m - 14.0) / 246.0;
+    } else if h_m < 95.0 {
+        let t = (h_m - 14.0) / 81.0;
         (0.30 - 0.10 * t, 0.62 - 0.20 * t, 0.26) // green deepening
-    } else if h_m < 600.0 {
+    } else if h_m < 175.0 {
         (0.55, 0.47, 0.28) // hills ochre
-    } else if h_m < 900.0 {
+    } else if h_m < 245.0 {
         (0.46, 0.45, 0.46) // rock
     } else {
         (0.92, 0.93, 0.94) // snow

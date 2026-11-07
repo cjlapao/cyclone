@@ -20,6 +20,21 @@ use cyclone_worldgen::WorldMap;
 #[derive(Component)]
 pub struct WorldRoot;
 
+/// The terrain-lab mode as ONE read of the env dials: Some((size in
+/// voxels, extent in metres)). rebuild, the bounds guard, and the game
+/// all ask this — no scattered env reads that can drift apart.
+pub fn continent_mode() -> Option<(u32, f32)> {
+    if std::env::var("CYCLONE_CONTINENT").is_err() {
+        return None;
+    }
+    let size: u32 = std::env::var("CYCLONE_CONTINENT_SIZE")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(4000)
+        .clamp(64, 16_000); // voxels; generate_continent caps at 16384
+    Some((size, size as f32 * 0.25))
+}
+
 /// Dev terrain-lab gate: `CYCLONE_CONTINENT=1` makes the *flight*
 /// world the voxel-Earth — but only once the pilot is actually
 /// flying. The menu backdrop must not pay the 8 s planet build:
@@ -44,6 +59,10 @@ pub struct WorldBuilderPlugin;
 impl Plugin for WorldBuilderPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(ContinentLive(false));
+        // The guard writes bounds; init so the plugin stands alone
+        // (the engine app already has it — Default is a no-op there).
+        app.init_resource::<cyclone_engine::WorldBounds>();
+        app.add_systems(Update, continent_bounds_guard);
         app.add_systems(
             Update,
             rebuild_world
@@ -60,6 +79,26 @@ impl Plugin for WorldBuilderPlugin {
             ),
         );
     }
+}
+
+/// The preview camera auto-frames from WorldBounds, and the engine's
+/// refresh computes it from the archipelago's tile size (200) — while
+/// a live planet spans 1000 m, the Esc-menu orbited a tiny square of a
+/// world far bigger (pilot: "in the map same small square", round 176).
+/// The guard overwrites the framing while the planet flies; it writes
+/// only when the value is wrong, so island mode is untouched.
+fn continent_bounds_guard(
+    live: Option<Res<ContinentLive>>,
+    mut bounds: ResMut<cyclone_engine::WorldBounds>,
+) {
+    let Some((_size, extent)) = continent_mode() else {
+        return;
+    };
+    if !live.is_some_and(|c| c.0) || bounds.max.x == extent {
+        return;
+    }
+    bounds.min = Vec2::ZERO;
+    bounds.max = Vec2::new(extent, extent);
 }
 
 #[expect(
@@ -79,7 +118,7 @@ fn rebuild_world(
     mut images: ResMut<Assets<Image>>,
     old: Query<Entity, With<WorldRoot>>,
 ) {
-    let continent_env = std::env::var("CYCLONE_CONTINENT").is_ok();
+    let continent_env = continent_mode().is_some();
     let live_on = live.as_deref().is_some_and(|c| c.0);
     // The fly-mode toggle can flip without a world change (Enter from a
     // preview of an already-built world): that flip is a trigger too.
@@ -109,11 +148,11 @@ fn rebuild_world(
     // Dev terrain-lab mode (round-155 pivot): CYCLONE_CONTINENT=1 swaps
     // the archipelago for the voxel-Earth heightfield. Same rig, same
     // materials, same rebuild path — a preview, not a fork.
-    let cont_size: u32 = std::env::var("CYCLONE_CONTINENT_SIZE")
-        .ok()
-        .and_then(|v| v.parse().ok())
-        .unwrap_or(4000)
-        .clamp(64, 16_000); // voxels; generate_continent caps at 16384
+    let cont_size = if continent {
+        continent_mode().map(|(s, _)| s).unwrap_or(4000)
+    } else {
+        0
+    };
 
     let mut deferred_cache: Option<ContinentCache> = None;
     // WorldRoot carries Visibility: the render plugin auto-inserts it

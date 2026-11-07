@@ -985,3 +985,37 @@ Seed-character is a FEATURE (42 = coastal plain, 777 = alpine):
 bands pinned for seed 2; retuning must re-measure to pass.
 Next: chunked surface mesh in cyclone_render (top-layer rendering
 is native to the representation) + free-fly over the continent.
+
+## Round 176 — the pilot flew the planet; three truths came back
+
+Report: "the scale is weird, very tall and in the map same small
+square" + screenshot. Verdict decomposed into three real bugs:
+
+1. **Vertical exaggeration**: 900 m peaks in a 1 km world is a 1:1
+   aspect ratio monolith; Earth's ratio at that window is ~1:10.
+   Rebalanced (measure-first, twice confirmed across seeds):
+   `max_height_m` 1100→300, ridge onset 240→80, ridge wavelength
+   130→260 m (half as steep). Census cuts + satellite ramp + CLI
+   ramp + band test + canary digest ALL re-pinned from the new
+   census in the same round — the digest went RED first (its round-
+   117 contract doing its job: dial change is deliberate re-pin,
+   never silent drift).
+2. **"Small square on the map"**: WorldPreview auto-frames from
+   `WorldBounds`, which the engine refreshes from the ARCHIPELAGO's
+   tile size — the Esc-menu orbited a 200-unit square inside a
+   1000-unit planet. New `continent_bounds_guard` (render) overwrites
+   the framing WHILE planet-live, writing only when wrong. The bug
+   class: a fixed resource from one world quietly lying about
+   another.
+3. **The corner line quoted "CONTINENT 1000 m²"** — the side length
+   dressed as an area: a 1000 m side is a **km²** world, 1000× the
+   claim. The sixth doc-lie of the era, caught BY THE PILOT reading
+   it aloud. Unit lies compound silently.
+
+Also this round: B0004 warning flood (round 175) root-caused to the
+render plugin's Visibility auto-insert + bare WorldRoot — one
+component on the root ends thousands of lines; and the 0.20 despawn
+is-recursiveness settled from bevy_app's own source comment. Env
+dials now read through ONE `continent_mode()` helper (build, bounds
+guard, spawn, text all ask it) — scattered env reads were the drift
+seed for bug 2.
