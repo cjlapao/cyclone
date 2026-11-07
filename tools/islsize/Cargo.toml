@@ -1,0 +1,7 @@
+[package]
+name = "islsize"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+cyclone_worldgen = { path = "../../crates/cyclone_worldgen" }

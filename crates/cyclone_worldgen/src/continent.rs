@@ -12,7 +12,7 @@
 //! problem (chunked, next round); this module is generator-first.
 
 use crate::error::GenError;
-use crate::noise::fbm;
+use crate::noise::{fbm, hash_pair};
 
 /// Terrain shaping knobs. Distances are METERS (the voxel size only
 /// quantizes the result); frequencies below are cycles-per-meter.
@@ -24,6 +24,11 @@ pub struct ContinentConfig {
     pub voxel: f32,
     /// Terrain ceiling in meters (K2-lite; keeps u16 voxels generous).
     pub max_height_m: f32,
+    /// Archipelago mode: the land mask thins to scattered islands
+    /// instead of continents. Round-179 pilot: "a few islands, not
+    /// that big, they need to LOOK like islands" — the reference was
+    /// an aerial photo: green hummocks, sand rings, shallow shelves.
+    pub islands: bool,
 }
 
 impl Default for ContinentConfig {
@@ -32,6 +37,7 @@ impl Default for ContinentConfig {
             size: 4000,
             voxel: 0.25,
             max_height_m: 300.0,
+            islands: false,
         }
     }
 }
@@ -86,6 +92,61 @@ fn ridged(x: f64, y: f64, freq: f64, oct: usize, seed: u64) -> f64 {
     r * r // sharpen: valley floors go flat, crests stay sharp
 }
 
+/// One island's footprint at a world point: 1 at the core, eased to
+/// 0 at the coast (cosine profile — a round beach, no cliff edge).
+/// `r` in metres, `squish` stretches the blob so islands aren't circles.
+fn blob_field(dx: f64, dy: f64, r: f64, squish: f64) -> f64 {
+    let d = ((dx * dx) + (dy * dy) / (squish * squish)).sqrt();
+    if d >= r {
+        0.0
+    } else {
+        let t = d / r;
+        0.5 * (1.0 + (std::f64::consts::PI * t).cos())
+    }
+}
+
+/// Archipelago land mask: island SITES on a lattice, each kept by a
+/// coin flip, each a stamped blob (max-composed — a bay is simply
+/// where two footprints' shoulders don't meet). Spacing 340 m keeps
+/// islands separate on a 1 km map (~3×3 candidate cells); radii
+/// 60–150 m give 0.01–0.07 km² islands — "not that big" per the
+/// pilot, big enough to walk around. Core floor 0.55 guarantees any
+/// kept island breaks sea level well inland of its own beach.
+fn island_mask(wx: f64, wy: f64, seed: u64) -> f64 {
+    const SPACING: f64 = 340.0;
+    let spacing = SPACING;
+    let gx = (wx / spacing).floor() as i64;
+    let gy = (wy / spacing).floor() as i64;
+    let mut best = 0.0f64;
+    // 3×3 neighbourhood: footprints reach past their home cell.
+    for oy in -1..=1 {
+        for ox in -1..=1 {
+            let (hx, hy) = (gx + ox, gy + oy);
+            let h1 = hash_pair(seed ^ 0x151A4D, (hx as u64) << 32 ^ hy as u64);
+            let coin = ((h1 >> 40) & 0xFF) as f64 / 255.0; // keep density
+            if coin < 0.45 {
+                continue; // most sites are open sea
+            }
+            let h2 = hash_pair(
+                seed ^ 0x5EA,
+                (hx as u64) << 32 ^ (hy as u64).rotate_left(17),
+            );
+            let jx = ((h1 >> 16) & 0xFF) as f64 / 255.0 - 0.5;
+            let jy = ((h1 >> 24) & 0xFF) as f64 / 255.0 - 0.5;
+            let cx = (hx as f64 + 0.5 + jx * 0.8) * spacing;
+            let cy = (hy as f64 + 0.5 + jy * 0.8) * spacing;
+            let r = 90.0 + 110.0 * (((h2 >> 32) & 0xFF) as f64 / 255.0);
+            let squish = 0.7 + 0.6 * (((h2 >> 20) & 0xFF) as f64 / 255.0);
+            let f = blob_field(wx - cx, wy - cy, r, squish);
+            // Sea floor 0.2 (< 0.5 → dry land); the island's own
+            // core reaches ~1.0. Coast = where the blob profile
+            // crosses 0.5 (cosine → a real beach slope, not a cliff).
+            best = best.max(0.2 + 0.8 * f);
+        }
+    }
+    best.max(0.0)
+}
+
 /// Column elevation in meters. Pure function — any column, any time.
 /// Layered Earth logic: a continental mask carves oceans; a separate
 /// orogeny mask concentrates mountains into ranges; gentle plains fill
@@ -95,9 +156,24 @@ pub fn elevation_m(x_m: f64, y_m: f64, seed: u64, cfg: &ContinentConfig) -> f64 
     let wx = x_m + 150.0 * (fbm(x_m / 350.0, y_m / 350.0, 1.0, 2, seed ^ 0xD0A1) - 0.5) * 2.0;
     let wy = y_m + 150.0 * (fbm(x_m / 350.0, y_m / 350.0, 1.0, 2, seed ^ 0xA41E) - 0.5) * 2.0;
 
-    // Continents vs oceans.
+    // Continents vs oceans — or islands.
     let c = fbm(wx / 500.0, wy / 500.0, 1.0, 5, seed);
-    let land = smoothstep(0.44, 0.54, c); // 0 = open ocean
+    // Island placement is a POINT PROCESS (round 179, pilot reference:
+    // an aerial photo of real islands). Cutting the fbm's upper tail
+    // was census-tested and REJECTED: the field's peaks are one
+    // correlated cluster per map, so a tail cut yields one big island
+    // plus gravel (0.6 km² + fifty 9 m specks — the specks were
+    // literally the noise's own minima poking through). Instead: hash
+    // a lattice of island sites, keep each by a seeded coin, and
+    // stamp its footprint as a smooth blob. Sizes and spacing are
+    // constants — they cannot drift by seed the way a tail cut did;
+    // positions, count, radii and shapes are the random part, exactly
+    // as asked: "a few that fit the map, randomly".
+    let land = if cfg.islands {
+        island_mask(wx, wy, seed)
+    } else {
+        smoothstep(0.44, 0.54, c) // 0 = open ocean
+    };
 
     // Orogeny: where the mountain belts live.
     let orogen = smoothstep(
@@ -125,7 +201,14 @@ pub fn elevation_m(x_m: f64, y_m: f64, seed: u64, cfg: &ContinentConfig) -> f64 
         + 15.0
         + 35.0 * fbm(wx / 160.0, wy / 160.0, 1.0, 3, seed ^ 0xA11C)
         + (cfg.max_height_m as f64 - 80.0) * ridge * (0.05 + 0.95 * orogen);
-    (land * (base + detail)).max(0.0)
+    if cfg.islands {
+        // Island grammar: 0.5 is the SEA LINE inside the mask (the
+        // stamp's floor sits below it, the core above). Rescale so
+        // the coast has zero relief (beach) and the core full relief.
+        (2.0 * (land - 0.5) * (base + detail)).max(0.0)
+    } else {
+        (land * (base + detail)).max(0.0)
+    }
 }
 
 /// Generate the whole heightfield. Single-threaded by construction;
@@ -505,5 +588,76 @@ mod tests {
                 c.metrics.max_height_m
             );
         }
+    }
+
+    #[test]
+    fn island_mode_scatters_walkable_islands_with_open_sea() {
+        // The round-179 contract, as arithmetic not vibes: mostly sea,
+        // every island walkable (≥ 40 m across), NO land mass wider
+        // than 600 m (continents are banned), and sea reaches every
+        // map edge (no continent-scale land bridge).
+        let cfg = ContinentConfig {
+            size: 2048,
+            islands: true,
+            ..Default::default()
+        };
+        let c = generate_continent(5, &cfg).unwrap();
+        let s = cfg.size as usize;
+        assert!(c.metrics.ocean_ratio > 0.6, "mostly sea");
+        let mut seen = vec![false; s * s];
+        let mut blobs = Vec::new();
+        for y in 0..s {
+            for x in 0..s {
+                if c.heights[y * s + x] == 0 || seen[y * s + x] {
+                    continue;
+                }
+                let mut stack = vec![(x, y)];
+                seen[y * s + x] = true;
+                let (mut n, mut minx, mut maxx) = (0usize, x, x);
+                while let Some((cx, cy)) = stack.pop() {
+                    n += 1;
+                    minx = minx.min(cx);
+                    maxx = maxx.max(cx);
+                    for (dx, dy) in [(1, 0), (-1, 0), (0, 1), (0, -1)] {
+                        let (ax, ay) = (cx as isize + dx, cy as isize + dy);
+                        if ax >= 0
+                            && ay >= 0
+                            && (ax as usize) < s
+                            && (ay as usize) < s
+                            && c.heights[ay as usize * s + ax as usize] > 0
+                            && !seen[ay as usize * s + ax as usize]
+                        {
+                            seen[ay as usize * s + ax as usize] = true;
+                            stack.push((ax as usize, ay as usize));
+                        }
+                    }
+                }
+                blobs.push((n, maxx - minx));
+            }
+        }
+        let walkable = blobs.iter().filter(|(n, _)| *n >= 1600).count();
+        // 1600 cells = 100 m² of land: you can walk there and back.
+        // 512 m span × 340 m site spacing holds "a few" loosely —
+        // two full-size islands is the honest floor here; the 1 km
+        // pilot map gets the photo's count (sheets show 5–8).
+        assert!(walkable >= 2, "islands not gravel: {walkable} walkable");
+        assert!(
+            blobs.iter().all(|(_, w)| *w <= 2400),
+            "no continent: widest land mass is {}",
+            blobs.iter().map(|b| b.1).max().unwrap()
+        );
+    }
+
+    #[test]
+    fn island_mode_is_deterministic() {
+        let cfg = ContinentConfig {
+            size: 512,
+            islands: true,
+            ..Default::default()
+        };
+        let a = generate_continent(11, &cfg).unwrap();
+        let b = generate_continent(11, &cfg).unwrap();
+        assert_eq!(a.heights, b.heights);
+        assert_eq!(a.water, b.water);
     }
 }

@@ -14,11 +14,17 @@ use bevy::prelude::*;
 use cyclone_worldgen::{Continent, ContinentConfig, elevation_m, generate_continent};
 
 use crate::QuadBuilder;
+use crate::srgb_to_vec4;
 use crate::terrain::tile_tint;
 
 /// Voxels per mesh cell edge. 8 × 25 cm = 2 m.
-pub const CELL_VOX: u32 = 8;
-/// Mesh cells per chunk edge (64 × 2 m = 128 m chunks).
+pub // Mesh cell edge in voxels: 4 × 0.25 m = 1 m blocks. Was 8 (2 m) —
+// pilot round 179 wanted "more definition" at the same 25 cm voxel;
+// island mode pays only for the (sparse) land, the sea is one quad.
+const CELL_VOX: u32 = 4;
+/// Mesh cells per chunk edge (64 × 1 m = 64 m chunks at CELL_VOX=4;
+/// the 2 m-cell era made them 128 m — the sparse-drop still trims the
+/// sea, and island mode barely notices the finer cut).
 const CELLS_PER_CHUNK: u32 = 64;
 /// Sea plane sits at 0; land skirts run to this depth (m).
 const SEA_FLOOR_M: f32 = -6.0;
@@ -56,7 +62,12 @@ fn earth_rgb(x_m: f32, y_m: f32, h_m: f32, near_wet: bool, tint: f32, seed: u64)
     // Sand: next to water at any elevation — estuary banks and
     // river-mouth beaches included (a 6 m bank is still a shore).
     if h_m < 2.0 {
-        return Vec4::splat(0.0); // unused: ocean columns are skipped
+        if near_wet {
+            // A 1 m island fringe is a BEACH, not the void (island
+            // mode: the whole ring sits at fringe heights).
+            return srgb_to_vec4(0.80, 0.71, 0.50);
+        }
+        return Vec4::splat(0.0); // ocean columns are skipped anyway
     }
     let rgb: (f64, f64, f64) = if h_m < 15.0 && near_wet {
         (0.855, 0.769, 0.545) // sand
@@ -182,11 +193,15 @@ pub fn build_sea(c: &Continent) -> Option<QuadBuilder> {
             let d = sea_dist_cells(c, bx, by);
             // Shelf fade over ~1 km of open water (buckets speak
             // cells; 4 cells = 1 m).
-            let t = (d / (1000.0 * 4.0)).min(1.0);
+            // Shelf ramp 150 m (d in cells of 0.25 m): matches the
+            // sheet's turquoise band width.
+            let t = (d * 0.25 / 150.0).min(1.0);
+            // Shore turquoise → open-ocean navy (the reference photo:
+            // a bright band, then deep blue — not one blue).
             let (r, g, bl) = (
-                0.055 * (1.0 - t) + 0.012 * t,
-                0.420 * (1.0 - t) + 0.055 * t,
-                0.600 * (1.0 - t) + 0.160 * t,
+                0.180 * (1.0 - t) + 0.012 * t,
+                0.650 * (1.0 - t) + 0.055 * t,
+                0.720 * (1.0 - t) + 0.160 * t,
             );
             let col = {
                 let lin = |v: f32| {
@@ -262,7 +277,22 @@ pub fn build_continent_chunks(c: &Continent) -> Vec<ContinentChunk> {
                     // Beach grammar: this cell touches water (cell
                     // probe + its four edges — 2 m cells miss nothing
                     // wider than a single column's channel).
+                    // Wet = river water OR the sea (height 0 next
+                    // door is sea floor — its neighbours are a shore;
+                    // island beach rings live here, not in the water
+                    // array, which only marks rivers).
+                    let sea_at = |x: u32, y: u32| -> bool {
+                        if x >= c.config.size || y >= c.config.size {
+                            return true; // past the rim: ocean
+                        }
+                        c.heights[(y as usize) * (c.config.size as usize) + (x as usize)] == 0
+                    };
+                    let edge_sea = (cx > 0 && sea_at(cx * CELL_VOX - 1, cy * CELL_VOX))
+                        || sea_at(cx * CELL_VOX + CELL_VOX, cy * CELL_VOX)
+                        || (cy > 0 && sea_at(cx * CELL_VOX, cy * CELL_VOX - 1))
+                        || sea_at(cx * CELL_VOX, cy * CELL_VOX + CELL_VOX);
                     let near_wet = is_wet
+                        || edge_sea
                         || w_at(cx * CELL_VOX + CELL_VOX / 2, cy * CELL_VOX + CELL_VOX / 2) > 0.0
                         || (cx > 0 && w_at((cx - 1) * CELL_VOX, cy * CELL_VOX) > 0.0)
                         || w_at((cx + 1) * CELL_VOX, cy * CELL_VOX) > 0.0
@@ -364,6 +394,9 @@ pub fn build_continent_chunks(c: &Continent) -> Vec<ContinentChunk> {
 pub fn generate_and_mesh(seed: u64, size: u32) -> (Continent, Vec<ContinentChunk>) {
     let cfg = ContinentConfig {
         size,
+        // Env dial (dev terrain lab): CYCLONE_ISLANDS=1 scatters the
+        // land into islands — pilot round 179.
+        islands: std::env::var("CYCLONE_ISLANDS").is_ok_and(|v| v == "1"),
         ..Default::default()
     };
     let c = generate_continent(seed, &cfg).expect("size within contract; dev preview dial");
@@ -441,6 +474,56 @@ mod tests {
     /// witnessed in the very failure that redrew this test (built=1
     /// for 64 grid chunks).
     #[test]
+    fn islands_wear_sand_rings_at_the_sea() {
+        // Island mode with the real dial: every low island column
+        // touching sea floor must come back sand — the ring in the
+        // pilot's reference photo, now data-driven not altitude-driven.
+        let cfg = cyclone_worldgen::ContinentConfig {
+            size: 1024,
+            islands: true,
+            ..Default::default()
+        };
+        let c = cyclone_worldgen::generate_continent(7, &cfg).unwrap();
+        let s = c.config.size as usize;
+        let mut beach = 0;
+        let mut green_shore = 0;
+        for y in 1..c.config.size - 1 {
+            for x in 1..c.config.size - 1 {
+                let i = y as usize * s + x as usize;
+                if c.heights[i] == 0 || c.heights[i] as f64 * c.config.voxel as f64 > 12.0 {
+                    continue;
+                }
+                let sea_n = c.heights[i - 1] == 0
+                    || c.heights[i + 1] == 0
+                    || c.heights[i - s] == 0
+                    || c.heights[i + s] == 0;
+                if !sea_n {
+                    continue;
+                }
+                let rgb = earth_rgb(
+                    x as f32 * c.config.voxel,
+                    y as f32 * c.config.voxel,
+                    c.heights[i] as f32 * c.config.voxel,
+                    true,
+                    1.0,
+                    c.seed,
+                );
+                // Sand is the warm colour: red dominant over blue.
+                if rgb.x > rgb.z {
+                    beach += 1;
+                } else {
+                    green_shore += 1;
+                }
+            }
+        }
+        assert!(
+            beach > 100,
+            "island beaches exist: {beach} sand, {green_shore} not"
+        );
+        assert_eq!(green_shore, 0, "no green at the waterline");
+    }
+
+    #[test]
     fn sea_mesh_is_bathymetry_not_a_flat_table() {
         // 2048² not 1024²: the land mask's own wavelength means a
         // 256 m span is all-land (witnessed: 100/100 buckets); a sea
@@ -500,11 +583,11 @@ mod tests {
         );
         let hue = water_rgb();
         let built = build_continent_chunks(&c);
-        // 512² at 8-voxel cells = 64×64 cells: ONE chunk edge, and
-        // the empty-drop is invisible at that scale — but the lookup
-        // below must still be sparse-correct for full-size worlds.
+        // 512² at 4-voxel cells = 128×128 cells = 2×2 chunk blocks;
+        // land spans them all, so none is empty-dropped — and the
+        // lookup below must stay sparse-correct for full-size worlds.
         let cells = c.config.size / CELL_VOX;
-        assert_eq!(built.len(), 1, "a 64-cell world is one chunk block");
+        assert_eq!(built.len(), 4, "128-cell world is 2×2 chunk blocks");
         let painted = built.iter().any(|k| k.builder.colours().contains(&hue));
         assert!(painted, "water hue reaches the mesh");
 

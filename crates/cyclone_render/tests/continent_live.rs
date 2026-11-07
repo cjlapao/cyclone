@@ -41,6 +41,9 @@ fn live_flip_swaps_archipelago_for_planet() {
     unsafe {
         std::env::set_var("CYCLONE_CONTINENT", "1");
         std::env::set_var("CYCLONE_CONTINENT_SIZE", "400");
+        // Island mode through the REAL spawn path (pilot round 179):
+        // the mesh must survive stamps, 1 m cells and the sea mesh.
+        std::env::set_var("CYCLONE_ISLANDS", "1");
     }
     let mut app = app_scaffold();
     app.insert_resource(cyclone_engine::CurrentWorld(small_map()));

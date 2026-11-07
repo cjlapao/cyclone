@@ -83,6 +83,96 @@ fn hillshade(c: &cyclone_worldgen::Continent) -> Result<RgbaImage> {
     let vm = c.config.voxel as f64;
     let mut img = RgbaImage::new(c.config.size, c.config.size);
     let h = |x: usize, y: usize| c.heights[y * size + x] as f64 * vm;
+    // Exact Euclidean distance-to-land for the whole grid in O(n):
+    // the Felzenszwalb–Huttenlocher squared-distance transform — a
+    // 1D lower-envelope-of-parabolas pass down every column, then
+    // across every row. The brute window scan it replaced was 16e9
+    // samples (a background job older than this comment).
+    // Range-indexed by design: q IS a coordinate, not a slot.
+    #[allow(clippy::needless_range_loop)]
+    let dt1d = |fin: &[f64]| -> Vec<f64> {
+        // Canonical Felzenszwalb–Huttenlocher 1D squared-distance
+        // transform: lower envelope of parabolas y=q ↦ (q−p)² + f[p].
+        let n = fin.len();
+        let mut d = vec![0.0; n];
+        // BIG must survive f[p] + p² without rounding away (1e18 + p²
+        // rounds back to 1e18: the source parabola read as no-source
+        // at its own site — isolated repro [inf,inf,0,inf,inf]).
+        // 1e13 m² is the map's whole area + slack; stale windows at
+        // most shade the far corner, which is exactly √1e13·vm ≈ 1.6 km.
+        // NORMALISED voxels²: the passes run in grid units, and a
+        // whole map spans ≤ 2¹⁴ voxels (the contract cap), so 1e8 is
+        // a BIG that no legitimate squared distance reaches, while
+        // BIG + p² (≤ 2.7e8 vs 1e8's ulp 1.5e-8) keeps every term
+        // exact — the 1e18 bug rounded the source away, the 1e13 bug
+        // let capped parabolas masquerade as real distances (bands).
+        // 1e8 × 1e-8 = 1.0 in envelope units; ulp-clean either way.
+        let fs = |i: usize| fin[i].min(1.0e8) * 1e-8;
+        let inter = |p: usize, q: usize| -> f64 {
+            let fp = fs(p) + (p * p) as f64;
+            let fq = fs(q) + (q * q) as f64;
+            (fq - fp) / (2.0 * (q - p) as f64)
+        };
+        let mut k = 0usize;
+        let mut v = vec![0usize; n + 1];
+        let mut z = vec![0.0f64; n + 2];
+        v[0] = 0;
+        z[0] = f64::NEG_INFINITY;
+        z[1] = f64::INFINITY;
+        for q in 1..n.min(100_000) {
+            let mut s = inter(v[k], q);
+            while s <= z[k] {
+                if k == 0 {
+                    break; // envelope at rest on the source parabola
+                }
+                k -= 1;
+                s = inter(v[k], q);
+            }
+            k += 1;
+            v[k] = q;
+            z[k] = s;
+            z[k + 1] = f64::INFINITY;
+        }
+        let mut kk = 0usize;
+        for q in 0..n {
+            while z[kk + 1] < q as f64 {
+                kk += 1;
+            }
+            let p = v[kk];
+            let dp = q as f64 - p as f64;
+            d[q] = dp * dp + fs(p);
+        }
+        d
+    };
+    let inf = 1.0e8; // BIG in voxels² (see dt1d)
+    let mut colf = vec![0.0; size];
+    let mut g: Vec<f64> = vec![0.0; size * size];
+    for x in 0..size {
+        #[allow(clippy::needless_range_loop)] // y is a grid coordinate
+        for y in 0..size {
+            colf[y] = if c.heights[y * size + x] > 0 {
+                0.0
+            } else {
+                inf
+            };
+        }
+        let d = dt1d(&colf);
+        for y in 0..size {
+            g[y * size + x] = d[y];
+        }
+    }
+    let mut rowf = vec![0.0; size];
+    let mut dist2 = vec![0.0; size * size];
+    for y in 0..size {
+        for x in 0..size {
+            rowf[x] = g[y * size + x];
+        }
+        let d = dt1d(&rowf);
+        for x in 0..size {
+            dist2[y * size + x] = d[x];
+        }
+    }
+
     for y in 0..size {
         for x in 0..size {
             let hm = h(x, y);
@@ -91,11 +181,17 @@ fn hillshade(c: &cyclone_worldgen::Continent) -> Result<RgbaImage> {
             // water one hue; sand hugs water; lowlands by ARIDITY
             // region, not altitude; rock above; snow on top. The
             // sheet is the game's satellite photo, not a second style.
-            let near_wet = w > 0
-                || (x > 0 && c.water[y * size + x - 1] > 0)
-                || c.water[y * size + (x + 1).min(size - 1)] > 0
-                || (y > 0 && c.water[(y - 1) * size + x] > 0)
-                || c.water[(y + 1).min(size - 1) * size + x] > 0;
+            // Wet means RIVER or OCEAN: a column of height 0 is sea
+            // floor, and its neighbours are a shore — the island
+            // beach ring is sea-adjacency, not river-adjacency.
+            let wet_at = |xx: usize, yy: usize| {
+                c.water[yy * size + xx] > 0 || c.heights[yy * size + xx] == 0
+            };
+            let near_wet = wet_at(x, y)
+                || (x > 0 && wet_at(x - 1, y))
+                || wet_at((x + 1).min(size - 1), y)
+                || (y > 0 && wet_at(x, y - 1))
+                || wet_at(x, (y + 1).min(size - 1));
             let ar = cyclone_worldgen::noise::fbm(
                 (x as f64 * vm) / 300.0,
                 (y as f64 * vm) / 300.0,
@@ -103,44 +199,26 @@ fn hillshade(c: &cyclone_worldgen::Continent) -> Result<RgbaImage> {
                 3,
                 c.seed ^ 0xB10E5,
             );
-            // Ocean depth shading (the renderer builds this as a
-            // coarse bucket mesh; the sheet scans a 640 m window per
-            // ocean column — O(100) per column, same grammar:
-            // shore cyan → basin navy).
-            let deep = {
-                let mut bestd = 1000.0f64;
-                let mut oy = y.saturating_sub(40);
-                loop {
-                    let col = oy * size;
-                    let mut ox = x.saturating_sub(40);
-                    loop {
-                        if c.heights[col + ox] > 0 {
-                            let dx = (x.abs_diff(ox)) as f64 * vm;
-                            let dy = (y.abs_diff(oy)) as f64 * vm;
-                            bestd = bestd.min((dx * dx + dy * dy).sqrt());
-                        }
-                        if ox + 40 >= size || ox + 40 <= x.saturating_sub(40) {
-                            break;
-                        }
-                        ox += 40;
-                    }
-                    if oy + 40 >= size || oy + 40 <= y.saturating_sub(40) {
-                        break;
-                    }
-                    oy += 40;
-                }
-                bestd / 1000.0
-            };
+            // Depth shade reads the exact distance transform computed above.
+            // Undo the transform's 1e-9 working scale (metres²→
+            // scaled units); ∞ (no land in reach) saturates to deep.
+            // Shelf ramp 150 m — the turquoise band in the pilot's
+            // reference is a few dozen metres wide, not kilometres.
+            // √(normalised voxels²) × vm = metres.
+            let deep = (dist2[y * size + x].sqrt() * 1e4 * vm / 150.0).min(1.0);
             let (r, g, b) = if w > 0 {
                 (28u8, 64, 120) // rivers stay the river hue
             } else if hm <= 0.0 {
-                // shore cyan → basin navy
+                // turquoise shelf → open-ocean navy (the reference:
+                // a bright band hugging each island, then deep blue).
                 let t = deep;
                 (
-                    (14.0 * (1.0 - t) + 3.0 * t) as u8,
-                    (107.0 * (1.0 - t) + 14.0 * t) as u8,
-                    (153.0 * (1.0 - t) + 41.0 * t) as u8,
+                    (46.0 * (1.0 - t) + 3.0 * t) as u8,
+                    (166.0 * (1.0 - t) + 14.0 * t) as u8,
+                    (184.0 * (1.0 - t) + 41.0 * t) as u8,
                 )
+            } else if hm < 2.0 && near_wet {
+                (204, 181, 128) // 1 m island fringe is a beach, not void
             } else if hm < 12.0 && near_wet {
                 (180, 168, 120) // sand: a place, not an altitude
             } else if hm < 95.0 {
@@ -167,8 +245,11 @@ fn hillshade(c: &cyclone_worldgen::Continent) -> Result<RgbaImage> {
             let yd = (y + 16).min(size - 1);
             let gx = (h(xr, y) - h(xl, y)) / ((xr - xl) as f64 * vm);
             let gy = (h(x, yd) - h(x, yu)) / ((yd - yu) as f64 * vm);
-            let lit =
+            let mut lit =
                 (0.75 + (0.9 * (-gx - gy) / (1.0 + gx * gx + gy * gy).sqrt())).clamp(0.35, 1.35);
+            if hm <= 0.0 {
+                lit = 1.0; // the sea has no slope to shade
+            }
             img.put_pixel(
                 x as u32,
                 y as u32,
@@ -219,6 +300,7 @@ fn main() -> Result<()> {
                 seed,
                 &cyclone_worldgen::ContinentConfig {
                     size,
+                    islands: std::env::var("CYCLONE_ISLANDS").is_ok_and(|v| v == "1"),
                     ..Default::default()
                 },
             )?;
