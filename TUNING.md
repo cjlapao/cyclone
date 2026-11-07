@@ -155,6 +155,7 @@ run -p worldgen-cli -- continent --seed <S> --size 4000 --out <dir>`
 | "world is a traffic light of bands" | biome aridity fbm (earth_rgb, continent_mesh) | /300 m wavelength; cuts 0.30/0.55/0.78 (forest/grass/scrub/desert); altitude only above 95 m |
 | "sea is a flat blue table" | sea bathymetry fade | shelf cyan → basin navy over 1 km from shore; buckets 100 voxels (25 m) |
 | "colours band wrongly" | `earth_rgb` cuts (continent_mesh) + CLI mirror | 14/95/175/245 m — they MUST ride the relief band; the old 260/600/900 lived above a world that no longer exists |
+| "judged islands at toy scale" (my own command, round 180) | `CYCLONE_CONTINENT_PREVIEW=1` (0.2× overview) | NAME IT: `_SCALE=1` also triggers 0.2× — legacy alias, honest name is PREVIEW. NO flag = true 25 cm scale — that is what photo verdicts need; flip at Enter |
 | "spawned over the ocean" | `spawn_over_land` golden-angle ring scan | 40 m rings, ≥3 m standable (river-safe lower bound); centre-land hits at ring 0 (free); fallback hovers + pitch −60° to find the islands
 | "a few islands like this photo" | `ContinentConfig.islands` (CYCLONE_ISLANDS=1) | point-process stamps on a 340 m lattice: coin 0.45, cosine blobs r=90–200 m, seeded squish; fbm tail-cut REJECTED by census (one island + gravel) |
 | "islands have no beaches" | `near_wet` = river OR height-0 neighbour | beaches are sea-ADJACENCY; the water array only holds rivers |

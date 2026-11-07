@@ -157,12 +157,16 @@ fn rebuild_world(
     // camera's spawn doesn't fit the screen; 0.2 shows the whole map
     // without a hike. Mesh anchors AND transforms scale together —
     // geometry stays rigid; relief reads 5× flatter at 0.2, an
-    // accepted preview trade (full scale is one env-var flip away).
-    let scale = if std::env::var("CYCLONE_CONTINENT_SCALE").is_ok_and(|v| v == "1") {
-        0.2
-    } else {
-        1.0
-    };
+    // accepted preview trade. The name CYCLONE_CONTINENT_SCALE=1
+    // meaning 0.2× is a footgun I shot myself (round 180's run
+    // command told the pilot to use it — they'd have judged islands
+    // at toy scale): PREVIEW is the flag's honest name; SCALE stays
+    // as the legacy alias so muscle memory from round 16x still
+    // works. Full scale (no flag, flip at Enter) is what the photo
+    // verdict deserves.
+    let preview = std::env::var("CYCLONE_CONTINENT_PREVIEW").is_ok_and(|v| v == "1")
+        || std::env::var("CYCLONE_CONTINENT_SCALE").is_ok_and(|v| v == "1");
+    let scale = if preview { 0.2 } else { 1.0 };
 
     if continent && scale != 1.0 {
         // Preview-scale runs still fly: flip live here (the game's
