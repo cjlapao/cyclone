@@ -87,15 +87,74 @@ fn hillshade(c: &cyclone_worldgen::Continent) -> Result<RgbaImage> {
         for x in 0..size {
             let hm = h(x, y);
             let w = c.water[y * size + x];
-            let (r, g, b) = if w > 0 || hm <= 0.0 {
-                // one word for water: rivers and sea share the hue
-                (28u8, 64, 120)
-            } else if hm < 12.0 {
-                (180, 168, 120) // sand shore
+            // Palette mirrors the renderer's grammar (continent_mesh):
+            // water one hue; sand hugs water; lowlands by ARIDITY
+            // region, not altitude; rock above; snow on top. The
+            // sheet is the game's satellite photo, not a second style.
+            let near_wet = w > 0
+                || (x > 0 && c.water[y * size + x - 1] > 0)
+                || c.water[y * size + (x + 1).min(size - 1)] > 0
+                || (y > 0 && c.water[(y - 1) * size + x] > 0)
+                || c.water[(y + 1).min(size - 1) * size + x] > 0;
+            let ar = cyclone_worldgen::noise::fbm(
+                (x as f64 * vm) / 300.0,
+                (y as f64 * vm) / 300.0,
+                1.0,
+                3,
+                c.seed ^ 0xB10E5,
+            );
+            // Ocean depth shading (the renderer builds this as a
+            // coarse bucket mesh; the sheet scans a 640 m window per
+            // ocean column — O(100) per column, same grammar:
+            // shore cyan → basin navy).
+            let deep = {
+                let mut bestd = 1000.0f64;
+                let mut oy = y.saturating_sub(40);
+                loop {
+                    let col = oy * size;
+                    let mut ox = x.saturating_sub(40);
+                    loop {
+                        if c.heights[col + ox] > 0 {
+                            let dx = (x.abs_diff(ox)) as f64 * vm;
+                            let dy = (y.abs_diff(oy)) as f64 * vm;
+                            bestd = bestd.min((dx * dx + dy * dy).sqrt());
+                        }
+                        if ox + 40 >= size || ox + 40 <= x.saturating_sub(40) {
+                            break;
+                        }
+                        ox += 40;
+                    }
+                    if oy + 40 >= size || oy + 40 <= y.saturating_sub(40) {
+                        break;
+                    }
+                    oy += 40;
+                }
+                bestd / 1000.0
+            };
+            let (r, g, b) = if w > 0 {
+                (28u8, 64, 120) // rivers stay the river hue
+            } else if hm <= 0.0 {
+                // shore cyan → basin navy
+                let t = deep;
+                (
+                    (14.0 * (1.0 - t) + 3.0 * t) as u8,
+                    (107.0 * (1.0 - t) + 14.0 * t) as u8,
+                    (153.0 * (1.0 - t) + 41.0 * t) as u8,
+                )
+            } else if hm < 12.0 && near_wet {
+                (180, 168, 120) // sand: a place, not an altitude
             } else if hm < 95.0 {
-                (60, 120 - (hm / 6.0) as u8, 46) // plains → dark green
+                if ar < 0.30 {
+                    (60, 120, 60)
+                } else if ar < 0.55 {
+                    (128, 152, 76)
+                } else if ar < 0.78 {
+                    (184, 158, 102)
+                } else {
+                    (194, 168, 120)
+                }
             } else if hm < 175.0 {
-                (140, 120, 70) // hills ochre
+                (150, 132, 84)
             } else if hm < 245.0 {
                 (120, 118, 116) // rock
             } else {

@@ -23,9 +23,26 @@ const CELLS_PER_CHUNK: u32 = 64;
 /// Sea plane sits at 0; land skirts run to this depth (m).
 const SEA_FLOOR_M: f32 = -6.0;
 
-/// Elevation ramp: the satellite palette (sand → green → ochre → rock →
-/// snow) as linear-space vertex colours.
-fn earth_rgb(h_m: f32, tint: f32) -> Vec4 {
+/// Aridity field: the slow regional mask that decides vegetation vs
+/// scrub vs rock-flat — Earth reads as REGIONS seen from orbit, not
+/// altitude stripes. Seed-coupled; deterministic like everything else.
+fn aridity(x_m: f32, y_m: f32, seed: u64) -> f64 {
+    cyclone_worldgen::noise::fbm(
+        f64::from(x_m) / 300.0,
+        f64::from(y_m) / 300.0,
+        1.0,
+        3,
+        seed ^ 0xB10E5,
+    )
+}
+
+/// Elevation ramp: the satellite palette as linear-space vertex
+/// colours — with Earth's actual grammar: the lowlands are painted by
+/// REGION (aridity), not height (green plains, scrub, bare rock — at
+/// any elevation the lowlands span), altitude claims the land only
+/// above the vegetation line; sand hugs water at any slope (a beach
+/// is a place, not an altitude — cliffs stay rock).
+fn earth_rgb(x_m: f32, y_m: f32, h_m: f32, near_wet: bool, tint: f32, seed: u64) -> Vec4 {
     let s = |v: f32| {
         let x = (v * tint).clamp(0.0, 1.0);
         // sRGB → linear (same curve as crate::srgb_to_vec4, inlined per
@@ -36,25 +53,40 @@ fn earth_rgb(h_m: f32, tint: f32) -> Vec4 {
             ((x + 0.055) / 1.055).powf(2.4)
         }
     };
-    let (r, g, b) = if h_m < 2.0 {
+    // Sand: next to water at any elevation — estuary banks and
+    // river-mouth beaches included (a 6 m bank is still a shore).
+    if h_m < 2.0 {
         return Vec4::splat(0.0); // unused: ocean columns are skipped
-    } else if h_m < 14.0 {
-        // Breakpoints ride the CURRENT relief band (300 m ceiling,
-        // round-176 rebalance): the old 260/600/900 cuts lived above a
-        // world that no longer exists, so every slope read as one flat
-        // ochre slab. Bands from the census: flat ~<50, high 120+,
-        // mountain 210+.
-        (0.855f32, 0.769, 0.545) // sand
+    }
+    let rgb: (f64, f64, f64) = if h_m < 15.0 && near_wet {
+        (0.855, 0.769, 0.545) // sand
     } else if h_m < 95.0 {
-        let t = (h_m - 14.0) / 81.0;
-        (0.30 - 0.10 * t, 0.62 - 0.20 * t, 0.26) // green deepening
+        // Lowland: the region's own ground, by aridity — never the
+        // old three flat bands that read as a traffic light.
+        let ar = aridity(x_m, y_m, seed);
+        if ar < 0.30 {
+            (0.24, 0.55, 0.24) // humid forest green
+        } else if ar < 0.55 {
+            (0.50, 0.60, 0.30) // grassland
+        } else if ar < 0.78 {
+            (0.72, 0.62, 0.40) // dry scrub
+        } else {
+            (0.76, 0.66, 0.47) // near-desert
+        }
     } else if h_m < 175.0 {
-        (0.55, 0.47, 0.28) // hills ochre
+        // Scrub hills giving way to mountain rock.
+        let t = f64::from((h_m - 95.0) / 80.0);
+        (
+            0.72 * (1.0 - t) + 0.46 * t,
+            0.62 * (1.0 - t) + 0.45 * t,
+            0.40 * (1.0 - t) + 0.46 * t,
+        )
     } else if h_m < 245.0 {
         (0.46, 0.45, 0.46) // rock
     } else {
         (0.92, 0.93, 0.94) // snow
     };
+    let (r, g, b) = (rgb.0 as f32, rgb.1 as f32, rgb.2 as f32);
     Vec4::new(s(r), s(g), s(b), 1.0)
 }
 
@@ -72,8 +104,8 @@ fn water_rgb() -> Vec4 {
 }
 
 /// Wall colour: palette-darkened rock/soil of the column it clads.
-fn wall_rgb(h_m: f32, tint: f32) -> Vec4 {
-    let c = earth_rgb(h_m.max(1.0), tint);
+fn wall_rgb(x_m: f32, y_m: f32, h_m: f32, tint: f32, seed: u64) -> Vec4 {
+    let c = earth_rgb(x_m, y_m, h_m.max(1.0), false, tint, seed);
     Vec4::new(c.x * 0.62, c.y * 0.62, c.z * 0.62, 1.0)
 }
 
@@ -81,6 +113,106 @@ fn wall_rgb(h_m: f32, tint: f32) -> Vec4 {
 pub struct ContinentChunk {
     pub anchor: Vec3,
     pub builder: QuadBuilder,
+}
+
+/// Sea depth buckets (cells per bucket edge) for the water plane.
+/// 25 m buckets: bathymetry reads as depth, the table edge as haze.
+const SEA_BUCKET: u32 = 100;
+
+/// Distance from a bucket centre to the nearest dry column, by
+/// sampling the voxel grid on the bucket's own footprint (max over
+/// the bucket = "there is land in this tile"). Exact nearest is a
+/// distance transform; at 40 cells across the map the sample is the
+/// honest cheap tool and 25 m resolution is below its own error.
+fn sea_dist_cells(c: &Continent, bx: u32, by: u32) -> f32 {
+    let s = c.config.size as usize;
+    // LAND is land — a river crossing an ocean bucket does not make
+    // the bucket shallow; water marks channels only over dry ground.
+    let wet = |x: u32, y: u32| -> bool { c.heights[(y as usize) * s + (x as usize)] > 0 };
+    let cx = bx as usize * SEA_BUCKET as usize + (SEA_BUCKET as usize / 2);
+    let cy = by as usize * SEA_BUCKET as usize + (SEA_BUCKET as usize / 2);
+    if wet(cx as u32, cy as u32) {
+        return 0.0; // land bucket: no quad emitted anyway
+    }
+    let maxn = c.config.size.div_ceil(SEA_BUCKET);
+    let mut best = f32::INFINITY;
+    let mut ny = 0u32;
+    while ny < maxn {
+        let mut nx = 0u32;
+        while nx < maxn {
+            if wet(
+                (nx * SEA_BUCKET + SEA_BUCKET / 2).min(c.config.size - 1),
+                (ny * SEA_BUCKET + SEA_BUCKET / 2).min(c.config.size - 1),
+            ) {
+                let dx = (nx as f32 - bx as f32).abs();
+                let dy = (ny as f32 - by as f32).abs();
+                best = best.min((dx * dx + dy * dy).sqrt());
+            }
+            nx += 1;
+        }
+        ny += 1;
+    }
+    if best.is_finite() {
+        best * SEA_BUCKET as f32
+    } else {
+        1.0e9
+    }
+}
+
+/// The sea as terrain data deserves: one quad per 25 m bucket,
+/// coloured by distance to shore — shallow cyan over shelves,
+/// deep navy in basins. The flat white plane is deleted; Earth's
+/// ocean is not a solid colour.
+pub fn build_sea(c: &Continent) -> Option<QuadBuilder> {
+    let n = c.config.size / SEA_BUCKET;
+    if n < 2 {
+        return None; // too small to hold a shelf gradient
+    }
+    let cell_m = SEA_BUCKET as f32 * c.config.voxel;
+    let mut b = QuadBuilder::new();
+    for by in 0..n {
+        for bx in 0..n {
+            let cx = bx * SEA_BUCKET + SEA_BUCKET / 2;
+            let cy = by * SEA_BUCKET + SEA_BUCKET / 2;
+            let s = c.config.size as usize;
+            let i = (cy as usize) * s + (cx as usize);
+            if c.heights[i] > 0 || c.water[i] > 0 {
+                continue; // land bucket: the mesh draws its top
+            }
+            let d = sea_dist_cells(c, bx, by);
+            // Shelf fade over ~1 km of open water (buckets speak
+            // cells; 4 cells = 1 m).
+            let t = (d / (1000.0 * 4.0)).min(1.0);
+            let (r, g, bl) = (
+                0.055 * (1.0 - t) + 0.012 * t,
+                0.420 * (1.0 - t) + 0.055 * t,
+                0.600 * (1.0 - t) + 0.160 * t,
+            );
+            let col = {
+                let lin = |v: f32| {
+                    if v <= 0.04045 {
+                        v / 12.92
+                    } else {
+                        ((v + 0.055) / 1.055).powf(2.4)
+                    }
+                };
+                Vec4::new(lin(r), lin(g), lin(bl), 1.0)
+            };
+            let (x0, z0) = (bx as f32 * cell_m, by as f32 * cell_m);
+            let (x1, z1) = (x0 + cell_m, z0 + cell_m);
+            b.quad(
+                [
+                    Vec3::new(x0, 0.0, z0),
+                    Vec3::new(x0, 0.0, z1),
+                    Vec3::new(x1, 0.0, z1),
+                    Vec3::new(x1, 0.0, z0),
+                ],
+                Vec3::Y,
+                col,
+            );
+        }
+    }
+    (!b.is_empty()).then_some(b)
 }
 
 /// Build every chunk of the surface. Pure function of the Continent —
@@ -95,6 +227,11 @@ pub fn build_continent_chunks(c: &Continent) -> Vec<ContinentChunk> {
     // River water surface at a column (0 = dry). The surface, not
     // the bed, is what an eye sees from above — "seen height".
     let w_at = |cx: u32, cy: u32| -> f32 {
+        // Margin probes read one cell past the grid: past-edge is
+        // dry, which is exactly 0.
+        if cx >= c.config.size || cy >= c.config.size {
+            return 0.0;
+        }
         (c.water[(cy * c.config.size + cx) as usize] as f64 * vm) as f32
     };
     let seen_at = |cx: u32, cy: u32| -> f32 { h_at(cx, cy).max(w_at(cx, cy)) };
@@ -122,10 +259,21 @@ pub fn build_continent_chunks(c: &Continent) -> Vec<ContinentChunk> {
                     let hx1 = lx + cell_m;
                     let hz1 = lz + cell_m;
                     let tint = tile_tint(cx, cy, c.seed);
+                    // Beach grammar: this cell touches water (cell
+                    // probe + its four edges — 2 m cells miss nothing
+                    // wider than a single column's channel).
+                    let near_wet = is_wet
+                        || w_at(cx * CELL_VOX + CELL_VOX / 2, cy * CELL_VOX + CELL_VOX / 2) > 0.0
+                        || (cx > 0 && w_at((cx - 1) * CELL_VOX, cy * CELL_VOX) > 0.0)
+                        || w_at((cx + 1) * CELL_VOX, cy * CELL_VOX) > 0.0
+                        || (cy > 0 && w_at(cx * CELL_VOX, (cy - 1) * CELL_VOX) > 0.0)
+                        || w_at(cx * CELL_VOX, (cy + 1) * CELL_VOX) > 0.0;
+                    let xm = cx as f32 * cell_m;
+                    let zm = cy as f32 * cell_m;
                     let top = if is_wet {
                         water_rgb()
                     } else {
-                        earth_rgb(h, tint)
+                        earth_rgb(xm, zm, h, near_wet, tint, c.seed)
                     };
                     b.quad(
                         [
@@ -148,7 +296,7 @@ pub fn build_continent_chunks(c: &Continent) -> Vec<ContinentChunk> {
                     let wall = if is_wet {
                         water_rgb()
                     } else {
-                        wall_rgb(h, tint)
+                        wall_rgb(xm, zm, h, tint, c.seed)
                     };
                     for (dx, dz, ring, n) in [
                         (0i32, -1, 0u8, Vec3::new(0.0, 0.0, -1.0)),
@@ -292,6 +440,53 @@ mod tests {
     /// proof therefore FINDS its chunk by anchor, a fact first
     /// witnessed in the very failure that redrew this test (built=1
     /// for 64 grid chunks).
+    #[test]
+    fn sea_mesh_is_bathymetry_not_a_flat_table() {
+        // 2048² not 1024²: the land mask's own wavelength means a
+        // 256 m span is all-land (witnessed: 100/100 buckets); a sea
+        // needs room to exist — 512 m span, seed 777 (ocean 0.48).
+        let cfg = ContinentConfig {
+            size: 2048,
+            ..Default::default()
+        };
+        let c = cyclone_worldgen::generate_continent(777, &cfg).unwrap();
+        let n = c.config.size / SEA_BUCKET;
+        let land_b = (0..n)
+            .flat_map(|by| (0..n).map(move |bx| (bx, by)))
+            .filter(|(bx, by)| {
+                let cx = bx * SEA_BUCKET + SEA_BUCKET / 2;
+                let cy = by * SEA_BUCKET + SEA_BUCKET / 2;
+                let i = (cy as usize) * (c.config.size as usize) + (cx as usize);
+                c.heights[i] > 0 || c.water[i] > 0
+            })
+            .count();
+        let b = build_sea(&c).unwrap_or_else(|| {
+            panic!(
+                "buckets {n}x{n}, land {land_b}, sea {}",
+                n * n - land_b as u32
+            )
+        });
+        let cols: std::collections::HashSet<(u32, u32, u32)> = b
+            .colours()
+            .iter()
+            .step_by(4) // one sample per quad (quads push 4 verts)
+            .map(|v| (v.x.to_bits(), v.y.to_bits(), v.z.to_bits()))
+            .collect();
+        assert!(
+            cols.len() > 3,
+            "depth varies across the sea: {} distinct hues",
+            cols.len()
+        );
+        assert!(
+            !cols.contains(&(1.0f32.to_bits(), 1.0f32.to_bits(), 1.0f32.to_bits())),
+            "the flat white table is gone from the sea"
+        );
+        // The builder's own contract: every quad at the plane. The
+        // dark safety plane beneath it is the rebuild's, not this mesh.
+        let below = b.positions().iter().filter(|p| p.y < 0.0).count();
+        assert_eq!(below, 0, "sea quads sit at 0 — no hidden floor here");
+    }
+
     #[test]
     fn river_quads_paint_water_over_the_bed() {
         let cfg = ContinentConfig {

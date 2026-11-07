@@ -153,13 +153,41 @@ fn rebuild_world(
         0
     };
 
+    // Dev knob (NOT a shipped product dial): a 1 km world at the
+    // camera's spawn doesn't fit the screen; 0.2 shows the whole map
+    // without a hike. Mesh anchors AND transforms scale together —
+    // geometry stays rigid; relief reads 5× flatter at 0.2, an
+    // accepted preview trade (full scale is one env-var flip away).
+    let scale = if std::env::var("CYCLONE_CONTINENT_SCALE").is_ok_and(|v| v == "1") {
+        0.2
+    } else {
+        1.0
+    };
+
+    if continent && scale != 1.0 {
+        // Preview-scale runs still fly: flip live here (the game's
+        // Enter does the same at full scale). Before the spawn chain
+        // — `commands` is borrowed for its whole duration.
+        commands.insert_resource(ContinentLive(true));
+    }
+
     let mut deferred_cache: Option<ContinentCache> = None;
-    // WorldRoot carries Visibility: the render plugin auto-inserts it
-    // on every child, and the inherited-component check (B0004) warns
-    // per child when the parent lacks it — thousands of lines per
-    // rebuild drowned the terminal (pilot report, round 175).
+    // WorldRoot carries Visibility AND Transform. Bevy validates two
+    // inherited components per parent-child pair (B0004): children get
+    // Visibility from the render plugin and Transform from the mesh
+    // bundles — if the PARENT lacks either, every child insertion
+    // warns ("This will cause inconsistent behaviors!"). The
+    // Visibility half drowned the terminal once (pilot, round 175);
+    // the Transform half has been quieter but is the SAME bug —
+    // witnessed headless this round: exactly one Transform-less
+    // parent, this root, one line per mesh chunk per rebuild.
     commands
-        .spawn((InWorld, WorldRoot, Visibility::Visible))
+        .spawn((
+            InWorld,
+            WorldRoot,
+            Visibility::Visible,
+            Transform::default(),
+        ))
         .with_children(|root| {
             spawn_lights(root);
             if continent {
@@ -183,19 +211,36 @@ fn rebuild_world(
                         perceptual_roughness: 0.92,
                         ..default()
                     });
+                    // The sea is terrain too: bathymetry quads (shore
+                    // cyan → basin navy), then one safety plane under
+                    // it for the void beyond a small map's buckets.
                     let sea = {
-                        let pad = 0.0f32;
-                        let e = extent_m + pad;
-                        let mut b = QuadBuilder::new();
+                        let e = extent_m;
+                        let mut b = continent_mesh::build_sea(&c).unwrap_or_else(|| {
+                            let mut b = QuadBuilder::new();
+                            b.quad(
+                                [
+                                    Vec3::new(0.0, -0.02, 0.0),
+                                    Vec3::new(0.0, -0.02, e),
+                                    Vec3::new(e, -0.02, e),
+                                    Vec3::new(e, -0.02, 0.0),
+                                ],
+                                Vec3::Y,
+                                srgb_to_vec4(0.02, 0.10, 0.24),
+                            );
+                            b
+                        });
+                        // Safety plane 2 cm below: any bucket grid
+                        // rounding leaves no blue-black gap at the rim.
                         b.quad(
                             [
-                                Vec3::new(-pad, 0.0, -pad),
-                                Vec3::new(-pad, 0.0, e),
-                                Vec3::new(e, 0.0, e),
-                                Vec3::new(e, 0.0, -pad),
+                                Vec3::new(0.0, -0.05, 0.0),
+                                Vec3::new(0.0, -0.05, e),
+                                Vec3::new(e, -0.05, e),
+                                Vec3::new(e, -0.05, 0.0),
                             ],
                             Vec3::Y,
-                            srgb_to_vec4(1.0, 1.0, 1.0),
+                            srgb_to_vec4(0.02, 0.10, 0.24),
                         );
                         meshes.add(b.into_mesh())
                     };

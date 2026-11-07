@@ -152,6 +152,8 @@ run -p worldgen-cli -- continent --seed <S> --size 4000 --out <dir>`
 | "no rivers / too many rivers" | `CATCH` (carve_rivers, continent.rs) | 25k columns ≈ 1.6 km² of rain to earn a stream (3k over-carved a canyon — round-177 crater) |
 | "rivers too thin / too wide" | flood window `1 + acc/(4·CATCH)` cap | 1–17 cells (≈0.25–4 m) |
 | "rivers should flood more" | surface fill `bed + depth·2/3` | 2/3 of the cut holds water |
+| "world is a traffic light of bands" | biome aridity fbm (earth_rgb, continent_mesh) | /300 m wavelength; cuts 0.30/0.55/0.78 (forest/grass/scrub/desert); altitude only above 95 m |
+| "sea is a flat blue table" | sea bathymetry fade | shelf cyan → basin navy over 1 km from shore; buckets 100 voxels (25 m) |
 | "colours band wrongly" | `earth_rgb` cuts (continent_mesh) + CLI mirror | 14/95/175/245 m — they MUST ride the relief band; the old 260/600/900 lived above a world that no longer exists |
 
 Rivers are DETERMINISTIC HYDROLOGY, not painted lines: D8 flow

@@ -65,12 +65,23 @@ fn live_flip_swaps_archipelago_for_planet() {
     // auto-inserted child Visibility warns per rebuild (pilot terminal
     // drowned, round 175). This scaffold lacks the render plugin, so
     // the warning can't fire here — the COMPONENT contract still can.
-    let vis = {
+    let (vis, tf) = {
         let w = app.world_mut();
-        let mut q = w.query_filtered::<&Visibility, With<cyclone_render::WorldRoot>>();
-        q.iter(w).count()
+        let mut q =
+            w.query_filtered::<(&Visibility, &Transform), With<cyclone_render::WorldRoot>>();
+        let mut v = 0usize;
+        let mut t = 0usize;
+        for (_vis, _tf) in q.iter(w) {
+            v += 1;
+            t += 1;
+        }
+        (v, t)
     };
-    assert_eq!(vis, 1, "WorldRoot carries Visibility (B0004 flood guard)");
+    assert_eq!(
+        (vis, tf),
+        (1, 1),
+        "WorldRoot carries Visibility AND Transform (both B0004 flood guards)"
+    );
     eprintln!(
         "island crates {crates_island} → after flip: crates {crates_now}, meshes {meshes}, roots {roots}"
     );

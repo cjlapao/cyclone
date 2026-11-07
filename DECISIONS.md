@@ -1054,3 +1054,35 @@ Truths the round forced out of me:
   anchor lookup mixed two of them and 'missing chunk' was my test's
   bug, not the builder's. Convert once, at the boundary, in a comment.
 - The canary now digests heights AND water: rivers are terrain truth.
+
+## Round 178 — B0004 has two template arguments; colours are regions, not stripes
+
+Pilot, round 178: "still, do you think that looks like a continent? or
+even our planet? also why the green, yellow grey?" plus 40 fresh
+"This will cause inconsistent" lines. Two bugs, one honest confession
+each:
+
+1. The flood was REAL again and the first instinct — "stale binary" —
+   was wrong: the HUD proved the new build ran. The validator bevy
+   registers is ValidateParentHasComponent::<C> for TWO C:
+   InheritedVisibility (fixed round 175) and GlobalTransform
+   (bevy_transform registers it — children with Transform under a
+   Transform-less parent flood identically). WorldRoot had Visibility
+   but no Transform: one warn per mesh chunk per rebuild, silent for
+   two rounds because the headless guard only checked Visibility.
+   The witness test (b0004_trace) counted exactly ONE Transform-less
+   parent — this root. Fix: WorldRoot carries BOTH components; the
+   shipped guard now asserts the pair.
+   Lesson: guards assert the CONTRACT (both validators bevy registers),
+   not the last symptom.
+2. Altitude-banded colour is WHY the world read as three flat stripes
+   (green <95, ochre <175, grey above = a traffic light, not a planet).
+   Earth's grammar: lowlands are REGIONS (aridity field at 300 m
+   wavelength: forest/grass/scrub/desert), altitude only claims land
+   above the vegetation line; sand is a PLACE (next to water at any
+   height — estuary banks included, cliffs stay rock); the sea is
+   BATHYMETRY (shore cyan → basin navy over ~1 km of open water),
+   not a flat plane. One palette across renderer, sea builder and
+   CLI sheet — the sheet is the game's satellite photo.
+   Dev knob CYCLONE_CONTINENT_SCALE=1 shrinks the 1 km world 5× so a
+   screen shows it whole (relief 5× flatter — accepted preview trade).
