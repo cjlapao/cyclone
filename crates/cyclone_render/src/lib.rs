@@ -116,91 +116,97 @@ fn rebuild_world(
         .clamp(64, 16_000); // voxels; generate_continent caps at 16384
 
     let mut deferred_cache: Option<ContinentCache> = None;
-    commands.spawn((InWorld, WorldRoot)).with_children(|root| {
-        spawn_lights(root);
-        if continent {
-            let extent_m = cont_size as f32 * 0.25;
-            let fresh = cache
-                .as_ref()
-                .is_none_or(|k| k.seed != map.seed.0 || k.extent_m != extent_m);
-            if fresh {
-                let t0 = std::time::Instant::now();
-                println!("continent mode: generating {}² voxel columns…", cont_size);
-                let (c, chunks) = continent_mesh::generate_and_mesh(map.seed.0, cont_size);
-                println!(
-                    "continent ready: {} chunks, max {:.0} m, ocean {:.0}%, in {} ms",
-                    chunks.len(),
-                    c.metrics.max_height_m,
-                    c.metrics.ocean_ratio * 100.0,
-                    t0.elapsed().as_millis()
-                );
-                let mat = materials.add(StandardMaterial {
-                    base_color: Color::WHITE,
-                    perceptual_roughness: 0.92,
-                    ..default()
-                });
-                let sea = {
-                    let pad = 400.0f32;
-                    let e = extent_m + pad;
-                    let mut b = QuadBuilder::new();
-                    b.quad(
-                        [
-                            Vec3::new(-pad, 0.0, -pad),
-                            Vec3::new(-pad, 0.0, e),
-                            Vec3::new(e, 0.0, e),
-                            Vec3::new(e, 0.0, -pad),
-                        ],
-                        Vec3::Y,
-                        srgb_to_vec4(1.0, 1.0, 1.0),
+    // WorldRoot carries Visibility: the render plugin auto-inserts it
+    // on every child, and the inherited-component check (B0004) warns
+    // per child when the parent lacks it — thousands of lines per
+    // rebuild drowned the terminal (pilot report, round 175).
+    commands
+        .spawn((InWorld, WorldRoot, Visibility::Visible))
+        .with_children(|root| {
+            spawn_lights(root);
+            if continent {
+                let extent_m = cont_size as f32 * 0.25;
+                let fresh = cache
+                    .as_ref()
+                    .is_none_or(|k| k.seed != map.seed.0 || k.extent_m != extent_m);
+                if fresh {
+                    let t0 = std::time::Instant::now();
+                    println!("continent mode: generating {}² voxel columns…", cont_size);
+                    let (c, chunks) = continent_mesh::generate_and_mesh(map.seed.0, cont_size);
+                    println!(
+                        "continent ready: {} chunks, max {:.0} m, ocean {:.0}%, in {} ms",
+                        chunks.len(),
+                        c.metrics.max_height_m,
+                        c.metrics.ocean_ratio * 100.0,
+                        t0.elapsed().as_millis()
                     );
-                    meshes.add(b.into_mesh())
-                };
-                let entries: Vec<(Vec3, Handle<Mesh>)> = chunks
-                    .into_iter()
-                    .map(|ch| (ch.anchor, meshes.add(ch.builder.into_mesh())))
-                    .collect();
-                root.spawn((
-                    InWorld,
-                    Mesh3d(sea.clone()),
-                    MeshMaterial3d(sea_mat.clone()),
-                ));
-                for (a, h) in &entries {
+                    let mat = materials.add(StandardMaterial {
+                        base_color: Color::WHITE,
+                        perceptual_roughness: 0.92,
+                        ..default()
+                    });
+                    let sea = {
+                        let pad = 400.0f32;
+                        let e = extent_m + pad;
+                        let mut b = QuadBuilder::new();
+                        b.quad(
+                            [
+                                Vec3::new(-pad, 0.0, -pad),
+                                Vec3::new(-pad, 0.0, e),
+                                Vec3::new(e, 0.0, e),
+                                Vec3::new(e, 0.0, -pad),
+                            ],
+                            Vec3::Y,
+                            srgb_to_vec4(1.0, 1.0, 1.0),
+                        );
+                        meshes.add(b.into_mesh())
+                    };
+                    let entries: Vec<(Vec3, Handle<Mesh>)> = chunks
+                        .into_iter()
+                        .map(|ch| (ch.anchor, meshes.add(ch.builder.into_mesh())))
+                        .collect();
                     root.spawn((
                         InWorld,
-                        Mesh3d(h.clone()),
-                        MeshMaterial3d(mat.clone()),
-                        Transform::from_xyz(a.x, a.y, a.z),
+                        Mesh3d(sea.clone()),
+                        MeshMaterial3d(sea_mat.clone()),
                     ));
+                    for (a, h) in &entries {
+                        root.spawn((
+                            InWorld,
+                            Mesh3d(h.clone()),
+                            MeshMaterial3d(mat.clone()),
+                            Transform::from_xyz(a.x, a.y, a.z),
+                        ));
+                    }
+                    deferred_cache = Some(ContinentCache {
+                        seed: map.seed.0,
+                        sea,
+                        entries,
+                        extent_m,
+                        mat,
+                    });
+                } else {
+                    let k = cache.as_deref().unwrap(); // read-only respawn: deref, not move
+                    root.spawn((
+                        InWorld,
+                        Mesh3d(k.sea.clone()),
+                        MeshMaterial3d(sea_mat.clone()),
+                    ));
+                    for (a, h) in &k.entries {
+                        root.spawn((
+                            InWorld,
+                            Mesh3d(h.clone()),
+                            MeshMaterial3d(k.mat.clone()),
+                            Transform::from_xyz(a.x, a.y, a.z),
+                        ));
+                    }
                 }
-                deferred_cache = Some(ContinentCache {
-                    seed: map.seed.0,
-                    sea,
-                    entries,
-                    extent_m,
-                    mat,
-                });
             } else {
-                let k = cache.as_deref().unwrap(); // read-only respawn: deref, not move
-                root.spawn((
-                    InWorld,
-                    Mesh3d(k.sea.clone()),
-                    MeshMaterial3d(sea_mat.clone()),
-                ));
-                for (a, h) in &k.entries {
-                    root.spawn((
-                        InWorld,
-                        Mesh3d(h.clone()),
-                        MeshMaterial3d(k.mat.clone()),
-                        Transform::from_xyz(a.x, a.y, a.z),
-                    ));
-                }
+                terrain::spawn_terrain(root, &map, &mut meshes, &mut materials, lh);
+                spawn_sea(root, &map, &mut meshes, &sea_mat);
+                props::spawn_props(root, &map, &mut meshes, &mut materials, lh);
             }
-        } else {
-            terrain::spawn_terrain(root, &map, &mut meshes, &mut materials, lh);
-            spawn_sea(root, &map, &mut meshes, &sea_mat);
-            props::spawn_props(root, &map, &mut meshes, &mut materials, lh);
-        }
-    });
+        });
     if let Some(c) = deferred_cache {
         commands.insert_resource(c);
     }
