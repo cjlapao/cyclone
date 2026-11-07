@@ -1405,24 +1405,27 @@ fn ingame_build(
         .clamp(64, 16_000);
     let clear = if continent {
         let half = cont_size as f32 * 0.25 * 0.5;
-        let ground = cyclone_render::continent_mesh::surface_height_m(
-            half as f64,
-            half as f64,
-            map.seed.0,
-            cont_size,
-        ) as f32;
-        Some((half, (ground + 80.0).max(120.0), half + 90.0))
+        // Island mode makes the map centre OCEAN for most seeds —
+        // scan outward for standable ground (≥3 m, river-safe lower
+        // bound) before choosing the drop point. The golden-angle
+        // ring scan is pure and ~ms; fallback keeps the old centred
+        // hover and points the nose down: swim to the nearest island
+        // like a castaway, at least you'll SEE them.
+        let ext = half as f64;
+        let (x, y, ground) =
+            cyclone_render::continent_mesh::spawn_over_land(ext, ext, map.seed.0, cont_size, ext)
+                .unwrap_or((ext, ext, 0.0));
+        let pitch = if ground > 0.0 { -18.0 } else { -60.0 };
+        (x, (ground + 80.0).max(120.0), y + 90.0, pitch)
     } else {
-        None
+        // archipelago: the fixed launch lane over the home island
+        (base.0 as f64, 26.0, base.1 as f64 + 46.0, -18.0)
     };
     for mut rig in &mut rigs {
-        if let Some((x, y, z)) = clear {
-            rig.position = Vec3::new(x, y, z);
-        } else {
-            rig.position = Vec3::new(base.0, 26.0, base.1 + 46.0);
-        }
+        let (x, y, z, pitch) = clear;
+        rig.position = Vec3::new(x as f32, y as f32, z as f32);
         rig.yaw = 0.0;
-        rig.pitch = -18.0;
+        rig.pitch = pitch;
         rig.set_fov(55.0);
     }
 

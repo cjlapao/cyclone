@@ -391,12 +391,19 @@ pub fn build_continent_chunks(c: &Continent) -> Vec<ContinentChunk> {
 /// Convenience for callers without the Continent in hand: generate +
 /// mesh. (Dev mode uses this once per seed; is_changed gating upstream
 /// means rerolls pay it, menu stays free.)
+pub fn island_mode() -> bool {
+    // Env dial (dev terrain lab): CYCLONE_ISLANDS=1 scatters the land
+    // into islands — pilot round 179. ONE reader for everyone who
+    // must agree on what the world IS: mesher, sampler, spawn scan.
+    // (A second reader with Default::default() bit me mid-round: the
+    // sampler sampled continent land while the mesh built islands.)
+    std::env::var("CYCLONE_ISLANDS").is_ok_and(|v| v == "1")
+}
+
 pub fn generate_and_mesh(seed: u64, size: u32) -> (Continent, Vec<ContinentChunk>) {
     let cfg = ContinentConfig {
         size,
-        // Env dial (dev terrain lab): CYCLONE_ISLANDS=1 scatters the
-        // land into islands — pilot round 179.
-        islands: std::env::var("CYCLONE_ISLANDS").is_ok_and(|v| v == "1"),
+        islands: island_mode(),
         ..Default::default()
     };
     let c = generate_continent(seed, &cfg).expect("size within contract; dev preview dial");
@@ -404,11 +411,53 @@ pub fn generate_and_mesh(seed: u64, size: u32) -> (Continent, Vec<ContinentChunk
     (c, chunks)
 }
 
+/// Find standable ground near a preferred spot, scanning outward in
+/// golden-angle rings (40 m steps, ~7 angles/ring — 500 samples per
+/// 700 m radius, pure-function cheap). Island mode makes the map
+/// centre OCEAN for most seeds: dropping the pilot into open water
+/// and saying "look, an island, somewhere" is not a spawn. Land
+/// requires 3 m of honest height (the sampler's river-safe lower
+/// bound), so the rig never drowns on load. None = nothing standable
+/// within the search radius — the caller decides the fallback.
+pub fn spawn_over_land(
+    pref_x_m: f64,
+    pref_y_m: f64,
+    seed: u64,
+    size: u32,
+    max_r_m: f64,
+) -> Option<(f64, f64, f64)> {
+    let step = 40.0;
+    let mut r = 0.0f64;
+    let golden = std::f64::consts::PI * (3.0 - 5.0f64.sqrt()); // ≈137.5°
+    let mut k = 0usize;
+    while r <= max_r_m {
+        // Ring circumference / step samples, golden-angle rotated so
+        // successive rings don't march the same spokes.
+        let n = ((2.0 * std::f64::consts::PI * r / step) as usize).clamp(1, 36);
+        for j in 0..n {
+            let a = golden * (k as f64 + j as f64);
+            let (x, y) = (pref_x_m + r * a.cos(), pref_y_m + r * a.sin());
+            if !(0.0..=size as f64 * 0.25).contains(&x) || !(0.0..=size as f64 * 0.25).contains(&y)
+            {
+                continue;
+            }
+            let h = surface_height_m(x, y, seed, size);
+            if h >= 3.0 {
+                return Some((x, y, h));
+            }
+        }
+        k += n;
+        r += step;
+    }
+    None
+}
+
 /// The pure elevation sampler (re-exported for rig placement: the game
 /// asks "how high is the ground at spawn" without the whole heightfield).
 pub fn surface_height_m(x_m: f64, y_m: f64, seed: u64, size: u32) -> f64 {
     let cfg = ContinentConfig {
         size,
+        islands: island_mode(),
         ..Default::default()
     };
     // The spawn sampler must see the RIVER, not just the mountain:
@@ -473,6 +522,29 @@ mod tests {
     /// proof therefore FINDS its chunk by anchor, a fact first
     /// witnessed in the very failure that redrew this test (built=1
     /// for 64 grid chunks).
+    #[test]
+    fn spawn_scan_finds_an_island_from_the_middle_of_the_sea() {
+        // Island mode, seed 42: the map centre is open water (the
+        // hillshade proves it). The ring scan must still deliver
+        // standable ground, deterministically, within the search.
+        // Edition-2024: env mutation is unsafe; tests run single-thread
+        // per binary but the scan test owns the dial alone in this file.
+        // SAFETY: sole writer of this key in this test binary (grep-
+        // proven: the other env-reading tests are in cyclone_render's
+        // integration tests, separate processes).
+        unsafe { std::env::set_var("CYCLONE_ISLANDS", "1") };
+        let (x, y, h) = spawn_over_land(500.0, 500.0, 42, 4000, 500.0)
+            .expect("islands exist within 500 m of centre");
+        assert!(h >= 3.0, "standable, not a bar: {h} m");
+        let d = ((x - 500.0).powi(2) + (y - 500.0).powi(2)).sqrt();
+        assert!(d <= 500.0 + 1.0, "inside the search radius: {d} m");
+        eprintln!("scan from open sea: island at ({x:.0}, {y:.0}), {h} m, {d:.0} m out");
+        let again = spawn_over_land(500.0, 500.0, 42, 4000, 500.0).unwrap();
+        assert_eq!((x, y, h), again, "pure function, same answer");
+        // SAFETY: as above — restore after the assertion set.
+        unsafe { std::env::remove_var("CYCLONE_ISLANDS") };
+    }
+
     #[test]
     fn islands_wear_sand_rings_at_the_sea() {
         // Island mode with the real dial: every low island column
