@@ -49,6 +49,8 @@ pub struct ContinentMetrics {
     pub high_ratio: f64,
     /// Land columns h ≥ 600 m (mountain domain).
     pub mountain_ratio: f64,
+    /// Fraction of columns carrying river water (round-177).
+    pub river_ratio: f64,
     /// Highest column in meters.
     pub max_height_m: f64,
 }
@@ -57,8 +59,16 @@ pub struct ContinentMetrics {
 pub struct Continent {
     pub config: ContinentConfig,
     pub seed: u64,
-    /// Voxel-unit column heights (0 = sea level).
+    /// Voxel-unit column heights (0 = sea level). Where a river
+    /// flows, this is the BED height — under the water surface.
     pub heights: Vec<u16>,
+    /// River water SURFACES in voxel units (0 = no river here).
+    /// A fixed sea plane can only show water at y=0; rivers flow
+    /// above it, so they need their own surface (round-177: the
+    /// pilot asked for rivers, and honest rivers need honest data).
+    /// Invariant: `water[i] > 0 ⇒ water[i] ≤ heights[i] + carve`,
+    /// i.e. surface at or above the bed it covers.
+    pub water: Vec<u16>,
     pub metrics: ContinentMetrics,
 }
 
@@ -143,13 +153,192 @@ pub fn generate_continent(seed: u64, cfg: &ContinentConfig) -> Result<Continent,
             heights.push((h * q).round().clamp(0.0, u16::MAX as f64) as u16);
         }
     }
-    let metrics = measure(&heights, cfg);
+    let water = carve_rivers(&mut heights, cfg.size, seed);
+    let mut metrics = measure(&heights, cfg);
+    metrics.river_ratio = water.iter().filter(|&&w| w > 0).count() as f64 / (n as f64);
     Ok(Continent {
         config: *cfg,
         seed,
         heights,
+        water,
         metrics,
     })
+}
+
+/// Earth's next feature after relief: drainage. Deterministic D8
+/// flow accumulation over the whole grid (counting-sort by height →
+/// strictly descending, so water never flows uphill and never
+/// cycles; ties go to the lowest linear index — acyclic by pair
+/// order (h, idx)), then a carve ONLY where the catchment is big
+/// enough to earn a river. Carving to 0 means the mesh skips the
+/// column and the sea plane shows through — the ocean IS the river
+/// surface, no renderer change, hillshade shows the blue ribbon too.
+/// Catchment counted in COLUMNS: 1 col = 0.0625 m², so T = 3000 is
+/// a ~190 m² tributary head; main stems reach many times that.
+fn carve_rivers(h: &mut [u16], size: u32, seed: u64) -> Vec<u16> {
+    // 3000 over-carved a canyon (round-177 first render: a blocky
+    // crater ate a mountain; the census +1 pp ocean confirmed). Real
+    // streams need a real catchment: 25k columns = 1.6 km² of rain.
+    const CATCH: u64 = 25_000; // ~1.6 km² of rain to earn water
+    let n = (size as usize) * (size as usize);
+    // Descending-height order via counting sort (heights are u16).
+    let mut hist = [0u32; 65_537];
+    for &v in h.iter() {
+        hist[v as usize + 1] += 1;
+    }
+    for i in 1..=65_536 {
+        hist[i] += hist[i - 1];
+    }
+    let mut order = vec![0u32; n];
+    // Fill ascending then walk from the top — stable enough: order
+    // within equal heights is by index, consistent with tie rule.
+    let mut pos = hist[..65_536].to_vec();
+    for (i, &v) in h.iter().enumerate() {
+        order[pos[v as usize] as usize] = i as u32;
+        pos[v as usize] += 1;
+    }
+
+    // Rain: a whisper of seed-varied so headwaters don't look seeded
+    // by index; accumulation in u64 (stems can carry 10⁵).
+    let mut acc = vec![1u64; n];
+    let salt = seed & 0xF;
+    for k in (0..n).rev() {
+        let c = order[k] as usize;
+        let hc = h[c];
+        if hc == 0 {
+            continue; // ocean: water leaves the land here
+        }
+        let cx = (c % size as usize) as i32;
+        let cy = (c / size as usize) as i32;
+        let mut best = usize::MAX;
+        let mut bh = hc;
+        for dy in -1..=1 {
+            for dx in -1..=1 {
+                if dx == 0 && dy == 0 {
+                    continue;
+                }
+                let (nx, ny) = (cx + dx, cy + dy);
+                if nx < 0 || ny < 0 || nx >= size as i32 || ny >= size as i32 {
+                    continue;
+                }
+                let ni = (ny as usize) * (size as usize) + (nx as usize);
+                let nh = h[ni];
+                if nh < bh || (nh == bh && ni < c && ni < best) {
+                    if nh == bh && ni > c {
+                        continue;
+                    }
+                    bh = nh;
+                    best = ni;
+                }
+            }
+        }
+        if best != usize::MAX {
+            acc[best] += acc[c] + salt;
+        }
+    }
+
+    // Carve: depth grows with the log of the catchment; a 3×3
+    // half-depth halo gives every stream a valley, not a knife slit.
+    let a: Vec<u64> = acc;
+    let mut cuts: Vec<f64> = Vec::with_capacity(n);
+    for c in 0..n {
+        cuts.push(if a[c] > CATCH && h[c] > 0 {
+            // metres of downcut; stems grow logarithmically wider
+            2.0 + 1.0 * ((a[c] as f64 / CATCH as f64).ln())
+        } else {
+            0.0
+        });
+    }
+    // Cut depth in VOXELS, capped at half the standing height (the
+    // crater lesson): valleys deepen, mountains survive, no column
+    // tunnels to the sea.
+    let mut depth = vec![0u32; n];
+    for c in 0..n {
+        if cuts[c] > 0.0 && h[c] > 0 {
+            let d = (cuts[c] * 4.0).round() as u32; // metres → voxels
+            depth[c] = (d / 2).min(h[c] as u32 / 2).max(1);
+        }
+    }
+    // Water surface: mid-channel. The bed sinks by `depth`; the
+    // surface sits above the bed so the river has visible depth.
+    // Halo cells (valley sides) carve half and carry no water —
+    // streams are lines; valleys are the trough around them.
+    let mut water = vec![0u16; n];
+    for cy in 0..size as usize {
+        for cx in 0..size as usize {
+            let c = cy * (size as usize) + cx;
+            if depth[c] > 0 {
+                let bed = (h[c] as u32).saturating_sub(depth[c]);
+                // Water fills the lower two-thirds of the cut.
+                let surf = bed + depth[c] * 2 / 3;
+                h[c] = bed as u16;
+                if surf > 0 {
+                    water[c] = surf as u16;
+                }
+                continue;
+            }
+            // Valley halo: carve a trough, keep it dry.
+            let mut side = 0u32;
+            for dy in 0..3 {
+                for dx in 0..3 {
+                    let (nx, ny) = (cx as i32 + dx - 1, cy as i32 + dy - 1);
+                    if nx < 0 || ny < 0 {
+                        continue;
+                    }
+                    let ni = (ny as usize) * (size as usize) + (nx as usize);
+                    if ni < n && ni != c {
+                        side = side.max(depth[ni]);
+                    }
+                }
+            }
+            if side > 0 && h[c] > 0 {
+                let carve = (side / 2).min(h[c] as u32 / 4);
+                h[c] -= carve as u16;
+            }
+        }
+    }
+    // Width: real stems widen with their catchment. Expand each
+    // stream into its own valley floor: a neighbour becomes river
+    // when the (dry) ground there sits at or below the water surface
+    // — water finds the level it would flood, one pass, no cascade.
+    // The width grows logarithmically with accumulation, so heads
+    // stay thread-thin and mouths run wide.
+    let mut wide = water.clone();
+    for cy in 0..size as usize {
+        for cx in 0..size as usize {
+            let c = cy * (size as usize) + cx;
+            let surf = water[c];
+            if surf == 0 {
+                continue;
+            }
+            let wid = (1 + (a[c] / (4 * CATCH)).min(16)) as i32;
+            let y0 = cy as i32 - wid;
+            let y1 = cy as i32 + wid;
+            let x0 = cx as i32 - wid;
+            let x1 = cx as i32 + wid;
+            for ny in y0.max(0)..=y1.min(size as i32 - 1) {
+                for nx in x0.max(0)..=x1.min(size as i32 - 1) {
+                    let ni = (ny as usize) * (size as usize) + (nx as usize);
+                    // Flood only dry ground that sits below the
+                    // surface — never uphill, never over a ridge.
+                    if water[ni] == 0 && h[ni] > 0 && h[ni] <= surf {
+                        wide[ni] = surf;
+                    }
+                }
+            }
+        }
+    }
+    water = wide;
+
+    // Estuary seam: where a surface meets the sea plane, let the
+    // ocean win — a river mouth is sea level, not a step above it.
+    for c in 0..n {
+        if water[c] > 0 && water[c] <= 2 {
+            water[c] = 0;
+            h[c] = 0;
+        }
+    }
+    water
 }
 
 /// Derive the metrics FROM the data (see `terracing` for why).
@@ -214,6 +403,7 @@ mod tests {
         let a = generate_continent(7, &cfg).unwrap();
         let b = generate_continent(7, &cfg).unwrap();
         assert_eq!(a.heights, b.heights);
+        assert_eq!(a.water, b.water, "rivers deterministic too");
         assert_eq!(a.heights.len(), 512 * 512);
     }
 
@@ -250,6 +440,14 @@ mod tests {
             m.flat_ratio
         );
         assert!(m.mountain_ratio < 0.05, "mountain {}", m.mountain_ratio);
+        // Rivers exist but stay geography, not laciness: measured
+        // 0.0014–0.0083 across four seeds at 2048² (relief-band
+        // rivers widen with catchment, never flood the plain).
+        assert!(
+            m.river_ratio > 0.0005 && m.river_ratio < 0.015,
+            "river {}",
+            m.river_ratio
+        );
         assert!(
             m.max_height_m > 150.0 && m.max_height_m < 285.0,
             "max {}",

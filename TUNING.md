@@ -149,7 +149,18 @@ run -p worldgen-cli -- continent --seed <S> --size 4000 --out <dir>`
 | "want more ocean" | land mask smoothstep(0.44, 0.54) | midpoint 0.49 |
 | "detail looks like crumpled foil" | detail amp × 28 m | 1.0 m (was 2.2, the render said so) |
 | "blocky under me" | CELL_VOX (render/cyclone_render) | 8 (2 m mesh cells; 25 cm data awaits the clipmap) |
+| "no rivers / too many rivers" | `CATCH` (carve_rivers, continent.rs) | 25k columns ≈ 1.6 km² of rain to earn a stream (3k over-carved a canyon — round-177 crater) |
+| "rivers too thin / too wide" | flood window `1 + acc/(4·CATCH)` cap | 1–17 cells (≈0.25–4 m) |
+| "rivers should flood more" | surface fill `bed + depth·2/3` | 2/3 of the cut holds water |
 | "colours band wrongly" | `earth_rgb` cuts (continent_mesh) + CLI mirror | 14/95/175/245 m — they MUST ride the relief band; the old 260/600/900 lived above a world that no longer exists |
+
+Rivers are DETERMINISTIC HYDROLOGY, not painted lines: D8 flow
+accumulation over the real grid (counting-sort descent), carve where
+the catchment earns it, water surface at 2/3 of the cut — the mesh
+renders the surface as blue quads over the bed (the ocean plane
+cannot show water above y=0; a river needs its own surface). The
+`water` channel rides the canary digest: platform drift in carving
+reddens CI before pilot eyes can be blamed.
 
 Character per seed is REAL (round-176 census, post-rebalance):
 seed 42 = 40% ocean strait country w/ ridged highlands, 2 = 24%

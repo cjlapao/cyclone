@@ -1019,3 +1019,38 @@ is-recursiveness settled from bevy_app's own source comment. Env
 dials now read through ONE `continent_mode()` helper (build, bounds
 guard, spawn, text all ask it) — scattered env reads were the drift
 seed for bug 2.
+
+## Round 177 — "make the world more real": rivers are data, not paint
+
+Pilot: "make the generation span the whole blue square and the world
+continent be as our planet, rivers, mountains, beaches, plains".
+Two claims, two architectures:
+
+1. **Span**: the sea quad's 400 m skirt is an ARCHIPELAGO concept
+   (horizon from a 200-unit island). In continent mode the ocean now
+   ends exactly where the terrain ends (pad 0) — the world IS the
+   square. The 160 m skirt in the island path was checked and left
+   correct for its own mode: same variable, different worlds.
+2. **Rivers**: the honest primitive is D8 flow accumulation over the
+   whole grid — counting-sort the u16 heights (O(n)), walk strictly
+   descending (ties by index: acyclic by pair order), accumulate
+   rain, carve where catchment ≥ 25k columns (~1.6 km²). Carving
+   alone gives valleys; the pilot asked for RIVERS, and a fixed sea
+   plane cannot show water above y=0 — so `Continent` gained a
+   `water` channel (surface heights; 0 = dry) that the MESH renders
+   as blue quads over the carved bed. The renderer learned "seen
+   height" (max(land, water)) for tops AND walls; the same hue one
+   word for sea, river and hillshade.
+
+Truths the round forced out of me:
+- **Replace-without-assert is silent lying**: a dial edit that
+  no-op'd (string drift) AND a stale binary made two renders
+  byte-identical — caught only by hashing the OUTPUT. Every "change
+  landed?" claim now needs the output to move or a grep on the file.
+- **Chunk lists are SPARSE** (empty chunks dropped — an ocean world
+  of 512² is ONE chunk, not 64): tests that index chunks by grid
+  math learn fiction. The wet-cell proof FINDS its chunk by anchor.
+- **Unit discipline**: voxel coords vs cell coords vs metres — the
+  anchor lookup mixed two of them and 'missing chunk' was my test's
+  bug, not the builder's. Convert once, at the boundary, in a comment.
+- The canary now digests heights AND water: rivers are terrain truth.

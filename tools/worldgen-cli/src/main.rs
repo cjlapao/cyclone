@@ -86,8 +86,10 @@ fn hillshade(c: &cyclone_worldgen::Continent) -> Result<RgbaImage> {
     for y in 0..size {
         for x in 0..size {
             let hm = h(x, y);
-            let (r, g, b) = if hm <= 0.0 {
-                (28u8, 64, 120) // ocean
+            let w = c.water[y * size + x];
+            let (r, g, b) = if w > 0 || hm <= 0.0 {
+                // one word for water: rivers and sea share the hue
+                (28u8, 64, 120)
             } else if hm < 12.0 {
                 (180, 168, 120) // sand shore
             } else if hm < 95.0 {
@@ -166,7 +168,7 @@ fn main() -> Result<()> {
             fs::write(
                 out.join("stats.txt"),
                 format!(
-                    "seed {} size {} voxel {}m gen {} ms\nocean {:.3} flat {:.3} high {:.3} mountain {:.4} max {:.0} m\n",
+                    "seed {} size {} voxel {}m gen {} ms\nocean {:.3} flat {:.3} high {:.3} mountain {:.4} river {:.4} max {:.0} m\n",
                     seed,
                     c.config.size,
                     c.config.voxel,
@@ -175,6 +177,7 @@ fn main() -> Result<()> {
                     c.metrics.flat_ratio,
                     c.metrics.high_ratio,
                     c.metrics.mountain_ratio,
+                    c.metrics.river_ratio,
                     c.metrics.max_height_m
                 ),
             )?;

@@ -144,7 +144,6 @@ fn rebuild_world(
 
     // Shoreline R8 texture for the future sea WGSL material (spec 02 B2).
     let _shore = shore_texture(&map, &mut images);
-
     // Dev terrain-lab mode (round-155 pivot): CYCLONE_CONTINENT=1 swaps
     // the archipelago for the voxel-Earth heightfield. Same rig, same
     // materials, same rebuild path — a preview, not a fork.
@@ -185,7 +184,7 @@ fn rebuild_world(
                         ..default()
                     });
                     let sea = {
-                        let pad = 400.0f32;
+                        let pad = 0.0f32;
                         let e = extent_m + pad;
                         let mut b = QuadBuilder::new();
                         b.quad(

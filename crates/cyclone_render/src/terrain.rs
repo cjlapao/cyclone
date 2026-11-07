@@ -54,6 +54,16 @@ impl QuadBuilder {
         self.indices.len() / 6
     }
 
+    #[cfg(test)]
+    pub(crate) fn colours(&self) -> &[Vec4] {
+        &self.colors
+    }
+
+    #[cfg(test)]
+    pub(crate) fn positions(&self) -> &[Vec3] {
+        &self.positions
+    }
+
     pub fn into_mesh(self) -> Mesh {
         let mut mesh = Mesh::new(
             PrimitiveTopology::TriangleList,

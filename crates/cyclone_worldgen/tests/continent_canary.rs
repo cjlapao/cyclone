@@ -21,24 +21,30 @@ fn continent_seed2_512_digest() {
     .unwrap();
     let mut h = blake3::Hasher::new();
     h.update(&bytemuck_bytes(&c.heights));
+    // Rivers are terrain truth now: the water channel rides the
+    // same digest — a platform that carves differently drifts red.
+    h.update(&bytemuck_bytes(&c.water));
     let m = c.metrics;
     let digest = h.finalize().to_string();
-    // Re-pinned round 176 (relief rebalance 1100→300 m) on Linux. CI runs this SAME test on
+    // Re-pinned round 177 (rivers: water channel carved) on Linux. CI runs this SAME test on
     // macOS + Windows: agreement there is the cross-platform identity
     // proof the island golden gives the map; drift here = platform
     // libm/dial drift, red before any human eye is asked to judge.
     assert_eq!(
         digest,
-        "f905b36ec061e31ca9916e4db5cd844be1ed7ae8469c3d9d29a6f781d1d5f2a6"
+        "1f9ee0daca6b1f5a2e2ab1ab6201b5d8d1c4e35aa070ef05d47927d03b49c04d"
     );
     // Metrics are ratios of integer counts — a one-column change moves
     // them ~4e-6, so 1e-9 tolerance still sees every single-column
     // drift while surviving decimal round-trip of these literals.
     // (The DIGEST is the bit-exact witness; these are tripwires.)
+    // River carving nudges flat (valleys steepen) and adds the
+    // river channel itself; the rest hold — the carve is local.
     assert!(m.ocean_ratio == 0.0);
-    assert!((m.flat_ratio - 0.038093566895).abs() < 1e-9);
+    assert!((m.flat_ratio - 0.037986755371).abs() < 1e-9);
     assert!((m.high_ratio - 0.684650421143).abs() < 1e-9);
     assert!((m.mountain_ratio - 0.017299652100).abs() < 1e-9);
+    assert!((m.river_ratio - 0.002746582031).abs() < 1e-9);
     assert_eq!(m.max_height_m, 236.25); // voxel multiples: exact in f64
 }
 
