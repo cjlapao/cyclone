@@ -62,7 +62,11 @@ nothing standable in the search radius you hover over the sea pitched
 
 Every seed is byte-identical on Linux/macOS/Windows (digest-pinned in
 CI for BOTH the continent and islands paths) — a seed you like can fly
-on any machine.
+on any machine. The mesh that skins the map carries its own digest
+too, quantised to 1 cm: platforms can differ BELOW that (libm drifts
+by ULPs — CI proved it the very day the raw-f32 mesh digest landed),
+no eye or physics can tell the difference, and what the pin really
+guarantees is every platform building the same world.
 
 ## Since your last flight (the feel pass)
 

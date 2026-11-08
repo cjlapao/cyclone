@@ -790,18 +790,30 @@ mod tests {
         let (_c, chunks) = generate_and_mesh(2, 2048);
         let mut h = blake3::Hasher::new();
         h.update(&(chunks.len() as u64).to_le_bytes());
+        // Centimetre quantisation is the point of this digest, not
+        // an optimisation: raw f32 hashing (round 194's first cut)
+        // went RED on macOS the same day it was pinned — libm's
+        // transcendentals drift by ULPs across platforms, and IEEE
+        // guarantees none of that away. Quantised to 0.01 m — 1/25
+        // of a voxel, ~1000× under visible — the digest tests what
+        // actually matters: every platform builds the SAME world
+        // structure. Structural drift (chunk sets, island shapes,
+        // ordering) still moves the hash by oceans.
+        fn cm(h: &mut blake3::Hasher, f: f32) {
+            h.update(&((f * 100.0).round_ties_even() as i64).to_le_bytes());
+        }
         for k in &chunks {
             for f in k.anchor.to_array() {
-                h.update(&f.to_le_bytes());
+                cm(&mut h, f);
             }
             for p in k.builder.positions() {
                 for f in p.to_array() {
-                    h.update(&f.to_le_bytes());
+                    cm(&mut h, f);
                 }
             }
             for c in k.builder.colours() {
                 for f in c.to_array() {
-                    h.update(&f.to_le_bytes());
+                    cm(&mut h, f); // colours ride 0..1 — quantises too
                 }
             }
             h.update(&(k.builder.quad_count() as u64).to_le_bytes());
@@ -809,8 +821,8 @@ mod tests {
         let d = h.finalize().to_string();
         println!("islands mesh digest: {d}");
         assert_eq!(
-            d, "85509bbc3d712b6d9c1cdd8a761509a4d9a9c5bbdb3bd1919b3c311e14e59964",
-            "mesh bytes drifted — rerun locally, diff a sheet, NEVER just re-pin"
+            d, "3a1bf7a93659ac05827b8ebb5ae69f3c382d092683d854a2307a0182e0d870f7",
+            "mesh drifted beyond 1 cm — a platform builds DIFFERENT terrain, investigate"
         );
     }
 }

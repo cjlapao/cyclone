@@ -1286,3 +1286,21 @@ backstop. Rebuild now sets bounds synchronously (guard kept as
 idempotent backstop); the esc-chord flow test asserts the cage is
 the planet's 0..100 m the instant InGame+WorldRoot stand.
 
+## Round 198 — the mesh digest went red on macOS in hours; the pin was the bug
+
+dd0b527 pinned RAW f32 mesh bytes cross-OS. Same day, macOS:
+d8dab0ee…, Linux+Windows: 85509bbc…. Diagnosis from public
+annotations alone (job logs are auth-gated — annotations aren't):
+the worldgen canaries had always agreed on macOS because HEIGHTS
+QUANTISE to whole metres; raw vertices expose libm's sub-centimetre
+ULP drift, and IEEE guarantees no transcendental identity across
+platforms. So the red was not a platform bug — it was MY claim
+over-promising bit-for-bit where only structure is portable.
+Fix = quantify the CLAIM, not chase libm: digest every float
+rounded to 0.01 m (1/25 of a voxel, ~1000× under visible) →
+3a1bf7a9…; structural drift (chunk sets, island shape, ordering)
+still moves the hash by oceans, sub-cm drift is declared invisible
+by design. FIRST-FLIGHT now states the mesh scope honestly.
+If macOS reddens on THIS digest, that's a different animal — real
+terrain disagreement — and the assert message says so.
+
