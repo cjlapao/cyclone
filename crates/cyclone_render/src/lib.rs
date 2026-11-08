@@ -360,16 +360,14 @@ fn rebuild_world(
                 doom_t.push(t.id());
             }
         }
-        if !cache_fresh_now {
-            if let Some(k) = cache.as_ref() {
-                // Stale cache's planet: unreferenced the moment the
-                // claim lands (this run), so it is doomed NOW.
-                doom_m.push(k.sea.id());
-                for (_, h) in &k.entries {
-                    doom_m.push(h.id());
-                }
-                doom_t.push(k.mat.id());
+        // Stale cache's planet: unreferenced the moment the claim
+        // lands (this run), so it is doomed NOW.
+        if !cache_fresh_now && let Some(k) = cache.as_ref() {
+            doom_m.push(k.sea.id());
+            for (_, h) in &k.entries {
+                doom_m.push(h.id());
             }
+            doom_t.push(k.mat.id());
         }
         let uniq_m: std::collections::HashSet<_> = doom_m.into_iter().collect();
         let uniq_t: std::collections::HashSet<_> = doom_t.into_iter().collect();

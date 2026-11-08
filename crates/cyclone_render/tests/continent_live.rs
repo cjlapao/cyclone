@@ -341,9 +341,8 @@ fn rerolls_do_not_grow_the_asset_stores() {
         std::env::remove_var("CYCLONE_ISLANDS");
     }
     let mut app = app_scaffold();
-    let mesh_count = |a: &mut App| -> usize {
-        a.world_mut().resource::<bevy::asset::Assets<Mesh>>().len() as usize
-    };
+    let mesh_count =
+        |a: &mut App| -> usize { a.world_mut().resource::<bevy::asset::Assets<Mesh>>().len() };
     let n0 = mesh_count(&mut app); // scaffold world
     let mut per_world = Vec::new();
     for s in 1..=5u64 {
