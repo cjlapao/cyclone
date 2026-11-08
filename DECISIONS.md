@@ -3217,3 +3217,26 @@ dials mean 'the thing', every command line is a suspect. FIRST-
 FLIGHT passed this test round 308; the README failed it by one
 era. Four gates; terrain frozen; prose-only.
 
+## Round 310 — the command-line sweep closes: one 'optional' left in the corpus, annotated at its own site
+
+Rounds 308-309's law ('every command line predating the dial layer
+is a suspect') executed to completion: every CYCLONE_* command in
+TUNING, V2/ and docs/ inventoried. Verdicts: TUNING:146 heading is
+honest layer-language (it names its own layer — a section heading,
+not a suggestion); TUNING:190's row documents the ISLANDS dial as
+its own instrument — correct; spec-01:99 already re-measures the
+full stack; README and FIRST-FLIGHT were cleared rounds 308-309.
+ONE offender remained: spec-03 :49's 'optional CYCLONE_ISLANDS=1'
+— the same demotion the README just lost, in era-drafted spec text
+(blame-proven: 4365845, 'drafted from evidence', our hand).
+
+Repair by the spec-file law: no reflow — the dated clause joins
+the annotation family already living there ('optional' above is
+now historical; THE PAIR is the setting; mainland named by the
+verdict; layer law restated; pointers to the two fences). Pilot
+text untouched; the correction sits where corrections sit in
+specs — dated, adjacent, honest.
+
+Corpus-wide, the dial-pair era is now written identically in every
+surface a reader or a shell can touch. Four gates; terrain frozen.
+

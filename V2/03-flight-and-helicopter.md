@@ -59,7 +59,12 @@ Real, shipped, tested:
   carries both machines. Q1/Q5 are now the load-bearing pair for the
   islands verdict ('so then the game can happen'): answering Q1 =
   voxel world hosts gameplay makes Q5 (landing zones, crates, refugees
-  on stamped islands) the next decision.*
+  on stamped islands) the next decision. Round 310 (same day):
+  'optional' above is now historical — for the verdict loop THE PAIR
+  is the setting; CONTINENT alone flies the single-dial mainland world
+  (the one judged 'just hills'). Dials LAYER — set the whole stack,
+  top first; the full-stack command sits in the README and
+  FIRST-FLIGHT fences.*)
 
 Not written at all: fuel, altitude clamp, landing/crash states, winch,
 the helicopter body, its rotor hum, a cockpit or chase view distinct
