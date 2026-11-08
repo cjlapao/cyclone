@@ -2219,3 +2219,27 @@ drift apart by the next era.
 
 Doc-only diff; four gates run anyway (warm cache), echoes READ.
 
+## Round 275 — spec-03 audited under v2: one fossil, one harvest
+
+Full read of 03-flight-and-helicopter.md against witnessed truth.
+Scoping did most of the work: the '14 islands / pads / crates'
+passage is CORRECTLY SCOPED to the classic generator — the
+untouched control — so it stays true by its own framing; Parts
+A/B/C are drafts claiming nothing built ('grep -c fuel = 0' still
+era-witnessed true); the acceptance item 'free-cam flies the voxel
+Earth unchanged' is exactly what the terrain freeze protects, and
+stays the pilot's unchecked box. One fossil earned a dated
+annotation (:48): 'one-time build (~8 s)' predates island mode —
+same-release census dial-matched it (islands 6.4 s, mainland 9.1 s
+at 4000²), console and FIRST-FLIGHT already carry the per-dial
+figures, the spec now does too (annotation appended, spec text
+untouched).
+
+The harvest is bigger than the fossil: Q1 and Q5 are now the
+LOAD-BEARING pair. The pilot's own verdict wording — islands need
+realistic designs 'so then the game can happen' — reads as Q1
+pointing toward the voxel world hosting gameplay, which wakes Q5
+(pads, crates, refugees on stamped islands) and, through Q1, every
+later spec plus the buried High Scores. That framing went into
+the annotation for the pilot's next read.
+

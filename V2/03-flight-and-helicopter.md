@@ -47,6 +47,13 @@ Real, shipped, tested:
   `CYCLONE_ISLANDS=1`) flies as a terrain lab: dev gate at Enter,
   one-time build (~8 s), full scale by default,
   `CYCLONE_CONTINENT_PREVIEW=1` boots straight into flying (it is a gate-skip, nothing more — round 183).
+  *Annotation 2026-11-08 (islands v2): '~8 s' predates island mode —
+  same-release census, dial-matched: islands 6.4 s, mainland 9.1 s at
+  4000² columns; the dev console notice and FIRST-FLIGHT now quote the
+  dial-matched figure. Q1/Q5 are now the load-bearing pair for the
+  islands verdict ('so then the game can happen'): answering Q1 =
+  voxel world hosts gameplay makes Q5 (landing zones, crates, refugees
+  on stamped islands) the next decision.*
 
 Not written at all: fuel, altitude clamp, landing/crash states, winch,
 the helicopter body, its rotor hum, a cockpit or chase view distinct
