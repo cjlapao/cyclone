@@ -1177,11 +1177,7 @@ fn preview_build(
                 // stops. All three now read the dials, one hoisted read.
                 let cont = cyclone_render::continent_mode();
                 if let Some((_, ext_m)) = cont {
-                    let extent = if ext_m >= 1000.0 {
-                        format!("{:.2} km²", ext_m * ext_m / 1_000_000.0)
-                    } else {
-                        format!("{ext_m:.0} m across")
-                    };
+                    let extent = extent_label(ext_m);
                     let isl = cyclone_render::continent_mesh::island_mode();
                     panel.spawn(theme.body(format!(
                         "Terrain: CONTINENT — {} · {extent}",
@@ -1402,6 +1398,38 @@ fn dev_fps_refresh(
     }
 }
 
+/// The one extent label every pilot-facing surface uses (preview
+/// panel row and the dev console notice) — shared so the two can
+/// never drift apart the way the panel's hard-coded '1 km²' did
+/// from the HUD's computed size (round 272/273 audit).
+pub(crate) fn extent_label(ext_m: f32) -> String {
+    if ext_m >= 1000.0 {
+        format!("{:.2} km²", ext_m * ext_m / 1_000_000.0)
+    } else {
+        // '100 m across': true for the CYCLONE_CONTINENT_SIZE=400
+        // maps the flow tests run on, where 'km²' reads as a lie.
+        format!("{ext_m:.0} m across")
+    }
+}
+
+/// The dev terrain-lab notice the pilot's terminal sees before the
+/// one-time build. DIAL-TRUE (round 273): the old string hard-coded
+/// '1 km² / ~8–10 s / release census: 8.7 islands' — the size false
+/// under the SIZE dial, the timing from the mainland era (same-day
+/// census: islands 6.4 s, mainland 9.1 s at 4000²), and the island
+/// count from pre-v2 terrain the family renders (4–7 on witnessed
+/// seeds) disproves. Pure on dial args so the plain suite — and CI
+/// on all three OSes — can hold it to those facts.
+#[cfg_attr(not(feature = "dev"), allow(dead_code))] // call site is dev-gated
+pub(crate) fn continent_notice(ext_m: f32, islands: bool) -> String {
+    let what = if islands { "ISLANDS" } else { "voxel Earth" };
+    let secs = if islands { "~6–7 s" } else { "~9–10 s" };
+    format!(
+        "continent mode: building {what} on {} (one-time, {secs} — release census 2026-11-08)…",
+        extent_label(ext_m)
+    )
+}
+
 /// Where InGame drops the rig on the voxel Earth: (x, y, altitude,
 /// pitch). Island mode makes the map centre OCEAN for most seeds, so
 /// scan outward (golden-angle ring, ~ms, pure) for standable ground
@@ -1439,9 +1467,10 @@ fn ingame_build(
     // runs — the 8 s one-time build must not read as a freeze (the
     // window paints once this system returns).
     #[cfg(feature = "dev")]
-    if cyclone_render::continent_mode().is_some() {
+    if let Some((_, ext_m)) = cyclone_render::continent_mode() {
         eprintln!(
-            "continent mode: building 1 km² voxel world (one-time, ~8–10 s — release census: 8.7 islands / 8.3 continent)…"
+            "{}",
+            continent_notice(ext_m, cyclone_render::continent_mesh::island_mode())
         );
     }
     // The renderer builds the planet only while this is true — set at
@@ -1692,5 +1721,47 @@ mod continent_clear_tests {
         );
         eprintln!("castaway seed {fallback_seed}: hover {up:.0} m, pitch {pitch}°");
         unsafe { std::env::remove_var("CYCLONE_ISLANDS") };
+    }
+}
+
+#[cfg(test)]
+mod notice_truth_tests {
+    use super::{continent_notice, extent_label};
+
+    #[test]
+    fn extent_label_tells_the_truth_per_dial() {
+        assert_eq!(extent_label(100.0), "100 m across"); // SIZE=400
+        assert_eq!(extent_label(1000.0), "1.00 km²"); // SIZE=4000 default
+        assert!(
+            !extent_label(100.0).contains("km²"),
+            "no km² over a 100 m map"
+        );
+    }
+
+    #[test]
+    fn continent_notice_holds_to_the_2026_11_08_census_per_dial() {
+        let isl = continent_notice(1000.0, true);
+        assert!(isl.contains("ISLANDS") && isl.contains("~6–7 s"), "{isl}");
+        assert!(
+            !isl.contains("8.7"),
+            "pre-v2 island count must not return: {isl}"
+        );
+        assert!(
+            !isl.contains("voxel Earth"),
+            "islands are named, not hidden: {isl}"
+        );
+        let main = continent_notice(1000.0, false);
+        assert!(
+            main.contains("voxel Earth") && main.contains("~9–10 s"),
+            "{main}"
+        );
+        assert!(
+            !main.contains("ISLANDS"),
+            "no dial claim without the dial: {main}"
+        );
+        assert!(
+            continent_notice(100.0, false).contains("100 m across"),
+            "SIZE dial respected"
+        );
     }
 }

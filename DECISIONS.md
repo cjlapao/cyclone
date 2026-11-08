@@ -2161,3 +2161,40 @@ which branch the test never walks. (Flow binary now 15 passed + 1
 ignored; suite still 27 binaries — the count law keeps its own
 numbers honest as they age.)
 
+## Round 273 — the Generating-screen notice's stale trio; and the restore command that ate its own round
+
+The third member of the class: the dev notice the pilot's terminal
+prints before the one-time build — 'building 1 km² voxel world
+(one-time, ~8–10 s — release census: 8.7 islands / 8.3 continent)'.
+Three era/dial lies in one line, each a different fossil: '1 km²'
+hard-coded (false under the SIZE dial — round 272's twin, in
+stdout); '~8–10 s' quoted from the mainland census while ISLANDS
+pilots wait ~6.4 s (same-day numbers: islands 6.4 s, mainland
+9.1 s at 4000²); '8.7 islands' a PRE-v2 count the v2 family
+renders (4–7 on witnessed seeds) disproves. Fix: one shared
+extent_label (panel and notice now physically cannot disagree —
+the drift the round-272 audit found, structurally closed) and a
+pure continent_notice(ext_m, islands) whose per-dial claims the
+PLAIN suite holds — CI-resident on all three OSes, not dev-gated
+teeth. Red-proof witnessed: the function temporarily made to
+speak the old string, the new test panicked on it verbatim, then
+green restored.
+
+The round's own scar, logged per the no-authorship-exception law:
+the red-proof's restore was git checkout -- on screens.rs — and
+screens.rs carried ALL of the round's uncommitted edits, so the
+checkout restored the committed file and ate them: label, notice,
+panel unification, tests. Caught instantly (the file's tail no
+longer held the mod), rebuilt from this round's own transcript in
+one pass, verified by count and by the full battery re-passing.
+Law extracted: a red-proof restores with the SAME targeted edit
+that made it red — never a git restore, which restores the last
+COMMIT and a live round lives in the difference. The deleted-
+assert scar's sibling: same shape (restore wider than the wound),
+twice learned, now law.
+
+Suite still 27 binaries (the new unit tests joined cyclone_game's
+in-file mod — the result-line law held); flow 15 + 1. Four gates
+echoes READ before this separate ship block; terrain frozen — UI
+text, one pure fn, tests.
+
