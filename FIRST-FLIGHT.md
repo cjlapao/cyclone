@@ -283,6 +283,13 @@ rectangles have a dossier and an armed fix waiting on YOUR word
    skids, 11 big (>= 900 m²) landing spots in the world, nearest
    11 m off the nose — measured in-process with the dial set, on
    today's exact code.
+
+   Your world, rendered from the frozen bytes (digest 0fa64087 —
+   the ones CI re-agrees on): all eleven >=900 m2 benches marked
+   with their areas, spawn cross at the plateau — see
+   `docs/pilot_seed_flight_map.png` (4000x4000; zoom to read the
+   labels; the middle mesa's five-site descent walks down the
+   slope like staircase stops).
 2. **Feel verdicts in dial language**: `TUNING.md` has 13 numbered
    flight dials + the continent table. '1 too slow, 3 too twitchy'
    is the whole loop — or just say 'it feels wrong while landing'.

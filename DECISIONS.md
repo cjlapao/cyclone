@@ -3132,3 +3132,33 @@ post-flight, the pilot's words ('the big flat downhill south of me')
 will match a row. Table lives in the ledger — docs keep summaries;
 the digest law again. Terrain frozen; read-only all the way down.
 
+## Round 307 — the pilot's world as one picture: eleven benches marked on frozen bytes, and three craft lessons paid in full
+
+The terraced mesa deserved eyes, not rows: rendered the pilot
+seed's shipped hillshade (the tool's OWN hillshade() — same bytes
+as any shipped map) with the round-306 table overlaid — spawn
+cross, eleven red boxes, areas labelled. Artifact:
+docs/pilot_seed_flight_map.png, 4000x4000, digest-provenance
+stated at its pointer. Before trusting it: verified marker
+placement ARITHMETICALLY (world m -> px -> downscale: spawn cross
+at 989,492 = predicted; 2730-box likewise), then with eyes —
+markers sit on the terraces, ring by ring. The picture holds the
+whole argument: yes, contour rings — and there is your game
+surface, marked, in your world.
+
+Three lessons, all paid: (1) `cat >>` onto a file without trailing
+newline WELDS lines — the first probe's delimiter error was not in
+its own body at all; the balance-check that 'proved' the module
+sound was counting braces the parser never saw, because the weld
+lived ABOVE the module. Suspect the seam, not the code. (2) cargo
+tests run with cwd = CRATE dir: the PNG landed in tools/…/docs/;
+rescued, dir removed, law: absolute repo paths for artifacts.
+(3) Doc anchors must match BYTES (three-space continuation indents
+bite); the two assertion-before-write failures were the pattern
+working — half-edit was never even possible.
+
+Probe module sliced, residual diff READ '' (one trim of two stray
+trailing newlines); pointer grafted, weld to list-item 2 fixed
+after read; PNG committed with its prose. Four gates; terrain
+frozen — the picture is pure read.
+
