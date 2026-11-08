@@ -227,6 +227,21 @@ PLAIN continent; for the islands you launch with today, use the
 CLI reads the same env the game does). TUNING.md has
 the dial table (relief floors, orogeny, snowline, cell size).
 
+## Since your verdict (2026-11-08) — the re-entry digest
+
+You said the islands were hills; islands v2 shipped the same hour
+(`435a62d`, 05:49). **Then the terrain froze — your verdict holds
+the only key to unfreezing it.** The 45 ships since then are all
+measurement, docs, and test arms: no height byte moved — the
+islands digest (0fa64087…) re-agrees on all three OSes with every
+push, CI green to the tip today. What those ships bought your
+flight, by pointer, no repeats here: your seed's first frame is
+witnessed (seed note, TERRAIN-LAB box); the Esc-R reroll margin and
+leak-free family-hopping are measured (TUNING reroll paragraph);
+the build wait got profile honesty (above the tour); the dark
+rectangles have a dossier and an armed fix waiting on YOUR word
+(TERRAIN-LAB box). Read the boxes below, fly when ready.
+
 ## What I need from you (dated: round 249, everything else waits on these)
 
 1. **Five boxes only eyes can check** — tick them in the specs when

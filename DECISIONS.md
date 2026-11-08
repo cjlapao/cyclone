@@ -2953,3 +2953,27 @@ forever — honest ancestors with unlabeled runs still spawn audit
 rounds. The probe died with the residual diff READ empty; four
 gates; terrain frozen, freshly witnessed, unedited.
 
+## Round 300 — the re-entry digest: answering the pilot's first unasked question
+
+Three hundred rounds in, the highest-value increment was the most
+human one: a returning pilot's first question about a repo that
+moved 45 times since their message is 'did you keep messing with
+my islands?' The truthful answer deserved to meet them BEFORE the
+ask-list, not buried in it: a bridge section, ten lines, every
+word witnessed and count-measured ('45 ships' from
+git rev-list 435a62d..HEAD, anchor = the islands-v2 commit itself,
+05:49; digest re-agreement = today's CI witnesses, rounds
+289/291).
+
+Its spine is the freeze stated as the pilot's own power: 'your
+verdict holds the only key to unfreezing it' — the freeze was
+never the era confining the engine; it is the pilot's authority
+kept armed. All numbers ride as POINTERS (gravity law: the boxes
+own the figures; a digest that repeats them becomes the drift
+surface of round 294's nightmare). Ends 'fly when ready', because
+the last face of the objective is not in this file.
+
+No new claims; one new arrangement of old truths. Four gates;
+terrain frozen; the corpus is now also SELF-EXPLAINING at the
+re-entry seam.
+
