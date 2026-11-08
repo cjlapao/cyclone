@@ -2462,3 +2462,32 @@ calls for it, the look has already been witnessed by the only
 eyes here that can judge colour, and the pilot has the preview
 in-repo to judge with their own.
 
+## Round 283 — flat SPOTS, measured: the count test was honest, and the pilot's noun was asking more
+
+islands_have_flat_landing_ground asserts a COUNT (>20k flat cols,
+ratio > 0.25); the pilot's verdict noun — 'flat spots' — is a
+claim about PLACES, and a one-cell-wide level contour line would
+satisfy the count with zero spots. The witness had no tooth for
+contiguity, so it was measured (frozen terrain, honest ruler):
+identical flat mask (same 9-point cross, same 1.2 m tolerance),
+4-connected BFS components, three seeds on the witness's own
+512 m map.
+
+Truth: the 88k columns are not grains — 12-23 CONNECTED spots per
+map, 6-8 spots >= 25 m2, largest components 766-2,698 m2 (seed
+23's biggest is a ~52 m square of level ground). And a
+cross-era agreement worth its weight: seed 5's component total,
+5,501 m2, IS the era witness's 88k cols x 0.0625 m2 to the
+column — old claim and new ruler say the same number.
+
+The honest asterisk, kept instead of smoothed: seed 11 had NO
+spot >= 900 m2 (largest 766). Benches are everywhere; BIG level
+places thin out on some families — and no pad-size threshold was
+invented to grade that, pads being spec-06/Q1 territory. TUNING
+:167 now carries the contiguity census beside the count witness,
+so the pilot's 'so then the game can happen' question has numbers
+for both nouns: how much flat ground, and how gathered.
+
+Probe deleted with residual diff READ empty; table row scanned
+(4 fields); four gates; terrain frozen — measured, never moved.
+

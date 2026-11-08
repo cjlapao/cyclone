@@ -164,7 +164,7 @@ resolution.
 | "coast geometry too round" | warp amp 150 m / wavelength 350 m | 150/350 |
 | "want more ocean" | land mask smoothstep(0.44, 0.54) | midpoint 0.49 |
 | "detail looks like crumpled foil" | detail amp × 28 m | 1.0 m (was 2.2, the render said so) |
-| "islands are just hills" | bench profile: count `(q * 5.0)`, tread mid `(k + 0.55)` | 5 benches; pilot verdict round 257, witness `islands_have_flat_landing_ground` (88k flat cols of 256k high at pad scale) |
+| "islands are just hills" | bench profile: count `(q * 5.0)`, tread mid `(k + 0.55)` | 5 benches; pilot verdict round 257, witness `islands_have_flat_landing_ground` (88k flat cols of 256k high at pad scale). Contiguity measured 2026-11-08 (3 seeds, the witness's own 512 m map): those cols form 12–23 CONNECTED spots, 766–2,698 m² largest, 6–8 spots ≥ 25 m² per map — but one family had NO spot ≥ 900 m², so benches everywhere, big level places thin out on some seeds |
 | "islands too low / too tall" | tallness `46.0 + 90.0 * fbm` on 300 m | 46–136 m per island (observed 88–116 m, 12-seed 1 km² census 2026-11-08 — the formula's ends are rarely both reached) |
 | "sand flats too wide" | beach fraction `p < 0.18` (flats reach 6 m) | 0.18 |
 | "coast too egg-smooth" | wobble `0.28 * (fbm(wx / 120.0` → radius ±14 % | ±14 % at 120 m |
