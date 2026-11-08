@@ -195,8 +195,9 @@ the dial table (relief floors, orogeny, snowline, cell size).
    world (archipelago vs voxel Earth) hosts the rescue gameplay.
    Specs 04–06 stay written-after, not written-now, because of it.
 4. **The release tag name** — binaries for all three OSes build on
-   any tag you push (`git tag v... && git push --tags`); the naming
-   is yours, CI is ready.
+   any tag starting with `v` (`git tag v2-preview && git push --tags`;
+   the filter is `v*` — a tag without the v builds binaries NOTHING).
+   The naming after the v is yours, CI is ready.
 5. **Last pass's loose ends**, if you have an opinion: ground-is-
    ground feel on low passes; the Enter-mid-carve moment (old world
    kept until new pops — a feature or a bug to you?); seed 42's
