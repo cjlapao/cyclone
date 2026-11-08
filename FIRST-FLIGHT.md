@@ -223,7 +223,12 @@ the dial table (relief floors, orogeny, snowline, cell size).
    benches, rotated notched coasts — Esc-then-R through a few
    families first). Bonus while you're there: do the dark
    rectangles around islands still appear on screen? A close-up
-   pins them if yes.
+   pins them if yes. *(Update round 281: mechanism found —
+   `docs/sea_rectangles_evidence.png` shows the sea's own colour
+   field painted by the shipped sampler: navy-to-black 25 m
+   squares at shore edges, blackest beside thin islands. Your
+   close-up still decides how loud it is in-game; the fix waits
+   on the terrain freeze lifting, not on me.)*
 2. **Feel verdicts in dial language**: `TUNING.md` has 13 numbered
    flight dials + the continent table. '1 too slow, 3 too twitchy'
    is the whole loop — or just say 'it feels wrong while landing'.

@@ -2401,3 +2401,34 @@ No file in the engine was touched this round; ledger-only; four
 gates anyway (nothing can move, echoes READ proving it); terrain
 frozen; the close-up stays the pilot's, the mechanism is now ours.
 
+## Round 281 — the rectangles, seen: production sampler, my own eyes, evidence committed
+
+Cargo.lock is law, and the era's PNG machinery lives only in
+worldgen-cli (no render dep) — so the zero-drift path to seeing
+build_sea's OWN colours was a throwaway in-crate test (pub(crate)
+accessors, the digest test's precedent) saving a hand-rolled
+stored-deflate PNG: no deps, no lock byte moved. One run, then
+surgical deletion — residual diff READ empty, the git-checkout
+scar from round 273 kept at bay by its own law.
+
+The picture (docs/sea_rectangles_evidence.png, seed 2, the
+production sampler's own vertex colours): cyan shelf halos ending
+in GRID-ALIGNED SQUARE EDGES; navy intruding between neighbouring
+halos as square notches — and the clincher, predicted from the
+centre-sampling mechanism hours earlier and found in pixels: a
+thin island wearing jet-black squares AT ITS OWN SHORE — a
+landmass that misses the bucket centres reads as far ocean beside
+its own beach. The pilot's screenshots are fully explained, and
+the ask-list now points at the picture with the fix's condition
+stated honestly: the close-up still decides loudness in-game; the
+fix waits on the freeze lifting, not on me.
+
+Process notes: three compile rounds to honest ink (nested move
+closures over FnMut -> plain loops; IHDR chain -> plain bytes;
+integer /12 bucket mapping overrunning 500/40 = 12.5 — my own
+raster had a rounding bug the compiler AND the panic caught
+before the image could lie). And a tool lesson: the read tool
+pads its display one column; two edit failures lost to memory's
+bytes before the file's bytes won — anchor edits on file content,
+not remembered indentation.
+
