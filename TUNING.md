@@ -19,7 +19,7 @@ game closed; a bad file falls back to defaults):
 Linux `~/.config/rescue/settings.ron`, Windows
 `%APPDATA%\cyclone\rescue\config\settings.ron` (the crate appends `config` — verified in directories-6.0.0 win.rs:75), macOS
 `~/Library/Application Support/com.cyclone.rescue/settings.ron`
-(paths of `directories::ProjectDirs` — verified by running it).
+(paths of `directories::ProjectDirs` — Linux verified by running it on a dev box; macOS/Windows paths are what the engine's `settings_persist` test round-trips on the CI runners — on macOS by redirecting `HOME` (the crate reads it from env), on Windows through the OS-resolved AppData, which no env override can reach).
 Binding names = field names below (`up`, `climb`, `boost`, …), each a
 list of key names as in the table (e.g. `boost: ["ControlLeft"]`).
 
