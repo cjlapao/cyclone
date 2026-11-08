@@ -33,6 +33,12 @@ Real, shipped, tested:
   ground) — the rig never sinks through the world.
 - Speed model: `FLY_BASE` (38 u/s at fov 45, fov-scaled) in
   `TUNING.md` — a *velocity*, but with no mass, no drag, no fuel.
+- World DATA for the round is generated and validated already: 14
+  islands on a 160×160 tile grid (1 tile = 1 world unit), Base Island
+  with helipad, 3–4 further pads, crates and refugees on islands, all
+  invariants gated per seed (`cyclone_worldgen`). The machine just has
+  nothing to interact with yet — helipads exist as data, not as
+  places that refuel.
 - The voxel Earth (`CYCLONE_CONTINENT=1`, optional
   `CYCLONE_ISLANDS=1`) flies as a terrain lab: dev gate at Enter,
   one-time build (~8 s), full scale by default,
