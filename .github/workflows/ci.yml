@@ -41,7 +41,13 @@ jobs:
       # Round 210: broken intra-doc links and swallowed HTML tags are
       # pilot-facing myths on standby — warnings are fatal here.
       - name: rustdoc (warnings fatal)
-        run: RUSTDOCFLAGS="-D warnings" cargo doc --workspace --no-deps
+        # env BLOCK, not bash inline assignment: Windows runners run
+        # pwsh by default, where `VAR=value cmd` is a syntax error —
+        # the gate's maiden flight red on Windows alone (65a403b)
+        # while bash runners sailed it green.
+        env:
+          RUSTDOCFLAGS: "-D warnings"
+        run: cargo doc --workspace --no-deps
       # MSVC codegen for the test profile happens HERE, not inside
       # the test step — so the test step's wall time means tests, and
       # a codegen failure names itself as a build failure.
