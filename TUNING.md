@@ -164,13 +164,13 @@ resolution.
 | "coast geometry too round" | warp amp 150 m / wavelength 350 m | 150/350 |
 | "want more ocean" | land mask smoothstep(0.44, 0.54) | midpoint 0.49 |
 | "detail looks like crumpled foil" | detail amp × 28 m | 1.0 m (was 2.2, the render said so) |
-| "islands are just hills" | bench profile: count `(q * 5.0)`, tread mid `(k + 0.55)` | 5 benches; pilot verdict round 257, witness `islands_have_flat_landing_ground` (88k flat cols of 256k high at pad scale). Contiguity measured 2026-11-08 (3 seeds, the witness's own 512 m map): those cols form 12–23 CONNECTED spots, 766–2,698 m² largest, 6–8 spots ≥ 25 m² per map — but one family had NO spot ≥ 900 m², so benches everywhere, big level places thin out on some seeds |
+| "islands are just hills" | bench profile: count `(q * 5.0)`, tread mid `(k + 0.55)` | 5 benches; witness `islands_have_flat_landing_ground`; flat-spot census 2026-11-08 → note A below |
 | "islands too low / too tall" | tallness `46.0 + 90.0 * fbm` on 300 m | 46–136 m per island (observed 88–116 m, 12-seed 1 km² census 2026-11-08 — the formula's ends are rarely both reached) |
 | "sand flats too wide" | beach fraction `p < 0.18` (flats reach 6 m) | 0.18 |
 | "coast too egg-smooth" | wobble `0.28 * (fbm(wx / 120.0` → radius ±14 % | ±14 % at 120 m |
 | "eggs all point the same way" | rotation `(((h2 >> 8) & 0xFF) …) * …TAU` per stamp | was: NONE — every egg axis-aligned until round 257 |
 | "too many / too few islands" | keep-coin `if coin < 0.45` at SPACING 340 m | 55 % of lattice sites (observed 3–8 per world, median 6 — same census; the spread is the loop's, no cause claimed here) |
-| "blocky under me" | `const CELL_VOX` (render/cyclone_mesh — A CONST in cyclone_render/src/continent_mesh.rs: recompiles, no env) | 4 (1 m mesh cells at 25 cm voxels — the VOXEL was always 25 cm, the MESH CELL was the visible cube; sea stays one quad via sparse drop). CELL_VOX=2 MEASURED (2026-11-08, release, same census, both modes): islands 6.5 s / 161 chunks / 602 k quads (quad load ×3.5 for +1 % build time); mainland 10.2 s / 859 chunks / 6.76 M quads (mesh ×3.5, build +12 %) — a real dial, not a free one; every mesh digest re-pins with it |
+| "blocky under me" | `const CELL_VOX` (A CONST in cyclone_render/src/continent_mesh.rs — recompiles, no env) | 4 (1 m mesh cells; CELL_VOX=2 is a REAL dial, not free → note B below) |
 | "no rivers / too many rivers" | `CATCH` (carve_rivers, continent.rs) | 25k columns ≈ 1.6 km² of rain to earn a stream (3k over-carved a canyon — round-177 crater) |
 | "rivers too thin / too wide" | flood window `1 + acc/(4·CATCH)` cap | 1–17 cells (≈0.25–4 m) |
 | "rivers should flood more" | surface fill `bed + depth·2/3` | 2/3 of the cut holds water |
@@ -179,11 +179,39 @@ resolution.
 | "colours band wrongly" | `earth_rgb` cuts (continent_mesh) + CLI mirror | 14/95/175/245 m — they MUST ride the relief band; the old 260/600/900 lived above a world that no longer exists |
 | "./target/release/cyclone: libstd-*.so not found" | `dev` feature = Bevy dynamic linking | launch with `cargo run --features dev` (cargo sets the dylib search itself, debug or release); running the binary BY HAND needs `LD_LIBRARY_PATH=target/release/deps:$(rustc --print target-libdir)` — or build without `dev` (static, ships that way) |
 | "what does PREVIEW do?" | `CYCLONE_CONTINENT_PREVIEW=1` (alias `_SCALE=1`) | SKIPS THE MENU GATE ONLY (planet live at boot, not at Enter). Round 183 deleted the "0.2× overview" myth: the 0.2 was never multiplied into any mesh/transform/bounds — comments-only code is dead code. Overview = climb to ~300 m |
-| "spawned over the ocean" | `spawn_over_land` golden-angle ring scan | 40 m rings, ≥3 m standable (river-safe lower bound); centre-land hits at ring 0 (free); fallback hovers + pitch −60° to find the islands. ⚠ It re-derives height through `surface_height_m` → `island_mode()` AT CALL TIME: the cfg islands FIELD does not reach it — probes calling it must SET THE ENV DIAL or they grade against mainland phantoms (caught 2026-11-08; islands claim then re-witnessed dialed: heights 55–95 m, big level spot 5–45 m from the nose in 11/12) |
+| "spawned over the ocean" | `spawn_over_land` golden-angle ring scan | 40 m rings, ≥3 m standable (river-safe lower bound); centre-land hits at ring 0; fallback hovers + pitch −60°. ⚠ The dial law lives → note C below |
 | "spawned on a sandbar" | same scan's preference | HIGHEST standable ground in radius wins (the flagship island), ties nearer; witnessed: first-touch picked a 4 m bar 160 m out over a 93 m flagship 393 m out |
 | "a few islands like this photo" | `ContinentConfig.islands` (CYCLONE_ISLANDS=1) | point-process stamps on a 340 m lattice: coin 0.45, cosine blobs r=90–200 m, seeded squish; fbm tail-cut REJECTED by census (one island + gravel) |
 | "islands have no beaches" | `near_wet` = river OR height-0 neighbour | beaches are sea-ADJACENCY; the water array only holds rivers |
 | "shelf too wide / sea banded" | shelf ramp 150 m; sheet DTM normalised voxels² BIG=1e8 | f64 ulp: BIG must beat every true d² yet keep +p² exact — 1e18 erased sources, 1e13 faked distances |
+
+### Table notes (extracted 2026-11-08 — dossier, not scan lane)
+
+**A — the bench row's census.** Pilot verdict round 257; witness
+`islands_have_flat_landing_ground` (88k flat cols of 256k high at
+pad scale). Contiguity measured 2026-11-08 (3 seeds, the witness's
+own 512 m map): those cols form 12–23 CONNECTED spots, 766–2,698 m²
+largest, 6–8 spots ≥ 25 m² per map — but one family had NO spot
+≥ 900 m², so benches everywhere, big level places thin out on some
+seeds. Full-scale 12 seeds (DECISIONS rounds 284–285): 25–116 spots
+≥ 25 m² per world (median 62), 4–23 ≥ 900 m², largest per world
+1,868–6,842 m².
+
+**B — CELL_VOX=2, measured.** (2026-11-08, release, same census,
+both modes): islands 6.5 s / 161 chunks / 602 k quads (quad load
+×3.5 for +1 % build time); mainland 10.2 s / 859 chunks / 6.76 M
+quads (mesh ×3.5, build +12 %). The VOXEL was always 25 cm; the
+MESH CELL is the visible cube; sea stays one quad via sparse drop.
+A real dial, not a free one — every mesh digest re-pins with it.
+Decision parked; the numbers wait here, not in the cell.
+
+**C — the spawn row's dial law.** It re-derives height through
+`surface_height_m` → `island_mode()` AT CALL TIME: the cfg islands
+FIELD does not reach it — probes calling `spawn_over_land` must SET
+THE ENV DIAL or they grade against mainland phantoms (caught
+2026-11-08; the islands claim was then re-witnessed dialed: spawn
+heights 55–95 m, big level spot 5–45 m from the nose in 11/12
+worlds).
 
 (Islands-vs-mainland release census, 2026-11-08, SAME tool run
 back-to-back (`fullscale_census --ignored`, seed 2, 4000², release,

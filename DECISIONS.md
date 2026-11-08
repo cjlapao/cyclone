@@ -2750,3 +2750,27 @@ No pilot-facing change owed; ledger-only; four gates; terrain
 frozen; the green wall behind the frozen ground now reaches the
 tip itself.
 
+## Round 292 — the dial-table fossils: three cells extracted, the scan lane restored
+
+TUNING.md's continent table is the pilot's dictionary of feel-words,
+and days of honest appends had grown three cells to 486, 553 and
+560 characters — four to five wrapped lines INSIDE a cell whose job
+is one-breath scanning. Counted before cutting (57 rows, 132-char
+average; >250 flagged, >480 declared monsters — the 311/343 ops
+rows kept: they scan in two wraps, border discipline from round
+291), byte-addressed by line number after two reads disagreed about
+which line was which (anchor on bytes, not remembered layout).
+
+The three monsters — bench census, CELL_VOX=2 measurement, spawn
+dial law — now ride the table as short rows with pointers to a new
+'Table notes' section that carries every dossier word VERBATIM:
+zero truth-loss, pure gravity. CELL_VOX's parked decision is the
+sharpest beneficiary: the argument was previously un-findable
+because it was un-readable — a decision cannot be made about a
+constant when the numbers hide in a table cell.
+
+Same law as round 290, new medium: appending is editing's lazy
+path — in a TABLE, its unit is the glance, and a cell that needs a
+paragraph has stopped being a table. Rows re-verified at four
+pipe-fields; edited regions READ whole; four gates; terrain frozen.
+
