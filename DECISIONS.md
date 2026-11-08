@@ -3390,3 +3390,20 @@ one of them belongs to the pilot, not the author.
 Four gates; terrain frozen (git itself now says so); three rounds
 on the clock, probe ~3.3 h out.
 
+## Round 318 — endgame read: badge passing, oracles exact, the pilot's new command prints its zero
+
+Three instruments, one round, fresh: CI badge PASSING at tip
+(descendant law covers the shipped tail); `ls-remote` == HEAD
+byte-exact; and yesterday's gift to the pilot re-witnessed at tip
+— `git log --oneline 435a62d..HEAD -- crates/cyclone_worldgen/
+src/` counts 0 lines. The command the digest now tells them to
+run prints its nothing ON TIME, at every tip, and this round
+checked again that saying so is true.
+
+Two rounds on the clock. No prose edits this round — the corpus
+was last touched the round before last and every sentence in it
+has an instrument or a witness behind it; the honest move at the
+end of an era is to stop generating work and keep generating
+truth. Weapons fitted, probe ~2.7 h out, pilot asleep or Sunday
+outside. Objective's last mile: one flight, one sentence.
+
