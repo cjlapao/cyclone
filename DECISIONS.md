@@ -2039,3 +2039,32 @@ was wrong. Claims of quantity ('five rows', '27 ok', '40/40')
 deserve the same byte-check as claims of value, and git is the
 cheap witness for claims about the past.
 
+## Round 269 — spec-02 face-to-face with islands v2: zero open debt on my side
+
+Full re-read of V2/02-map-generation.md (whose real filename my
+globs kept guessing wrong — ls before grep, learned the cheap
+way). The audit question that matters mid-freeze: does the
+islands path owe anything to this spec that could be fixed
+without a verdict? Answer by section, not vibes:
+
+The ten-stage WorldMap pipeline (sites, archetypes, helipads,
+fuel graphs, crates, occlusion, refugees) IS the classic game
+world — spec-satisfied with era receipts: 1000/1000 batch at 15 ms
+median, invariants 300 seeds, golden bit-identical on three OSes.
+Islands v2 is the terrain-lab height grammar and owes the spec
+only what general laws reach: A2 determinism (libm law, held), C3
+determinism-on-CI (canary digest asserted Linux+macOS+Windows,
+round 262 renewed), classic perf budget (150 ms applies to the
+160x160 classic config — islands is a 1 km² dev env world,
+measured honestly instead: 6.4 s release census).
+
+Every unchecked acceptance box (:312 contact-sheet looks varied,
+:314 'shows' foam/props, :315 cross-machine seed) is a pilot-
+senses item predating v2 — their pen, not mine. Crates/refugees
+/pads on islands remain exactly where Q1 put them. Verdict: no
+spec-compliance work hidden behind the freeze; the freeze blocks
+nothing the spec demands. V2's own C1 line adopted as method:
+'this tool is how the agent (and you) judge the generator' — six
+hillshades were the islands answer to that ritual; the pilot's
+contact-sheet verdict is the same ritual with the better eye.
+
