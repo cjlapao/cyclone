@@ -2068,3 +2068,33 @@ nothing the spec demands. V2's own C1 line adopted as method:
 hillshades were the islands answer to that ritual; the pilot's
 contact-sheet verdict is the same ritual with the better eye.
 
+## Round 270 — the pilot's reroll loop gets its first island-mode hitch number: 24.2 ms, box holds
+
+Spec-01's audit found the inheritance gap nobody had named:
+acceptance :99's ≤50 ms reroll box had THREE dated measurements,
+all classic. The v2 loop — the exact loop the pilot is about to
+mash — inherited the box on faith. The tool (flow.rs:349, the
+era's own hitch instrument) run under all three dials (CONTINENT
+SIZE=400 ISLANDS + the PREVIEW alias, the reroll-era test's
+proven route) answered: worst frame 24.2 ms across 139,806
+frames, 51 % margin, dev-profile offscreen — the same comparison
+conditions as classic's 8.3–9.2 ms, so the delta is real:
+island rebuild frames land heavier (27 chunks, worker completion
+and mesh swap in the same frame is the shape; not chased further
+— inside the box, dated, headless caveat stands: GPU upload is
+never represented here).
+
+The spec text gained its fourth dated witness under the box —
+addition in my pen, pilot's words untouched, matching the exact
+pattern the box already established. The pattern lesson: an
+acceptance box measured three times under the OLD world is an
+unmeasured box under the new one — audits should ask 'which
+era-dated claims does v2 inherit silently?' The backdrop worry
+raised at the round's open died with a citation: spec :30
+intentionally pins the menu to a small one-island config;
+mode dials change the GAME world; the pilot's screenshots were
+compliance, not drift. High Scores formally confirmed Q1-gated:
+:42 specs it fully (name/score/round/date/seed, play-this-seed)
+and the ONLY missing organ is the score event, which is crates —
+the empty table has no witness to write until Q1.
+
