@@ -1789,3 +1789,37 @@ the pilot flies v2: no dial drifts under a pilot mid-flight —
 the bench-drift one-liner is written in this ledger's margin and
 waits for a verdict, not for my taste.
 
+## Round 258 — the era's deepest cut: I deleted the canary's assert, and CI's clippy was the only witness
+
+The 'honest note attached' edit replaced a block whose old-string
+ended IN THE ASSERT — python dutifully wrote comment-with-no-teeth,
+the digest assertion evaporated, and the suite went green because
+THE PROOF STOPPED PROVING. The commit message swore 'digest
+0fa64087 frozen' — intent-ink describing bytes that no longer
+existed. CI went red on all three OSes, and the error was clippy's
+`unused variable: digest`: the compiler noticed the missing teeth
+before any human did. The era's own nightmare specimen: green ink
+that cannot go red, manufactured at full green-suite-27 health.
+
+Not a cross-OS drift (the libm law never flinched — digests agreed
+wherever they were still checked); not triage-able (no innocent
+descendant existed when the verdict was read — the fix is the
+descendant now, with clippy/suite/flow/golden all green locally on
+EXACTLY these bytes). Two laws adopted at the scene:
+
+1. EDITS TO TEST CODE END WITH READING THE FILE'S DIFF — the
+   `-assert_eq!` line was one `git diff` away from confessing the
+   whole crime, every time, forever. Anchors that span comments
+   must re-emit any code they swallowed; when in doubt, anchor on
+   the comment's LAST line alone.
+2. THE FOUR-GATE SHIP BLOCK: fmt, clippy, suite AND flow, every
+   ship, echoes read before a separate ship command. The red
+   commit skipped clippy because its author (round 257,
+   exhausted, suite-green) treated 'the gates' as a vibe, not a
+   checklist. CI IS the checklist's second copy — that's what it
+   is FOR, and it earned its keep the hour it existed.
+
+The restored assert passes unchanged: 0fa64087 IS the terrain.
+The comment now tells the scar's story in the file itself, so the
+next reader of this block learns both the law and its price.
+

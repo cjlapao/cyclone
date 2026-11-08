@@ -93,6 +93,16 @@ fn islands_seed2_512_digest() {
     // with the notched coasts. high/mountain stay 0: island tops
     // ride below the mountain masks. Re-measured 2026-11-08 Linux;
     // CI's macOS/Windows legs are the cross-OS agreement test.
+    // (Round-257 scar: the edit that ADDED that comment deleted this
+    // assert — the block became comment-with-no-teeth, the suite went
+    // green because the proof stopped proving, and only clippy's
+    // unused-variable noticed. CI went red on all three OSes; the
+    // restore below is the whole fix. Digest: assert it or don't
+    // compute it.)
+    assert_eq!(
+        digest,
+        "0fa64087168c7f1e8f13a855d6204edb6c65f6eb15e10b6f4a86376e68b0a7ad"
+    );
     let m = c.metrics;
     assert!((m.ocean_ratio - 0.9081399440765381).abs() < 1e-9);
     assert!((m.flat_ratio - 0.09287833288778034).abs() < 1e-9);
