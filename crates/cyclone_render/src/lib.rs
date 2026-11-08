@@ -174,6 +174,14 @@ fn continent_prewarm_kick(
         // into nothing — a wasted core for seconds, never a frame).
         commands.remove_resource::<ContinentPrewarm>();
     }
+    if built.is_some_and(|b| b.key != key) {
+        // Symmetric shedding: a landed payload for a DEAD seed
+        // pins its heightfield + chunk bytes with no consumer in
+        // sight (Esc-to-menu after a pre-Enter landing, reroll
+        // mid-landing). The next landing overwrites it anyway —
+        // holding it that long is a leak with a polite name.
+        commands.remove_resource::<ContinentBuilt>();
+    }
     let seed = world.0.seed.0;
     let task = bevy::tasks::AsyncComputeTaskPool::get_or_init(bevy::tasks::TaskPool::default)
         .spawn(async move { continent_mesh::generate_and_mesh(seed, size) });
