@@ -161,7 +161,7 @@ fn boot(mut commands: Commands, time: Res<Time>) {
         ))
         .with_children(|mid| {
             mid.spawn((
-                Text::new("CYCLONE RESCUE"),
+                Text::new(cyclone_engine::GAME_TITLE.to_uppercase()),
                 TextFont {
                     font_size: FontSize::Px(54.0),
                     ..default()
@@ -288,7 +288,7 @@ fn menu_build(
                 DespawnOnExit(AppState::MainMenu),
             ))
             .with_children(|col| {
-                col.spawn(theme.title("CYCLONE RESCUE"));
+                col.spawn(theme.title(cyclone_engine::GAME_TITLE.to_uppercase()));
                 col.spawn(Node {
                     height: Val::Px(30.0 * s),
                     ..default()

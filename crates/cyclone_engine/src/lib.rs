@@ -9,6 +9,15 @@ mod input;
 mod rng;
 mod settings;
 
+/// THE working title — the V2/README ground rule 'set in one
+/// constant', finally true in the letter AND the dependency graph:
+/// lives below both consumers (the binary sets the window title from
+/// it; the menu derives its caps at runtime from the same bytes).
+/// Round 231 audit: before this, 'Cyclone Rescue' lived in main.rs
+/// and two hardcoded 'CYCLONE RESCUE' literals lived in the menu —
+/// a rename would have needed three edits.
+pub const GAME_TITLE: &str = "Cyclone Rescue";
+
 pub use camera_rig::{
     CameraHeading, CameraRig, MIN_GROUND_CLEAR, RigFollow, RigTarget, TerrainFloor, WorldBounds,
 };

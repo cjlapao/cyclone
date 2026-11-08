@@ -1,12 +1,10 @@
 //! Cyclone Rescue — wires plugins together, nothing else (spec 00).
 
 use bevy::{prelude::*, window::WindowResolution};
-use cyclone_engine::Settings;
+use cyclone_engine::{GAME_TITLE, Settings};
 use cyclone_game::CycloneGamePlugin;
 use cyclone_render::WorldBuilderPlugin;
 use cyclone_ui::CycloneUiPlugin;
-
-const GAME_TITLE: &str = "Cyclone Rescue";
 
 fn main() {
     // Open the window AT the saved settings (spec 00 C5 / spec 01 C6):
