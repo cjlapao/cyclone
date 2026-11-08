@@ -8,6 +8,13 @@ remaining acceptance boxes.
 cd ~/code/cjlapao/cyclone
 cargo run -p cyclone            # add --features dev for the F3 overlay
 ```
+```sh
+# YOUR VERDICT LOOP — the v2 islands world (pick ONE fence: each
+# starts a game): the flat-spots verdict question lives HERE, and
+# so do the Esc-then-R rerolls. The classic tour underneath still
+# owns the spec-00/01/02 boxes.
+CYCLONE_CONTINENT=1 CYCLONE_ISLANDS=1 cargo run -p cyclone --features dev
+```
 
 One honesty note before the wait: the FIRST run after a fresh checkout
 compiles all of Bevy in the dev profile — a long one-time build that is

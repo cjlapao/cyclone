@@ -2900,3 +2900,29 @@ test goes red on first use — suspect your units, then your
 baseline, and only then the world. Four gates; terrain untouched
 (measured, armed, never edited).
 
+## Round 298 — the flight card at line 9: the verdict-loop command meets the pilot's first screen
+
+The readability family's last frontier was its FIRST screen:
+FIRST-FLIGHT opened with a real flight card — title, one fence,
+command by line 9 — but the command it presented was CLASSIC,
+while the era's entire verdict loop (the flat-spots question, the
+Esc-then-R rerolls, the pilot's own seed note) lives in the
+CONTINENT+ISLANDS world, buried at :69. A pilot opening the doc
+mid-morning should meet the command that answers their question in
+the same first breath.
+
+Graft, then a same-round craft catch: the first version put BOTH
+commands in ONE fence — pasting the whole block would boot the
+classic game and queue the verdict command behind it. Split into
+two fences, one command each, with 'pick ONE fence: each starts a
+game' stated in the paste. The classic tour keeps its stops (they
+own the spec-00/01/02 boxes); the islands fence says plainly it
+HOLDS the verdict question. No numbers added to the card — the
+doc's own honesty-note (numbers age by machine and profile) kept
+its law intact at its own birthplace.
+
+Law small but real: any two commands a human CHOOSES BETWEEN get
+separate fences; a fence is a paste unit, and a paste unit that
+starts two games starts none the pilot meant. Four gates; terrain
+frozen; tour untouched.
+
