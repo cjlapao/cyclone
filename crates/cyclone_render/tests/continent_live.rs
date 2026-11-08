@@ -44,6 +44,28 @@ fn app_scaffold() -> App {
     app
 }
 
+/// The prewarm era: after any build trigger, the planet lands when
+/// the WORKER does — poll with wall-clock patience, then three free
+/// frames so deferred spawns (claim → root → children) flush.
+fn settle_until(app: &mut App, what: &str, done: impl Fn(&mut App) -> bool) {
+    for _ in 0..2400 {
+        app.update();
+        if done(app) {
+            for _ in 0..3 {
+                app.update();
+            }
+            return;
+        }
+        std::thread::sleep(std::time::Duration::from_millis(5));
+    }
+    panic!("{what}: never settled in ~2400 polls");
+}
+
+fn planet_built(app: &mut App) -> bool {
+    app.world()
+        .contains_resource::<cyclone_engine::TerrainFloor>()
+}
+
 fn count<T: bevy::ecs::component::Component>(app: &mut App) -> usize {
     let w = app.world_mut();
     let mut q = w.query::<&T>();
@@ -75,9 +97,7 @@ fn live_flip_swaps_archipelago_for_planet() {
 
     // Enter InGame: game flips the gate (same insert as ingame_build).
     app.insert_resource(cyclone_render::ContinentLive(true));
-    for _ in 0..3 {
-        app.update();
-    }
+    settle_until(&mut app, "planet built (worker)", planet_built);
     // Planet built: crates belong to the old world and must be gone
     // (replace-cleans proven in world_rebuild.rs); land meshes exist.
     let crates_now = count::<Crate>(&mut app);
@@ -155,9 +175,7 @@ fn preview_flag_flips_live_at_boot_nothing_else() {
     // first runs (screens spawn after worldgen; the render plugin
     // inserts ContinentLive(false) at add_plugins).
     app.insert_resource(cyclone_engine::CurrentWorld(small_map()));
-    for _ in 0..3 {
-        app.update();
-    }
+    settle_until(&mut app, "boot-time planet (PREVIEW gate)", planet_built);
     assert!(
         app.world().resource::<cyclone_render::ContinentLive>().0,
         "PREVIEW flips live at boot (menu gate skipped)"
@@ -197,9 +215,7 @@ fn seed_swap_invalidates_the_continent_cache() {
     let mut app = app_scaffold();
     app.insert_resource(cyclone_engine::CurrentWorld(small_map()));
     app.insert_resource(cyclone_render::ContinentLive(true)); // fly it
-    for _ in 0..3 {
-        app.update();
-    }
+    settle_until(&mut app, "planet built (worker, swap test)", planet_built);
     let root_before = {
         let w = app.world_mut();
         let mut q = w.query_filtered::<Entity, With<cyclone_render::WorldRoot>>();
@@ -216,9 +232,12 @@ fn seed_swap_invalidates_the_continent_cache() {
     );
     assert_ne!(small_map().seed.0, map_b.seed.0, "seeds truly differ");
     app.insert_resource(cyclone_engine::CurrentWorld(map_b));
-    for _ in 0..4 {
-        app.update();
-    }
+    settle_until(&mut app, "reroll planet built", |a| {
+        let w = a.world_mut();
+        let mut q = w.query_filtered::<Entity, With<cyclone_render::WorldRoot>>();
+        let ids: Vec<_> = q.iter(w).collect();
+        ids.len() == 1 && ids[0] != root_before
+    });
     let root_after = {
         let w = app.world_mut();
         let mut q = w.query_filtered::<Entity, With<cyclone_render::WorldRoot>>();
@@ -249,9 +268,7 @@ fn same_seed_reentry_respawns_from_cache_not_a_rebuild() {
     let mut app = app_scaffold();
     app.insert_resource(cyclone_engine::CurrentWorld(small_map()));
     app.insert_resource(cyclone_render::ContinentLive(true));
-    for _ in 0..3 {
-        app.update();
-    }
+    settle_until(&mut app, "planet built (worker)", planet_built);
     let grab = |app: &mut App| -> std::collections::HashSet<bevy::asset::AssetId<Mesh>> {
         let w = app.world_mut();
         let mut q = w.query_filtered::<&Mesh3d, With<cyclone_engine::InWorld>>();

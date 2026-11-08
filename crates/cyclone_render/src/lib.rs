@@ -54,6 +54,37 @@ struct ContinentCache {
     mat: Handle<StandardMaterial>,
 }
 
+/// A planet build in flight on the task pool: the 8 s
+/// `generate_and_mesh` (round 201's documented freeze) runs behind
+/// whatever is on screen — the archipelago preview, the Generating
+/// screen, even the previous planet — and the world swap happens
+/// whole when it lands. One per key (seed, size); stale keys get
+/// replaced mid-flight (the wasted task costs a core, not a frame).
+#[derive(Resource)]
+struct ContinentPrewarm {
+    key: (u64, u32),
+    /// Slot so the poll can MOVE the finished task out of ResMut
+    /// (you cannot move out of `Res`; `now_or_never` needs owned).
+    task: Option<
+        bevy::tasks::Task<(
+            cyclone_worldgen::continent::Continent,
+            Vec<continent_mesh::ContinentChunk>,
+        )>,
+    >,
+}
+
+/// The finished payload a waiting `rebuild_world` claims. `Option`
+/// so the claim MOVES the data out of the resource (a 1 km planet
+/// does not clone); a key mismatch marks it stale — never built.
+#[derive(Resource)]
+struct ContinentBuilt {
+    key: (u64, u32),
+    payload: Option<(
+        cyclone_worldgen::continent::Continent,
+        Vec<continent_mesh::ContinentChunk>,
+    )>,
+}
+
 pub struct WorldBuilderPlugin;
 
 impl Plugin for WorldBuilderPlugin {
@@ -63,6 +94,13 @@ impl Plugin for WorldBuilderPlugin {
         // (the engine app already has it — Default is a no-op there).
         app.init_resource::<cyclone_engine::WorldBounds>();
         app.add_systems(Update, continent_bounds_guard);
+        // Prewarm BEFORE rebuild (kick→poll→rebuild, same beat):
+        // rebuild must see the task running the frame the world
+        // lands, else it would sync-build and the freeze is back.
+        app.add_systems(
+            Update,
+            (continent_prewarm_kick, continent_prewarm_poll).before(rebuild_world),
+        );
         app.add_systems(
             Update,
             rebuild_world
@@ -101,6 +139,87 @@ fn continent_bounds_guard(
     bounds.max = Vec2::new(extent, extent);
 }
 
+/// Start (or restart) the planet task whenever a world exists whose
+/// key has neither a fresh cache nor a task nor a built payload —
+/// REGARDLESS of `ContinentLive`: the preview shows the archipelago
+/// while Enter is still coming, and that's exactly the time to
+/// carve the planet nobody is looking at yet. Headless-safe pool
+/// init mirrors screens.rs (tests carry no TaskPoolPlugin).
+fn continent_prewarm_kick(
+    world: Option<Res<CurrentWorld>>,
+    cache: Option<Res<ContinentCache>>,
+    prewarm: Option<Res<ContinentPrewarm>>,
+    built: Option<Res<ContinentBuilt>>,
+    mut commands: Commands,
+) {
+    let Some((size, _extent_m)) = continent_mode() else {
+        return;
+    };
+    let Some(world) = world else { return };
+    let key = (world.0.seed.0, size);
+    let fresh = cache
+        .as_ref()
+        .is_some_and(|k| k.seed == world.0.seed.0 && k.extent_m == size as f32 * 0.25);
+    let running = prewarm
+        .as_ref()
+        .is_some_and(|p| p.key == key && p.task.is_some());
+    let waiting = built
+        .as_ref()
+        .is_some_and(|b| b.payload.is_some() && b.key == key);
+    if fresh || running || waiting {
+        return;
+    }
+    if prewarm.is_some() {
+        // A stale-key task: drop the handle (the worker finishes
+        // into nothing — a wasted core for seconds, never a frame).
+        commands.remove_resource::<ContinentPrewarm>();
+    }
+    let seed = world.0.seed.0;
+    let task = bevy::tasks::AsyncComputeTaskPool::get_or_init(bevy::tasks::TaskPool::default)
+        .spawn(async move { continent_mesh::generate_and_mesh(seed, size) });
+    commands.insert_resource(ContinentPrewarm {
+        key,
+        task: Some(task),
+    });
+}
+
+/// Land the finished payload for rebuild to claim next beat. The
+/// task is only polled when PROVEN finished, so `now_or_never`
+/// resolves immediately — this system structurally cannot block
+/// the main thread (the whole point of the exercise).
+fn continent_prewarm_poll(prewarm: Option<ResMut<ContinentPrewarm>>, mut commands: Commands) {
+    use std::task::{Context, Poll};
+    let mut prewarm = match prewarm {
+        Some(p) => p,
+        None => return,
+    };
+    if prewarm.task.as_ref().is_none_or(|t| !t.is_finished()) {
+        return;
+    }
+    // SAFETY of the move: task proven finished; taking the Option
+    // out of the slot leaves a visibly-drained resource that
+    // rebuild's claim (or next frame) removes.
+    let Some(mut task) = prewarm.task.take() else {
+        return;
+    };
+    // Std-only join: a proven-finished future resolves on the
+    // no-op waker's single poll — no futures-lite dependency, no
+    // blocking primitive. (Panicked worker => Ready never arrives;
+    // the drain below already prevents a re-poll.)
+    let waker = std::task::Waker::noop();
+    let cx = &mut Context::from_waker(waker);
+    let (c, chunks) = match std::future::Future::poll(std::pin::Pin::new(&mut task), cx) {
+        Poll::Ready(v) => v,
+        Poll::Pending => return,
+    };
+    let key = prewarm.key;
+    commands.remove_resource::<ContinentPrewarm>();
+    commands.insert_resource(ContinentBuilt {
+        key,
+        payload: Some((c, chunks)),
+    });
+}
+
 #[expect(
     clippy::too_many_arguments,
     reason = "the world-build system legitimately needs every asset store on hand"
@@ -119,6 +238,7 @@ fn rebuild_world(
     old: Query<Entity, With<WorldRoot>>,
 
     mut wb: ResMut<cyclone_engine::WorldBounds>,
+    mut built: Option<ResMut<ContinentBuilt>>,
 ) {
     let continent_env = continent_mode().is_some();
     // Dev knob (NOT a shipped product dial): `CYCLONE_CONTINENT_
@@ -137,7 +257,11 @@ fn rebuild_world(
     // The fly-mode toggle can flip without a world change (Enter from a
     // preview of an already-built world): that flip is a trigger too.
     let live_flipped = continent_env && live_on && live.as_ref().is_some_and(|r| r.is_changed());
-    if !world.is_changed() && !live_flipped {
+    // A landed planet payload re-triggers the rebuild that waited.
+    let payload_landed = built
+        .as_ref()
+        .is_some_and(|b| b.payload.is_some() && b.key.0 == world.0.seed.0);
+    if !world.is_changed() && !live_flipped && !payload_landed {
         return;
     }
     // The flip is made REAL here (round 184): a local `live_on` never
@@ -152,10 +276,51 @@ fn rebuild_world(
     // Continent flies InGame only: the menu backdrop stays archipelago
     // (no 8 s planet build before New Game is even pressed).
     let continent = continent_env && live_on;
+    let map = world.0.clone();
+    let cont_size = if continent {
+        continent_mode().map(|(s, _)| s).unwrap_or(4000)
+    } else {
+        0
+    };
+
+    // The round-201 freeze, deleted: a continent with neither a
+    // fresh cache nor a landed payload WAITS — no despawn, no
+    // build, no main-thread work. What the player sees while the
+    // worker carves (archipelago preview / Generating / the
+    // previous planet) simply keeps repainting; the swap happens
+    // whole the frame the payload lands. The kick system (ordered
+    // before this one) owns task existence.
+    let extent_now = cont_size as f32 * 0.25;
+    let cache_fresh_now = continent
+        && cache
+            .as_ref()
+            .is_some_and(|k| k.seed == map.seed.0 && k.extent_m == extent_now);
+    let payload_here = continent
+        && built
+            .as_ref()
+            .is_some_and(|b| b.payload.is_some() && b.key == (map.seed.0, cont_size));
+    if continent && !cache_fresh_now && !payload_here {
+        return;
+    }
+    // Past the wait: the old root goes; the new world (claimed
+    // payload or cache respawn or archipelago) takes its place.
+
     for e in &old {
         commands.entity(e).despawn();
     }
-    let map = world.0.clone();
+
+    // Claim OUT HERE — inside the spawn closure `commands` is
+    // already borrowed (round 195's lesson, applied preemptively).
+    let mut claimed: Option<(
+        cyclone_worldgen::continent::Continent,
+        Vec<continent_mesh::ContinentChunk>,
+    )> = None;
+    if payload_here {
+        if let Some(b) = built.as_mut() {
+            claimed = b.payload.take();
+        }
+        commands.remove_resource::<ContinentBuilt>();
+    }
 
     let lh = cfg.map_or(LEVEL_HEIGHT, |c| c.0.level_height);
     let sea_mat = materials.add(StandardMaterial {
@@ -170,12 +335,6 @@ fn rebuild_world(
     // Dev terrain-lab mode (round-155 pivot): CYCLONE_CONTINENT=1 swaps
     // the archipelago for the voxel-Earth heightfield. Same rig, same
     // materials, same rebuild path — a preview, not a fork.
-    let cont_size = if continent {
-        continent_mode().map(|(s, _)| s).unwrap_or(4000)
-    } else {
-        0
-    };
-
     let mut deferred_cache: Option<ContinentCache> = None;
     // WorldRoot carries Visibility AND Transform. Bevy validates two
     // inherited components per parent-child pair (B0004): children get
@@ -230,8 +389,10 @@ fn rebuild_world(
                     .is_none_or(|k| k.seed != map.seed.0 || k.extent_m != extent_m);
                 if fresh {
                     let t0 = std::time::Instant::now();
-                    println!("continent mode: generating {}² voxel columns…", cont_size);
-                    let (c, chunks) = continent_mesh::generate_and_mesh(map.seed.0, cont_size);
+                    println!("continent mode: planet carved on a worker…");
+                    let Some((c, chunks)) = claimed.take() else {
+                        return; // payload vanished (stale-removed): next trigger rebuilds
+                    };
                     println!(
                         "continent ready: {} chunks, max {:.0} m, ocean {:.0}%, in {} ms",
                         chunks.len(),

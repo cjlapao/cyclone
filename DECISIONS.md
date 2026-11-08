@@ -1326,3 +1326,25 @@ resource + poll system in render; mesh asset creation stays
 main-thread where it belongs. Sketched here so future-me doesn't
 re-derive it.
 
+## Round 202 — the freeze deleted: planet prewarm on the task pool
+
+Round 201's parked design, built: kick system (runs REGARDLESS of
+ContinentLive — preview is exactly the time to carve the planet
+nobody's looking at yet) → poll (std Waker::noop poll of a
+proven-finished future — cannot block, no futures-lite dep) →
+rebuild (waits WITHOUT despawning: whatever is on screen keeps
+repainting; swap is whole). Claim hoisted above the spawn-closure
+borrow — round 195's lesson applied preemptively; the witness
+eprintlns found seed_swap's `// fly it` anchor slip in one run.
+Surgery scar logged: a reorder slice silently ate rebuild's
+#[expect(too_many_arguments)] — clippy -D caught what tests
+couldn't; attribute restored, unused param + dead field trimmed
+in the same breath. Test era note: continent_live's four tests now
+settle on WORKER truth (TerrainFloor present / new root), not
+frame counts — wall-clock patience is the honest instrument.
+Design honesty kept: PREVIEW-at-boot shows NOTHING during the
+build (first build has no previous world — same as the freeze's
+8 s black, but repaintable menu); worst-case Enter (task unfinished)
+keeps the archipelago flying until pop — never a void, never a
+half-planet.
+

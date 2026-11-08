@@ -107,11 +107,7 @@ doesn't regenerate (round-187 made every printed key claim true; a
    config dir (verified against the `directories` crate): Linux
    `~/.config/rescue/`, macOS `~/Library/Application Support/com.cyclone.rescue/`,
    Windows `%APPDATA%\cyclone\rescue\config\`.
-3. **New Game** → Generating (≥300 ms, honest progress — NOTE for
-   continent worlds: the planet's ~8 s MESHING runs when the preview
-   builds, main-thread: the window stops repainting for those
-   seconds, then the preview pops whole. Not a crash; a spinner
-   there is on the tab list) → **World
+3. **New Game** → Generating (≥300 ms, honest progress) → **World
    Preview**: your fresh archipelago in orbiting 3D — chunked terrain,
    sea, foam ring, props. Press **Tab** for top-down.
    *(box: preview shows the generated world)*
@@ -155,6 +151,11 @@ Ground is GROUND now: skids hold 2.5 m over whatever the voxel
 column says is under you — low passes skim the ridge, they do not
 thread it (round 195; if you WANT to fly through mountains for
 photomode, say so and it becomes a dial).
+The planet is carved on a worker thread behind the preview — the
+round-201 freeze is GONE (this paragraph once documented an 8 s
+main-thread stall; the prewarm killed it). Press Enter quickly on a
+full-size continent and you may fly the archipelago for a moment
+before the planet pops whole beneath you — never a half-built world.
 Corner line reads CONTINENT (island metrics would lie here, so it
 doesn't quote them). Judge the look without building anything:
 `cargo run -p worldgen-cli -- continent --seed 42 --size 4000 --out
