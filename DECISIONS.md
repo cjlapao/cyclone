@@ -1863,3 +1863,42 @@ permanent compile slots; the six #[ignore] tools remain the only
 resident probes. No code moved; the world stayed frozen; the
 spawn question closed with a count, not a hope.
 
+## Round 262 — cross-OS proof LANDS, the era score dies honest, and my own false ink corrected
+
+**The milestone.** ede9f17 (and 81d2712 on its heels) completed
+success on ubuntu + macOS + windows: the restored canary asserted
+digest 0fa64087 on all three OSes and they AGREED. Islands v2 —
+rotation, wobble, benches, all of it — is provably identical
+terrain on every OS the release ships to. That agreement is the
+entire reason the libm law exists, witnessed the era it was made
+for.
+
+**The era score dies.** '×17 green since 0650146' is retired:
+ee7263a, 435a62d, d8707fd were TRUE reds (the deleted-assert
+clippy failure was real, not noise) — triage closes infra noise,
+never honest red; those three stand as history, closed by the
+fix's green, not by descent-hand-waving. New count from the
+grave: ede9f17, 81d2712 green at read; 6683a90, 73f05bf queued.
+A streak claim that outlives its reds is just superstition.
+
+**My false ink, corrected.** The round-257/260 entries claimed
+the bench-drift one-liner was 'written in this ledger's margin'
+— grep of this very file shows only the CLAIM, never the line.
+The law has no authorship exception, and a dial that exists only
+as a promise is how promises stop being kept. Written now, for
+real. Current truth (continent.rs:259): `let k = (q * 5.0).floor().min(4.0);
+// treads 0..4` — perfect concentric rings. The drift line, held
+ready until the pilot's look-verdict (terrain frozen):
+`let k = (q * 5.0 - 0.6 * (fbm(wx / 220.0, wy / 220.0, 1.0, 2, seed ^ 0xB34D) - 0.5)).floor().clamp(0.0, 4.0);`
+— ±0.3 benches of wobble at 220 m wavelength: contour rings
+become geology, some benches pinch out mid-slope. Applying it
+re-pins, in one commit, the four known moves: islands digest,
+mesh cm-pin, canary digest + metrics (flat_ratio WILL shift) —
+the same-commit law, and the re-pin choreography is scripted
+knowledge now.
+
+**Pull-surface fact for the pilot:** Cargo.lock's newest touch is
+dd0b527 (round ~230, two eras before their screenshots) — the
+entire round-249→73f05bf stack changes NO dependencies; their
+git pull needs no network beyond the repo itself.
+
