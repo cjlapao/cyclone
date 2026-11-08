@@ -1656,3 +1656,22 @@ lib line now carries one more green test inside it. Commit
 messages are pilot-facing prose too — the audit does not exempt
 the era's own ink, not even minutes later.
 
+## Round 255 — the final-state snapshot (every gate, fresh, one command block)
+
+As of 07f18b5 (local tip == origin/main, tree clean): fmt rc=0;
+clippy -D warnings --all-targets rc=0; rustdoc -D warnings rc=0;
+suite rc=0 with 27 result-lines ok, 0 FAILED; dev flow 14 passed +
+1 ignored (the tool census, round 247: all six ignores are tools);
+golden ok (10 seeds), read-only. Era score: ×17 green on CI since
+the last red, queue serial-slow but unbroken.
+
+The pilot's next keystrokes, exactly: git pull; CYCLONE_CONTINENT=1
+CYCLONE_ISLANDS=1 cargo run -p cyclone --features dev; New Game →
+Enter → fly; Esc-then-R rerolls; FIRST-FLIGHT's ask-list section
+(rounds 249–254, drift-corrected three times, each correction a
+commit) is what only they can fill in. Every number quoted across
+the era carries a date and a witness; every claim of absence
+carries a census; every law that can have teeth has a test. The
+engine is honest, green, and waiting — which is as far as an
+engine can be waited FOR; the rest is a cockpit.
+
