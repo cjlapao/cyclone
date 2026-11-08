@@ -2997,3 +2997,31 @@ a moving quantity is a fuse already lit — and this era has lit
 plenty; the craft is noticing the smell coming from your own
 paragraph. Four gates; terrain frozen.
 
+## Round 302 — the fiction hunt catches round 296: the islands reroll WAS measured, in a spec box I hadn't read
+
+While verifying every ask-list-referenced checkbox physically
+exists (they do: 00:170 and 01:95 the pilot's eyes; the rest
+checked with evidence), spec-01 :99 — the reroll box — delivered a
+correction aimed at this ledger: its annotation has carried SINCE
+ROUND 270 a dialed islands re-measure ('CYCLONE_ISLANDS=1 +
+CONTINENT + PREVIEW, worst 24.2 ms of 139,806 frames, box holds at
+51 % margin'). Round 296 had written that the reroll box 'was
+never graded on the path the pilot will take' — FALSE. The
+measurement existed; the reading failed. The era's own law
+('two fresh censuses that disagree -> hunt the fiction before
+touching either') applied to my own ledger: the fiction was
+296's, born of reading tests and TUNING but not the spec-box
+annotations where era evidence also lives.
+
+Consistency, checked not assumed: 24.2 ms (round 270, PREVIEW=1,
+139,806 frames) and 9.5 ms (round 296, no PREVIEW, 101,521
+frames) are both box-held on dialed routes from different
+machines and conditions — no contradiction between them, only
+between them and 296's sweeping word 'never'. What 296 still
+correctly built stands: the TOOL's comment now carries the dial-
+stack law, and TUNING carries a dialed number. But the round's
+true finding is this entry: era evidence lives in THREE places
+(ledger, docs, spec annotations), and a claim of 'never measured'
+requires searching all three — the absence of proof is only proof
+of absence after you've read everywhere.
+
