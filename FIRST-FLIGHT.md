@@ -9,6 +9,15 @@ cd ~/code/cjlapao/cyclone
 cargo run -p cyclone            # add --features dev for the F3 overlay
 ```
 
+One honesty note before the wait: the FIRST run after a fresh checkout
+compiles all of Bevy in the dev profile — a long one-time build that is
+the engine's price, not this repo's. Later runs relink only what
+changed and start quickly. No numbers quoted here on purpose: they
+age by machine and profile, and the doc that says 'about 4 minutes'
+is a myth by Thursday. What IS instant, once it runs: New Game
+answers immediately (the ~8 s planet carve happens on a worker
+behind the preview).
+
 Optional before you start — tune the world knobs first:
 `assets/worldgen/default.ron` (commented; e.g. `island_count: 10`,
 `island_radius: (8, 22)`, `size: (200, 200)`).
