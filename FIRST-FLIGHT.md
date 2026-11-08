@@ -74,7 +74,7 @@ You flew a build before these landed — what changed, and what to
 watch for:
 
 1. **You spawn OVER the Base Island now**, not beyond the map edge —
-   the black void band at the horizon is gone (sea plane got bigger)
+   the black void band at the horizon is gone (the sea grew a generous skirt; it is now a shaded floor of its own — foam at the coasts)
 2. **Terrain is properly terraced**: islands are now domes with
    concentric bands (radial quantise) and BIG islands are forced
    tall — level-5+ summits guaranteed on any radius-14 island, so

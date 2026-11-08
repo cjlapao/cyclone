@@ -225,7 +225,7 @@ fn seed_swap_invalidates_the_continent_cache() {
     };
     // Reroll: a DIFFERENT seed enters (flow: Generating replaces
     // CurrentWorld; same insert the real flow uses).
-    let seed_b: Seed = "BBB-BBB".parse().unwrap();
+    let seed_b: Seed = "JJJ-KKK".parse().unwrap();
     let map_b = Arc::new(
         generate(seed_b, 1, &WorldGenConfig::default(), &ProgressNoop)
             .expect("second frozen-form seed generates"),
@@ -375,5 +375,83 @@ fn rerolls_do_not_grow_the_asset_stores() {
         peak as f64 <= 2.5 * mean,
         "store peaks at {peak} vs mean {mean:.0} over 5 rerolls — \
          superseded meshes are not being freed"
+    );
+}
+
+/// The classic leak test covers the classic rebuild; the CONTINENT
+/// path had the sweep's most dangerous branch — the CACHE: a stale
+/// cache planet must die at the claim, not haunt the store forever
+/// behind 'we reuse via cache'. Two 400² seeds, claimed in sequence;
+/// the store after the second claim must hold ONE planet, not two.
+/// Claim oracle with no timing dice: TerrainFloor is re-inserted
+/// with the NEW planet's closure, so its height at a probe point
+/// differs from seed A's — a value-changing oracle, deterministic.
+#[test]
+fn continent_rerolls_do_not_double_the_asset_store() {
+    let _env = env_guard();
+    unsafe {
+        std::env::set_var("CYCLONE_CONTINENT", "1");
+        std::env::set_var("CYCLONE_CONTINENT_SIZE", "400");
+        // PLAIN continent mode, not island mode: islands scale with
+        // extent, so at 400² they are sub-tile specks and seeds are
+        // sea-mostly — the sweep needs DENSE land on every seed to
+        // have chunks to clear.
+        std::env::remove_var("CYCLONE_ISLANDS");
+        std::env::remove_var("CYCLONE_CONTINENT_PREVIEW");
+        std::env::remove_var("CYCLONE_CONTINENT_SCALE");
+    }
+    let mut app = app_scaffold();
+    let map_a = small_map();
+    app.insert_resource(cyclone_engine::CurrentWorld(map_a));
+    app.insert_resource(cyclone_render::ContinentLive(true));
+    settle_until(&mut app, "planet A", planet_built);
+    let probe = |a: &mut App| -> (usize, f32) {
+        let n = a.world_mut().resource::<bevy::asset::Assets<Mesh>>().len();
+        let h = a.world().resource::<cyclone_engine::TerrainFloor>().0(200.0, 200.0);
+        (n, h)
+    };
+    let (store_a, h_a) = probe(&mut app);
+    assert!(store_a >= 2, "planet A built no meshes to count: {store_a}");
+    {
+        let w = app.world_mut();
+        let mut q = w.query::<&Mesh3d>();
+        println!("CENSUS after A: Mesh3d entities = {}", q.iter(w).count());
+    }
+    let seed_b: Seed = "BBB-BBB".parse().unwrap();
+    let map_b = Arc::new(
+        generate(seed_b, 1, &WorldGenConfig::default(), &ProgressNoop).expect("second seed"),
+    );
+    app.insert_resource(cyclone_engine::CurrentWorld(map_b));
+    settle_until(&mut app, "planet B claimed (floor oracle moved)", |a| {
+        let f = a.world().resource::<cyclone_engine::TerrainFloor>().0(200.0, 200.0);
+        f != h_a
+    });
+    // Patience: 10 more updates so any deferred apply lands, and
+    // watch the count STABILISE (printed — drift is data).
+    for _ in 0..10 {
+        app.update();
+    }
+    let (store_b, h_b) = probe(&mut app);
+    println!("continent store: A {store_a}, B {store_b}; floor {h_a:.1} -> {h_b:.1}");
+    {
+        let w = app.world_mut();
+        let mut q = w.query::<&Mesh3d>();
+        let ids: Vec<_> = q.iter(w).map(|m| m.id()).collect();
+        println!("entity count with Mesh3d: {}", ids.len());
+        let distinct: std::collections::HashSet<_> = ids.iter().collect();
+        println!("distinct mesh handles on entities: {}", distinct.len());
+    }
+    // Two planets alive would read ~2×; the sweep's promise is that
+    // B's claim swept A. Bound 1.6× leaves honest slack for A/B
+    // differing chunk counts at equal SIZE (they mesh the same
+    // grid: counts are expected equal), convicted accumulation.
+    assert!(
+        store_b <= store_a * 16 / 10 + 8,
+        "stale cache planet haunts the store: {store_a} -> {store_b}"
+    );
+    assert!(
+        store_b >= 2,
+        "seed B built a sea-only world ({store_b} mesh): the sweep had \
+         no chunks to prove it cleared — pick a seed with land"
     );
 }
