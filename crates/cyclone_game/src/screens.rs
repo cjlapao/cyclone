@@ -1363,6 +1363,29 @@ fn dev_fps_refresh(
     }
 }
 
+/// Where InGame drops the rig on the voxel Earth: (x, y, altitude,
+/// pitch). Island mode makes the map centre OCEAN for most seeds, so
+/// scan outward (golden-angle ring, ~ms, pure) for standable ground
+/// — land on the FLAGSHIP (highest in reach: altitude is the view),
+/// altitude clears it by 80 m (never below 120). Nothing standable
+/// keeps the old centred hover with the nose down: swim to the
+/// nearest island like a castaway, at least you'll SEE them.
+/// Extent in metres; x/y in metres; +90 m south of the scan's land
+/// find so the island sits ahead of the nose, not under the floor.
+fn continent_clear(cont_size: u32, seed: u64, extent_m: f32) -> (f64, f64, f64, f32) {
+    let ext = extent_m as f64 * 0.5;
+    let _ = cont_size; // scan takes size in voxels for its own bounds
+    let (x, y, ground) =
+        cyclone_render::continent_mesh::spawn_over_land(ext, ext, seed, cont_size, ext)
+            .unwrap_or((ext, ext, 0.0));
+    let pitch: f32 = if ground > 0.0 { -18.0 } else { -60.0 };
+    // Spawn OVER the found land (round 185: the old +90 m south
+    // offset — tuned when islands filled a screen — put the rig over
+    // open sea on a 1 km flagship, hovering a claim the docs didn't
+    // make. Test enforces it: surface under spawn must be ≥3 m).
+    (x, (ground + 80.0).max(120.0), y, pitch)
+}
+
 fn ingame_build(
     mut commands: Commands,
     world: Res<CurrentWorld>,
@@ -1399,26 +1422,15 @@ fn ingame_build(
     // Continent preview mode (CYCLONE_CONTINENT=1): the world the rig
     // lands into is the voxel-Earth heightfield, not the archipelago —
     // start centred, clearing whatever ground is actually there.
-    let continent = std::env::var("CYCLONE_CONTINENT").is_ok();
-    let cont_size: u32 = std::env::var("CYCLONE_CONTINENT_SIZE")
-        .ok()
-        .and_then(|v| v.parse().ok())
-        .unwrap_or(4000)
-        .clamp(64, 16_000);
-    let clear = if continent {
-        let half = cont_size as f32 * 0.25 * 0.5;
-        // Island mode makes the map centre OCEAN for most seeds —
-        // scan outward for standable ground (≥3 m, river-safe lower
-        // bound) before choosing the drop point. The golden-angle
-        // ring scan is pure and ~ms; fallback keeps the old centred
-        // hover and points the nose down: swim to the nearest island
-        // like a castaway, at least you'll SEE them.
-        let ext = half as f64;
-        let (x, y, ground) =
-            cyclone_render::continent_mesh::spawn_over_land(ext, ext, map.seed.0, cont_size, ext)
-                .unwrap_or((ext, ext, 0.0));
-        let pitch = if ground > 0.0 { -18.0 } else { -60.0 };
-        (x, (ground + 80.0).max(120.0), y + 90.0, pitch)
+    // ONE reader of the terrain-lab dials (continent_mode owns size
+    // AND clamp): the re-parse/re-clamp this duplicates lived three
+    // rounds would have drifted the spawn map from the mesh map the
+    // day either clamp moved (the island_mode second-reader bit,
+    // generalised).
+    let mode = cyclone_render::continent_mode();
+    let clear = if let Some((cont_size, extent_m)) = mode {
+        let _ = cont_size; // consumed below too via mode — keep the destructure honest
+        continent_clear(cont_size, map.seed.0, extent_m)
     } else {
         // archipelago: the fixed launch lane over the home island
         (base.0 as f64, 26.0, base.1 as f64 + 46.0, -18.0)
@@ -1455,7 +1467,8 @@ fn ingame_build(
             // feel-report can cite the data without leaving the game
             // (TUNING.md: feel-words map to dials via these metrics).
             #[cfg(feature = "dev")]
-            if continent {
+            // Re-read the SAME single source, bound where it's used.
+            if let Some((cont_size, _)) = cyclone_render::continent_mode() {
                 // Square KILOMETRES, not metres: a 1000 m side is a
                 // km² world — the old line quoted the side as if it
                 // were the area (a 1000× unit lie).
@@ -1541,5 +1554,69 @@ mod gen_panic_tests {
             .unwrap_err()
             .to_string();
         assert!(err.contains("invalid config"), "got {err}");
+    }
+}
+
+#[cfg(test)]
+mod continent_clear_tests {
+    use super::*;
+    /// Same discipline as cyclone_render's live tests: process-global
+    /// env, runner threads — any test that WRITES env in this binary
+    // shares this lock (one today; siblings join by using it too).
+    static ENV_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
+
+    #[test]
+    fn flagship_spawn_and_castaway_fallback_are_honest() {
+        // The spawn claims FIRST-FLIGHT makes the pilot — flagship
+        // altitude, castaway nose-down — never executed by any test
+        // until round 185 (the round-184 lesson: only a test proves
+        // a consumer is REACHED). Env-guarded: sole writer in this
+        // binary for these keys (grep-proven at authoring).
+        let _guard = ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+        unsafe { std::env::set_var("CYCLONE_ISLANDS", "1") };
+        // seed 42 (numeric — the pure scan's own unit, not the
+        // Crockford UI form): flagship exists within a 1 km map.
+        // Order IS (x, up, z, pitch) — the rig's own Vec3 slots;
+        // destructuring (x, y, alt, ...) sampled sea at the altitude
+        // and cried wolf (myth #4 of the day, mine, caught by the
+        // witness line — instrumentation before introspection).
+        let (x, alt, y, pitch) = continent_clear(4000, 42, 1000.0);
+        assert!(
+            alt >= 120.0 && pitch == -18.0,
+            "flagship: {alt} m, {pitch}°"
+        );
+        // The spawn must hover over the land the scan FOUND (the
+        // removed +90 m offset put it over sea — myth #3, caught by
+        // this line's first run): sample AT the spawn, southward-
+        // looking camera, flagship filling the frame below.
+        let h = cyclone_render::continent_mesh::surface_height_m(x, y, 42, 4000);
+        eprintln!("spawn clear ({x:.0},{y:.0}) hovers {alt:.0} m over {h:.0} m of land");
+        assert!(h >= 3.0, "clear sits over the land it found: {h} m");
+        // Castaway fallback: a 16 m map whose centre happens to be
+        // SEA (blob interiors vary by seed — seed 42's centre at 16
+        // m is inside a blob for most seeds, myth #5 of the day was
+        // my premise, not the code) can reach no land in one
+        // ring-sample. Search pure seeds for one; the scan's
+        // determinism makes the found seed a permanent fixture.
+        // Destructure in the RIG's slots — (x, UP, z, pitch) — the
+        // day's fourth faceplant is naming z in the up slot; names
+        // that lie are worse than no names.
+        let is_castaway = |sd: u64| {
+            let (px, up, pz, pitch) = continent_clear(64, sd, 16.0);
+            pitch == -60.0
+                && (px - 8.0).abs() < 1e-9
+                && (pz - 8.0).abs() < 1e-9
+                && (up - 120.0).abs() < 1e-6
+        };
+        let castaway = (1u64..64).find(|sd| is_castaway(*sd));
+        let fallback_seed = castaway.expect("some small-seed centre is sea: fallback must exist");
+        let (px, up, pz, pitch) = continent_clear(64, fallback_seed, 16.0);
+        assert_eq!((px, pz), (8.0, 8.0), "centred hover");
+        assert!(
+            (up - 120.0).abs() < 1e-6 && pitch == -60.0,
+            "nose down, never below 120"
+        );
+        eprintln!("castaway seed {fallback_seed}: hover {up:.0} m, pitch {pitch}°");
+        unsafe { std::env::remove_var("CYCLONE_ISLANDS") };
     }
 }
