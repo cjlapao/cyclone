@@ -76,6 +76,12 @@ reroll frame: per-tile quads + one big into_mesh, main-thread, and
 it is NOT ashamed: still past 60 Hz headroom and under a fifth of
 the spec-01 50 ms box; the historic 2.8 ms/200-round and
 3.8 ms/ceiling readings predate the sea and now quote only history)
+ISLANDS-mode reroll — the Esc-R FIRST-FLIGHT actually commands —
+measured 2026-11-08 with the FULL dial stack set (CONTINENT *and*
+ISLANDS envs: islands alone leaves the layer above off): worst frame
+9.5 ms over 101,521 frames on the dev box, dev profile — 5× under
+the box; lighter mesh (59 vs 227 chunks) is consistent with it
+beating the classic-era 9.4 ms, no cause beyond that claimed here.
 (re-measured round 133, post terrain-overhaul — the taller terraces cost
 nothing measurable; the number predates them and survived them) — under a quarter
 of the 16.6 ms 60 Hz budget (round 215 honesty: at 9.4 ms it is now

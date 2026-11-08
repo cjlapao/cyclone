@@ -2841,3 +2841,33 @@ Law: for digest-guarded content, cite the digest — it answers
 'is this still today's world?' forever; timestamps answer it for
 hours. Four gates; terrain frozen.
 
+## Round 296 — the half-set dial: the pilot's Esc-R reroll finally measured, at 9.5 ms of 101,521 frames
+
+reroll_hitch, the #[ignore]d box tool, had been cited for years as
+proof the reroll box holds — but FlowEnv sets only HOME/XDG
+isolation: the app reads CYCLONE_CONTINENT ABOVE CYCLONE_ISLANDS,
+so the tool's un-dialed life measured CLASSIC rerolls while
+FIRST-FLIGHT commands Esc-then-R in CONTINENT+ISLANDS. Round 285's
+dial law biting a layer BELOW the test source — the sweep of round
+286 could not see it because the blindness lived in what the driven
+app reads, not what the test sets. Caught by refusing to assume the
+sweep had covered flow.rs.
+
+Measured today, pilot's profile (cargo test = [profile.dev]),
+full dial stack: WORST FRAME 9.5 ms over 101,521 frames — 5x under
+the box; islands-only (the HALF-set run, kept as the cautionary
+twin: 7.1 ms/4,512 classic frames) shows exactly how a half-set
+dial prints a plausible lie. Lighter mesh (59 vs 227 chunks) is
+consistent with islands beating classic-era 9.4 ms — stated as
+consistency, no cause claimed. TUNING's reroll paragraph and the
+tool's own doc-comment carry the law (set the WHOLE stack) — and
+the measurement refuted one more era comment: 'world rebuild is
+synchronous' predates the prewarm; its own 9.5 ms number disproved
+it (a synchronous islands dev gen would cost ~11,500 ms/frame).
+
+Law, extending round 285: dials LAYER — a probe must set the
+entire stack its subject reads, top layer first. Islands without
+CONTINENT is a half-set dial, and half-set dials print confident
+fiction with a real unit on it. Four gates; terrain frozen —
+measuring the frozen world is how the freeze stays honest.
+

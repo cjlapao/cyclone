@@ -342,9 +342,17 @@ fn menu_backdrop_always_generates() {
 /// the very same events — no device, no gilrs — and the engine's
 /// GamepadState mirror must drive focus nav and confirm end-to-end.
 /// Spec 01 C4 (main-thread hitch) MEASURED headless: after reaching
-/// preview, reroll ten times and time EVERY app.update() frame. World
-/// rebuild is synchronous; the worst frame is exactly the number the
-/// 50 ms box judges. Run: cargo test -p cyclone_game --test flow reroll -- --ignored --nocapture
+/// preview, reroll ten times and time EVERY app.update() frame. Since
+/// the prewarm the build lives on a worker — the worst frame is the
+/// chunk upload at preview arrival, not the gen; that frame is what the
+/// 50 ms box judges (era wording 'rebuild is synchronous' was refuted
+/// by its own numbers: a synchronous islands dev-profile gen would
+/// cost ~11,500 ms, not the measured 9.5 — comment fixed 2026-11-08). Run: cargo test -p cyclone_game --test flow reroll -- --ignored --nocapture
+/// DIAL STACK LAW (round 296): this tool measures the dials the SHELL
+/// carries — the app reads CYCLONE_CONTINENT above CYCLONE_ISLANDS, so
+/// the islands reroll needs BOTH set (islands alone grades classic:
+/// the half-set dial). Measured dialed 2026-11-08: worst 9.5 ms of
+/// 101,521 frames, both dials, dev profile.
 #[test]
 #[ignore = "manual hitch measurement"]
 fn reroll_hitch_measurement() {
