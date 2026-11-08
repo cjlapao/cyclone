@@ -1163,3 +1163,21 @@ TRUE scale, which is also better for the photo verdict than any
 toy world would have been). Generalize: a dial is its consumers —
 grep what a value TOUCHES before ever documenting what it "does";
 a number multiplied by nothing multiplies the docs into lies.
+
+## Round 184 — myth #2: the gate-skip was dead too, until a test ran it
+
+Yesterday's entry corrected the 0.2× but still claimed the flag's
+"only real behaviour" was the boot-time live flip. False: the
+insertion sat BELOW `let continent = continent_env && live_on`, so
+with the gate closed `continent` was false and the insert was
+unreachable — the flag had ZERO effect in every build shipped. It
+survived because Enter is one keypress away, so nobody ever needed
+it to work, and no test had ever set the env it reads.
+
+Fix: the flag now raises live ABOVE the gate and inserts the real
+ContinentLive(true) once (one source of truth for planet build,
+bounds guard, game checks); the test proves gate-skipped boot builds
+the planet with true-scale bounds, and the test pair serialises under
+an env mutex (process-global env × runner threads was a real flake,
+caught same commit). Doctrine amended: grepping consumers proves a
+value is READ; only a test proves the consumer is REACHED.
