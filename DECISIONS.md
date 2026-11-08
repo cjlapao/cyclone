@@ -1624,3 +1624,21 @@ loudly and suggest the pilot's one-time 'Run workflow' poke from
 the Actions tab — a human click that no unauthenticated API
 session can substitute. Silence watched is silence answered.
 
+## Round 247 — every ignored test in the house, audited: six tools, zero rot
+
+Census of '#[ignore' repo-wide: six. Each read against its reason:
+reroll_hitch (RE-RAN round 246, 8.3–9.2 ms third date), mesh-leak
+probe (RE-RAN today: BASE 52 → PEAK 57 → settles 37, BELOW base —
+handle-drop frees the old world; five rerolls, no upward trend),
+mesh release-timing measurer (perf-only, no doc depends on its
+number), calibration census (dial-era stats printer, tool by
+design), b0004_trace witness (sets CYCLONE_CONTINENT itself — the
+env-discipline reason it can never be a gate; historical incident
+witness), golden fingerprint printer (diagnostic beside the
+read-only golden CHECK). Zero rot: every ignored test is a tool
+with a run command in its own doc line — which is exactly the
+difference. The one correctness-class member (leaks) was the one
+re-run today: its verdict is fresh-dated, and it deliberately has
+NO doc claim feeding on the number — the property is witnessed,
+not marketed.
+
