@@ -3074,3 +3074,33 @@ the world.
 Four gates; terrain frozen; the corpus gains its only
 self-refreshing sentence.
 
+## Round 305 — the Q1/Q5 consequences sheet, drawn before the answer: gameplay ships UNDER the terrain freeze
+
+When the pilot answers the load-bearing pair mid-conversation, the
+next hour should implement, not spelunk. Code truths banked now,
+every line grep-witnessed:
+
+1. PLACEMENT LIVES IN THE CLASSIC LANE ALONE: map.rs owns
+helipads (Vec<Helipad>, MST spans) and the refugee roster;
+config.rs validates helipads_extra=(3,4) against island_count.
+The continent path places NOTHING — terrain and mesh only; the
+one 'helipad' word down there (continent.rs:682) is a flat-spot
+witness's prose, not a call site.
+2. THE FREEZE DOES NOT BLOCK Q1=YES: the islands canary digest
+hashes HEIGHTS and WATER only (continent_canary.rs:81-82, read
+this minute). Placing pads/crates/refugees on the measured flat
+spots (25-116 >= 25 m2 per world, the round-285 census) writes
+neither array — gameplay objects can ship while the height
+grammar stays frozen under the pilot's verdict.
+3. THE INSTRUMENT FOR SITES ALREADY EXISTS: the flat-spot BFS
+(contiguity machinery, rounds 283-285) is product-adjacent — its
+connected-component census IS a landing-site selector; promoting
+it from test harness to placement pass is the shape of the work.
+
+Sheet's honest limits: this is consequence-mapping, not design —
+pad count per island, crate siting rules, refugee roster sizes are
+Q5's questions, the pilot's. If Q1=NO the sheet is shelved whole
+(mainland-hosted gameplay, continent stays a terrain lab) and
+nothing here wasted a decision. Pilot-facing docs untouched — this
+readiness lives where plans live.
+
