@@ -58,8 +58,10 @@ cyclone (bin)
 implemented layout differs exactly where the pilot chose — the specs
 themselves live in `V2/`, not `docs/specs/`; `assets/models` +
 `shaders` arrive with spec 06 as planned, and `docs/` today carries
-generated samples (contact-sheet.png, regenerated from current code
-round 253).)*
+generated samples (contact-sheet.png re-regenerated TODAY,
+2026-11-08 — round-253 label aged out within hours; and classic bytes are
+digest-pinned at 1f9ee0da in tests/continent_canary.rs, CI-green to the
+tip, so any sheet's classic content is current BY DIGEST, not by age).)*
 
 `cyclone_worldgen` stays Bevy-free so it compiles fast, tests fast, and runs in the CLI tool.
 

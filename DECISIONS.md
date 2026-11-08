@@ -2818,3 +2818,26 @@ not each other — and consistency audits exist to prove that law
 held, which today it did. No edits owed; no ship beyond this
 ledger; four gates; terrain frozen.
 
+## Round 295 — sample freshness: the sheet was younger than its own label, and digests date the world
+
+The committed images the pilot might open unasked got their audit:
+docs/contact-sheet.png's spec-00 claim said 'regenerated from
+current code round 253' — but git log answered b332aac, 2026-11-08:
+the sheet was REGENERATED TODAY by the assets audit. The stale
+label UNDERSTATED freshness — age-marks on artifacts can rot
+bidirectionally, and a doc that claims an era-older sample when
+the bytes are hours old is technically honest but functionally
+wrong (it sells today's witness as archaeology).
+
+The deeper proof banks itself: the sheet shows CLASSIC archipelagos
+(menu backdrop lineage), and classic bytes are digest-pinned
+(1f9ee0da, tests/continent_canary.rs) with CI green to the tip —
+so classic sample content is current BY DIGEST, not by age. A
+digest is a freshness instrument no timestamp can beat: it proves
+bytes, not dates. Spec-00's annotation now says both, dated,
+pilot-text untouched; no other round-253 citation exists (grep).
+
+Law: for digest-guarded content, cite the digest — it answers
+'is this still today's world?' forever; timestamps answer it for
+hours. Four gates; terrain frozen.
+
