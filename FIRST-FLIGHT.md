@@ -158,6 +158,11 @@ the dial table (relief floors, orogeny, snowline, cell size).
 
 ## When something misbehaves
 
+Building from source with `--features gamepad`? Linux needs the
+`libudev-dev` package installed (macOS/Windows need nothing extra) —
+a missing one fails at `libudev-sys`'s build script, before any of
+our code. CI runners carry it, which is why the red can look
+unexplained from a machine without it.
 Tell me what you did and what the screen said — every claim above is
 backed by a headless test or a measurement, so a counterexample is a
 bug with a known location. Dev builds (`--features dev`) press **F3**
