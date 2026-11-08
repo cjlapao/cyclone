@@ -1389,3 +1389,19 @@ material had been eating. White base; vertex colours own the ocean.
 Skirt dropped to -0.05 under the -0.02 tiles (no z-war). Spec 02
 annotated with evidence; the 'shows' box stays the pilot's sense.
 
+## Round 215 — the sea moved onto the reroll frame: 2.8 ms is history
+
+The round-212 foam had an unquoted cost: build_sea_classic runs in
+rebuild_world, i.e. IN the reroll frame. Fresh ignored-bench run:
+worst frame 9.4 ms of 4635 (round 200 quoted 2.8 of 4753; the
+3.8-era 'still holds as a ceiling' sentence is now FALSE and is
+deleted from TUNING, not footnoted). 9.4 ms still clears the spec-01
+50 ms box 5× and fits one 60 Hz frame — accepted cost, said out
+loud with numbers. Optimize only if the pilot ever *feels* it;
+caching sea meshes across rerolls is on the shelf, unrequested.
+Doctrine again: every perf number in docs carries its re-measure
+date, and any commit that moves main-thread work onto a frame
+MEASURED BY A DOC owes that doc a fresh run — round 212's commit
+message never mentioned the reroll frame; caught before it could
+age into a myth.
+

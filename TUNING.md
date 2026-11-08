@@ -70,10 +70,17 @@ release-speed gameplay with fast incremental rebuilds. The `worldgen
 benchmark` CI job logs the same bench every push (its runner is
 ~2× slower; the bench times 18 seeds per criterion sample — divide
 by 18 before comparing). Worst reroll frame measured
-in-app (dev, ignored `reroll_hitch` test): 2.8 ms worst of 4753 frames (re-measured round 200; the 3.8 ms/5014 reading predates the continent era and still holds as a ceiling)
+in-app (dev, ignored `reroll_hitch` test): **9.4 ms worst of 4635 frames**
+(round 215 — the classic sea's foam/shallows mesh moved ONTO the
+reroll frame: per-tile quads + one big into_mesh, main-thread, and
+it is NOT ashamed: still past 60 Hz headroom and under a fifth of
+the spec-01 50 ms box; the historic 2.8 ms/200-round and
+3.8 ms/ceiling readings predate the sea and now quote only history)
 (re-measured round 133, post terrain-overhaul — the taller terraces cost
 nothing measurable; the number predates them and survived them) — under a quarter
-of the 16.6 ms 60 Hz budget. If a feel complaint ever smells like
+of the 16.6 ms 60 Hz budget (round 215 honesty: at 9.4 ms it is now
+over HALF the frame budget on the worst frame — still one frame,
+never a dropped one, but 'quarter' was the pre-sea number). If a feel complaint ever smells like
 stutter, the first question is "dev or release?" — and the answer
 should not matter.
 
