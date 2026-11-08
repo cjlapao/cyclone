@@ -1142,3 +1142,24 @@ CI OSes. Two lessons generalize: a new transcendental is a NEW
 determinism liability even inside a doctrine-covered crate; and a
 feature whose tests only compare a platform with itself has no
 cross-platform test at all, however green it looks.
+
+## Round 183 — the PREVIEW flag's 0.2× was a myth: comments-only code
+
+DECISIONS round 178 told itself the flag "shrinks the 1 km world 5×".
+It never has. Round 183's audit: `continent_mode()` returns
+(size, extent-metres) — the second element is EXTENT, not scale — and
+the flag's `let scale = 0.2` had exactly one consumer since its
+introduction (4f7c0a2): the boolean `scale != 1.0` deciding whether to
+flip ContinentLive at boot. No mesh anchor, transform, spawn height or
+WorldBounds ever multiplied by it. Every doc that repeated "0.2×
+overview, relief 5× flatter" (FIRST-FLIGHT, TUNING, a spec-03 line,
+round 180's pilot command) was repeating a comment, not behaviour.
+
+Decision: the flag KEEPS its honest names (PREVIEW / legacy SCALE)
+with its ONLY real behaviour — skip the menu gate, planet live at
+boot; the myth text is deleted from every pilot-facing doc and the
+overview need re-pointed at climbing (~300 m shows a whole island at
+TRUE scale, which is also better for the photo verdict than any
+toy world would have been). Generalize: a dial is its consumers —
+grep what a value TOUCHES before ever documenting what it "does";
+a number multiplied by nothing multiplies the docs into lies.

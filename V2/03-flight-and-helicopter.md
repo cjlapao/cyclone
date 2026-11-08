@@ -42,7 +42,7 @@ Real, shipped, tested:
 - The voxel Earth (`CYCLONE_CONTINENT=1`, optional
   `CYCLONE_ISLANDS=1`) flies as a terrain lab: dev gate at Enter,
   one-time build (~8 s), full scale by default,
-  `CYCLONE_CONTINENT_PREVIEW=1` for the 0.2× overview.
+  `CYCLONE_CONTINENT_PREVIEW=1` boots straight into flying (it is a gate-skip, nothing more — round 183).
 
 Not written at all: fuel, altitude clamp, landing/crash states, winch,
 the helicopter body, its rotor hum, a cockpit or chase view distinct

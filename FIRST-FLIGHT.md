@@ -39,10 +39,13 @@ nothing standable in the search radius you hover over the sea pitched
 
 - **Roll a different world**: any New Game seed flows through; or fix
   the map size: `CYCLONE_CONTINENT_SIZE=4000` (voxels; 4000 = 1 km).
-- **Preview scale — careful**: `CYCLONE_CONTINENT_PREVIEW=1` renders
-  the whole map at 0.2× (map-overview shot). It flattens relief 5×:
-  NEVER judge how the land LOOKS from it. No flag = true 25 cm scale,
-  which is what the photo verdict needs.
+- **Boot straight into flying**: `CYCLONE_CONTINENT_PREVIEW=1`
+  (legacy alias `_SCALE=1`) skips the menu gate — planet live at boot
+  instead of at Enter. That is ALL it does: a round-183 grep proved
+  the "0.2× overview, relief 5× flatter" I'd documented around it
+  was a scale never wired to anything. For an overview, CLIMB:
+  Ctrl-boost up to ~300 m and a whole island fits the screen at true
+  scale — judge the photo's grammar from up there.
 - **Judge sheets without launching**: `CYCLONE_ISLANDS=1
   ./target/release/worldgen-cli continent --seed K7Q2-9XMB-4TRFW
   --size 4000 --out /tmp/sheet` (release-build it first; ~20 s) —

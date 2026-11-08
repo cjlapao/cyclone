@@ -153,25 +153,26 @@ fn rebuild_world(
         0
     };
 
-    // Dev knob (NOT a shipped product dial): a 1 km world at the
-    // camera's spawn doesn't fit the screen; 0.2 shows the whole map
-    // without a hike. Mesh anchors AND transforms scale together —
-    // geometry stays rigid; relief reads 5× flatter at 0.2, an
-    // accepted preview trade. The name CYCLONE_CONTINENT_SCALE=1
-    // meaning 0.2× is a footgun I shot myself (round 180's run
-    // command told the pilot to use it — they'd have judged islands
-    // at toy scale): PREVIEW is the flag's honest name; SCALE stays
-    // as the legacy alias so muscle memory from round 16x still
-    // works. Full scale (no flag, flip at Enter) is what the photo
-    // verdict deserves.
-    let preview = std::env::var("CYCLONE_CONTINENT_PREVIEW").is_ok_and(|v| v == "1")
+    // Dev knob (NOT a shipped product dial): `CYCLONE_CONTINENT_
+    // PREVIEW=1` (legacy alias: CYCLONE_CONTINENT_SCALE=1) skips the
+    // menu gate — the planet goes live at boot instead of at Enter.
+    // It does NOTHING else. Round 183 proved the 0.2× ever existed
+    // only in comments: since this flag's introduction (4f7c0a2) no
+    // mesh anchor, transform, spawn height or WorldBounds has ever
+    // multiplied by it — the "toy-scale overview, relief 5× flatter"
+    // story (mine, repeated into docs and a pilot run command)
+    // described a scale that was never wired to anything. Dead myth,
+    // deleted; the flag stays under its honest names because "boot
+    // straight into flying" is genuinely useful. A true overview is
+    // a raised camera, not a shrunken world: Ctrl-boost and climb —
+    // at 1 m mesh cells a whole island fits the screen from ~300 m.
+    let skip_gate = std::env::var("CYCLONE_CONTINENT_PREVIEW").is_ok_and(|v| v == "1")
         || std::env::var("CYCLONE_CONTINENT_SCALE").is_ok_and(|v| v == "1");
-    let scale = if preview { 0.2 } else { 1.0 };
 
-    if continent && scale != 1.0 {
-        // Preview-scale runs still fly: flip live here (the game's
-        // Enter does the same at full scale). Before the spawn chain
-        // — `commands` is borrowed for its whole duration.
+    if continent && skip_gate {
+        // Flip live at boot rather than at the game's Enter. Before
+        // the spawn chain — `commands` is borrowed for its whole
+        // duration.
         commands.insert_resource(ContinentLive(true));
     }
 
