@@ -2098,3 +2098,34 @@ compliance, not drift. High Scores formally confirmed Q1-gated:
 and the ONLY missing organ is the score event, which is crates —
 the empty table has no witness to write until Q1.
 
+## Round 271 — 'in 0 ms' retired: the console line that was true and lied at once
+
+The reroll run's own output was the witness: 'continent ready:
+27 chunks, max 86 m, ocean 96%, in 0 ms'. Reading the code: the
+timer bracketed ONLY claimed.take() — the pickup of work the
+worker had finished seconds earlier. Every millisecond true;
+every word misleading: 'ready… in 0 ms' in front of a pilot who
+just watched a seven-second spinner. Truthful measurement +
+wrong sentence = a false claim, the same species as my doc drift
+— the console is pilot-facing ink too, with cargo run's stdout
+the rendering engine.
+
+Fix: the line moved to the block's LAST act (after cache
+assembly) and renamed to 'meshed in {} ms' — which is what the
+timer has always bracketed plus the meshing it now includes. The
+compiler auditioned as second witness mid-edit: the naive move
+tripped E0382 (chunks is consumed by the builder below), caught
+before any gate, fixed by capturing the count at the honest
+moment. Habitat run (the reroll tool under the three dials):
+'ready: 39 chunks, max 112 m, ocean 92%, meshed in 11 ms' — and
+the honest numbers tell a better story than the old line:
+meshing IS 9-18 ms; the seconds belong to worker-side GENERATION
+the console names separately ('carved on a worker'). Worst reroll
+frame this run 19.2 ms of 138,948 — round-270's 24.2 confirmed
+from two runs, box half-filled at worst.
+
+No test pinned the line (census first); no geometry or logic
+moved — the digest tests cannot flinch and the gates prove no
+collateral. Console honesty joined the audit list: pilot-visible
+claims live in stdout too.
+

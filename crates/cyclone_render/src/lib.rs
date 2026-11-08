@@ -488,13 +488,13 @@ fn rebuild_world(
                     let Some((c, chunks)) = claimed.take() else {
                         return; // payload vanished (stale-removed): next trigger rebuilds
                     };
-                    println!(
-                        "continent ready: {} chunks, max {:.0} m, ocean {:.0}%, in {} ms",
-                        chunks.len(),
-                        c.metrics.max_height_m,
-                        c.metrics.ocean_ratio * 100.0,
-                        t0.elapsed().as_millis()
-                    );
+                    let nchunks = chunks.len(); // chunks is moved by the builder below
+                    // Round 271: the 'ready' line used to print HERE, before any
+                    // meshing — 'in 0 ms' it said, truthfully timing only the
+                    // payload take, misleadingly for a pilot who just watched a
+                    // seven-second spinner. It now prints after the last spawn,
+                    // naming its real unit (meshed). Console text only; no
+                    // geometry or logic moves.
                     let mat = materials.add(StandardMaterial {
                         base_color: Color::WHITE,
                         perceptual_roughness: 0.92,
@@ -557,6 +557,12 @@ fn rebuild_world(
                         extent_m,
                         mat,
                     });
+                    println!(
+                        "continent ready: {nchunks} chunks, max {:.0} m, ocean {:.0}%, meshed in {} ms",
+                        c.metrics.max_height_m,
+                        c.metrics.ocean_ratio * 100.0,
+                        t0.elapsed().as_millis()
+                    );
                 } else {
                     let k = cache.as_deref().unwrap(); // read-only respawn: deref, not move
                     root.spawn((
