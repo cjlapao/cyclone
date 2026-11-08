@@ -1242,3 +1242,16 @@ committing a new test — a solo green run proves only isolation;
 (2) never quote gate numbers from scrollback — fresh logs, this
 run; (3) Bevy 0.20 `World::query` needs `&mut World`, which turned a
 scope cut into a strictly stronger wait (planet presence asserted).
+
+## Round 194 — the mesh joins the byte-identity contract
+
+'Same seed, same world' was digest-pinned for the WORLD (heights,
+rivers, metrics) but the MESHER between world and pixels was
+trusted, not hashed. Now seed 2 @ 2048² islands hashes (anchors +
+positions + colours + quad counts, blake3) to 85509bbc… and CI
+asserts it on all three OSes: float math drifting inside the
+builder would fail CI, not a cockpit impression. Implementation
+choice logged: the digest lives as a UNIT test so the builder's
+existing pub(crate) accessors serve it — the product API stays
+exactly as wide as players need, tests reach through crate
+visibility like they always do.
