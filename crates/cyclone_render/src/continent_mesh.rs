@@ -769,4 +769,48 @@ mod tests {
         );
         assert!(ms < 60_000, "full world build regressed hard: {ms} ms");
     }
+
+    /// Byte-identity for the MESH layer: the worldgen canaries pin the
+    /// ground; this pins the SKIN — anchors, positions, colours, quad
+    /// counts, hashed. Unit home (in-crate) so pub(crate) builder
+    /// accessors serve the digest without widening the product API.
+    /// CI runs it on Linux/macOS/Windows: drift red before pilot eyes.
+    #[test]
+    fn islands_mesh_digest_platform_identical() {
+        static LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
+        let _g = LOCK.lock().unwrap_or_else(|e| e.into_inner());
+        struct IsReset;
+        impl Drop for IsReset {
+            fn drop(&mut self) {
+                unsafe { std::env::remove_var("CYCLONE_ISLANDS") };
+            }
+        }
+        let _reset = IsReset;
+        unsafe { std::env::set_var("CYCLONE_ISLANDS", "1") };
+        let (_c, chunks) = generate_and_mesh(2, 2048);
+        let mut h = blake3::Hasher::new();
+        h.update(&(chunks.len() as u64).to_le_bytes());
+        for k in &chunks {
+            for f in k.anchor.to_array() {
+                h.update(&f.to_le_bytes());
+            }
+            for p in k.builder.positions() {
+                for f in p.to_array() {
+                    h.update(&f.to_le_bytes());
+                }
+            }
+            for c in k.builder.colours() {
+                for f in c.to_array() {
+                    h.update(&f.to_le_bytes());
+                }
+            }
+            h.update(&(k.builder.quad_count() as u64).to_le_bytes());
+        }
+        let d = h.finalize().to_string();
+        println!("islands mesh digest: {d}");
+        assert_eq!(
+            d, "85509bbc3d712b6d9c1cdd8a761509a4d9a9c5bbdb3bd1919b3c311e14e59964",
+            "mesh bytes drifted — rerun locally, diff a sheet, NEVER just re-pin"
+        );
+    }
 }

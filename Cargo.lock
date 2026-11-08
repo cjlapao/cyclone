@@ -2568,6 +2568,7 @@ name = "cyclone_render"
 version = "0.1.0"
 dependencies = [
  "bevy",
+ "blake3",
  "cyclone_engine",
  "cyclone_worldgen",
 ]

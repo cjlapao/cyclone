@@ -9,3 +9,6 @@ description = "Materials, shaders, terrain/sea mesh builders, lighting (specs 00
 bevy = { workspace = true }
 cyclone_engine = { workspace = true }
 cyclone_worldgen = { workspace = true }
+
+[dev-dependencies]
+blake3.workspace = true
