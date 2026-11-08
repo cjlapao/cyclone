@@ -825,3 +825,77 @@ fn new_game_seeds_differ() {
         "two New Games produced identical worlds"
     );
 }
+
+#[test]
+fn esc_in_continent_ingame_arms_the_reroll_the_hud_advertises() {
+    // Round 187 wired InGame Esc (continent mode) to PRE-ARM a reroll
+    // so the HUD's "Esc then R rerolls" chord is true. Round 191 tests
+    // the arm: reach InGame with the planet envs on, press the SAME
+    // Escape the player presses, and require the PendingGen the R on
+    // the preview will consume — plus the state move the old handler
+    // already promised (back to preview, same world visible).
+    static ENV_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
+    let _env = ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+    unsafe {
+        std::env::set_var("CYCLONE_CONTINENT", "1");
+        std::env::set_var("CYCLONE_CONTINENT_SIZE", "400");
+        std::env::set_var("CYCLONE_ISLANDS", "1");
+        std::env::remove_var("CYCLONE_CONTINENT_PREVIEW");
+        std::env::remove_var("CYCLONE_CONTINENT_SCALE");
+    }
+    let result = (|| {
+        let mut app = flow_app_with(false); // stop at preview; keys ours
+        app.update();
+        wait_for(&mut app, "MainMenu", Duration::from_secs(30), |a| {
+            state(a) == AppState::MainMenu && a.world().contains_resource::<CurrentWorld>()
+        });
+        app.world_mut().write_message(cyclone_ui::Activated(0));
+        wait_for(&mut app, "WorldPreview", Duration::from_secs(60), |a| {
+            state(a) == AppState::WorldPreview
+        });
+        app.world_mut().write_message(cyclone_ui::Activated(20)); // B_PFLY — the Fly! button
+        wait_for(
+            &mut app,
+            "InGame + live flag",
+            Duration::from_secs(60),
+            |a| {
+                state(a) == AppState::InGame
+                    && a.world().resource::<cyclone_render::ContinentLive>().0
+                // (Planet presence beyond the flip flag is the job of
+                // continent_live.rs's four tests; wait_for's Fn(&App)
+                // cannot query in 0.20 — honest scope, not weaker claim.)
+            },
+        );
+        // The player's Esc — one frame of ButtonInput, exactly what a
+        // real keypress is once InputPlugin clears it next frame.
+        app.world_mut()
+            .resource_mut::<ButtonInput<KeyCode>>()
+            .press(KeyCode::Escape);
+        wait_for(
+            &mut app,
+            "preview after Esc",
+            Duration::from_secs(30),
+            |a| state(a) == AppState::WorldPreview,
+        );
+        let armed = app
+            .world()
+            .contains_resource::<cyclone_game::screens::PendingGen>();
+        let auto = armed
+            && app
+                .world()
+                .resource::<cyclone_game::screens::PendingGen>()
+                .auto;
+        (armed, auto)
+    })();
+    unsafe {
+        std::env::remove_var("CYCLONE_CONTINENT");
+        std::env::remove_var("CYCLONE_CONTINENT_SIZE");
+        std::env::remove_var("CYCLONE_ISLANDS");
+    }
+    let (armed, auto) = result;
+    assert!(armed, "Esc in continent InGame armed PendingGen");
+    assert!(
+        auto,
+        "a machine-rolled reroll (auto) — R just presses Fly's route"
+    );
+}
