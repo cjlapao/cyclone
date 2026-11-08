@@ -2977,3 +2977,23 @@ No new claims; one new arrangement of old truths. Four gates;
 terrain frozen; the corpus is now also SELF-EXPLAINING at the
 re-entry seam.
 
+## Round 301 — my own digest aged one commit later, and the law caught me by the hand
+
+Round 300's digest shipped with 'The 45 ships since then' — a
+count honestly measured (rev-list, same minute). Then round 301
+began, HEAD moved, and the pilot-facing sentence was a lie by
+arithmetic — the exact round-295 pathology (labels aging against
+their own bytes), authored twelve minutes earlier by this hand.
+
+Caught by applying to fresh ink the same test I apply to old: does
+the doc itself move the number it quotes? Repaired to 'the 45 and
+counting' — self-dating, still measured, honest forever; the
+sibling sweep found no other counts the repo's motion could rot.
+
+Law, now self-referential and thus real: any count in a durable
+doc is either anchored (digest sha, commit pair — things that
+can't move) or self-dating ('and counting'). A bare number quoting
+a moving quantity is a fuse already lit — and this era has lit
+plenty; the craft is noticing the smell coming from your own
+paragraph. Four gates; terrain frozen.
+

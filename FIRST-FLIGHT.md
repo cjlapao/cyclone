@@ -231,8 +231,8 @@ the dial table (relief floors, orogeny, snowline, cell size).
 
 You said the islands were hills; islands v2 shipped the same hour
 (`435a62d`, 05:49). **Then the terrain froze — your verdict holds
-the only key to unfreezing it.** The 45 ships since then are all
-measurement, docs, and test arms: no height byte moved — the
+the only key to unfreezing it.** The 45 and counting since then are
+all measurement, docs, and test arms: no height byte moved — the
 islands digest (0fa64087…) re-agrees on all three OSes with every
 push, CI green to the tip today. What those ships bought your
 flight, by pointer, no repeats here: your seed's first frame is
