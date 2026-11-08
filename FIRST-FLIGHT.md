@@ -186,8 +186,9 @@ the dial table (relief floors, orogeny, snowline, cell size).
 
 1. **Four boxes only eyes can check** — tick them in the specs when
    the screen agrees: 00 (window opens on your OS), 01 (boot under
-   3 s), 02 (contact sheet looks like your island photo), 02 (foam
-   reads as foam).
+   3 s), 02 (contact sheet shows CLEARLY DIFFERENT archipelagos — a real
+   mix of archetypes; bonus question while you're there: do they
+   look like your island photo?), 02 (foam reads as foam).
 2. **Feel verdicts in dial language**: `TUNING.md` has 13 numbered
    flight dials + the continent table. '1 too slow, 3 too twitchy'
    is the whole loop — or just say 'it feels wrong while landing'.
@@ -197,7 +198,11 @@ the dial table (relief floors, orogeny, snowline, cell size).
 4. **The release tag name** — binaries for all three OSes build on
    any tag starting with `v` (`git tag v2-preview && git push --tags`;
    the filter is `v*` — a tag without the v builds binaries NOTHING).
-   The naming after the v is yours, CI is ready.
+   The naming after the v is yours, CI is ready. Where to look:
+   the zips (one per OS, assets included) appear on that tag's
+   ci RUN PAGE under 'Artifacts' — and expire after 90 days. The
+   Releases page stays EMPTY until you create a release; binaries
+   never appear there by themselves.
 5. **Last pass's loose ends**, if you have an opinion: ground-is-
    ground feel on low passes; the Enter-mid-carve moment (old world
    kept until new pops — a feature or a bug to you?); seed 42's
