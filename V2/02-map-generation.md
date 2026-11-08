@@ -13,7 +13,7 @@ Part A is the generator. Part B turns its output into 3D in Bevy. Part C is the 
 ### A1. Seeds
 
 - `Seed(u64)`. A new game draws one from OS entropy (`getrandom`).
-- **Display form**: Crockford Base32, 13 characters, grouped `XXXX-XXXX-XXXXX` (e.g. `K7Q2-9XMB-4TRFW`). Parsing is case-insensitive, ignores dashes and spaces, and maps `O→0`, `I/L→1` as Crockford specifies.
+- **Display form**: Crockford Base32, 13 characters, grouped `XXXX-XXXX-XXXXX` (e.g. `K7Q2-9XMB-4TRFW` — *(round-234 note: this example can never parse or appear: a full 13-digit Crockford seed's first digit tops out at `F` on a u64; `07Q2-9XMB-4TRFW` is the same example made legal. FIRST-FLIGHT's copy of this exact string was fixed round 232 — the spec is where the myth was born.)*). Parsing is case-insensitive, ignores dashes and spaces, and maps `O→0`, `I/L→1` as Crockford specifies.
 - `Seed::from_str` and `Display` must round-trip for every `u64` (property test).
 
 ### A2. Determinism rules (cross-platform)
@@ -273,6 +273,8 @@ Keep `CurrentWorld(Arc<WorldMap>)` as the source of truth. Later gameplay (landi
 
 ```
 worldgen-cli generate --seed K7Q2-9XMB-4TRFW [--round 1] --out out/
+# (round-234: that literal example overflows u64 — use 07Q2-9XMB-4TRFW;
+#  any shorter seed like '1' also parses. Command shape as specced runs.)
 worldgen-cli batch --count 1000 [--start-seed N] --out out/batch/
 ```
 
