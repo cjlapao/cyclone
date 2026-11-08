@@ -1,6 +1,7 @@
 # First Flight — a 10-minute guided tour
 
-Everything below is one `cargo run`. Each stop is something the specs
+The tour below is one `cargo run`; the fence beside it starts your
+verdict world — a second one. Each tour stop is something the specs
 demand; ticking them here (or just saying "worked" in chat) closes the
 remaining acceptance boxes.
 
@@ -25,8 +26,9 @@ is a myth by Thursday. What IS instant, once it runs: New Game
 answers immediately (the ~8 s planet carve happens on a worker
 behind the preview).
 
-Optional before you start — tune the world knobs first:
-`assets/worldgen/default.ron` (commented; e.g. `island_count: 10`,
+Optional before you start — tune the CLASSIC archipelago's
+knobs first (the continent world takes TUNING.md's env dials, not
+this file): `assets/worldgen/default.ron` (commented; e.g. `island_count: 10`,
 `island_radius: (8, 22)`, `size: (200, 200)`).
 
 ## The terrain lab — voxel Earth (newest first)

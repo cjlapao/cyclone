@@ -3162,3 +3162,33 @@ trailing newlines); pointer grafted, weld to list-item 2 fixed
 after read; PNG committed with its prose. Four gates; terrain
 frozen — the picture is pure read.
 
+## Round 308 — reading the grafted doc as one surface: two promise-lies, both authored by my own grafts
+
+Five rounds grafted FIRST-FLIGHT's top half (flight card 298,
+digest 300, pointer 307, plus seed-note); the instruments stay
+honest only if read AS SHIPPED, in order, as the pilot reads them.
+The read-through found exactly what reading-isolated-edits misses:
+
+1. Line 3 promised 'Everything below is one cargo run' — singular
+— born true, killed by round 298's second fence. The flight card
+had made the doc's own opening sentence a promise-lie. Repaired:
+'the tour below is one cargo run; the fence beside it starts your
+verdict world — a second one.'
+2. The default.ron 'world knobs' paragraph sat DIRECTLY under the
+verdict fence while steering the CLASSIC archipelago — continent
+ignores that file entirely (env dials, TUNING). A pilot tuning
+island_count before flying verdicts tunes nothing. Lane-labelled:
+'the CLASSIC archipelago's knobs (the continent world takes
+TUNING.md's env dials, not this file).'
+
+Pattern worth naming: every graft is a stone dropped in a pond —
+the ripples are sentences NEAR the graft that quietly became
+false. Round-298's sin was one sentence away from its own fence;
+the pointer of 307 left list-item 2 welded, two lines away.
+Graft-and-read-adjacent is the minimum unit of doc work; this
+round formalised graft-and-read-the-whole-surface.
+
+CI read passing at the top of the round (instrument, not memory);
+7 headings structural. Four gates; terrain frozen — all repairs
+are prose.
+
