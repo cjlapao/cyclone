@@ -1122,3 +1122,23 @@ shelves, deep blue beyond — "a few that fit the map, randomly", plus
   only for land. Live spawn (CYCLONE_ISLANDS through the real path)
   is test-guarded: crates gone, 3 meshes, one root, both B0004
   components standing.
+
+## Round 178 — the island stamps were secretly the continent path's first trig
+
+Determinism rule A2.3 says transcendentals go through libm — absolute,
+no exceptions, because platform libms differ in the last bits. The fbm
+never noticed A2.3 existing: value noise is integer hashing plus
+smoothstep, transcendental-FREE. The round-179 island stamps added
+`(PI·t).cos()` — the first trig in continent-path code — and it went
+straight to the SYSTEM libm. CI could not catch it: every island test
+asserts same-OS self-agreement, and the byte-identity canary pins the
+default path, which never touches stamps.
+
+Fix: `libm::cos` at the site; and the hole itself closed with an
+ISLAND-MODE canary — own digest (seed 2 @ 2048²: 512 m, the smallest
+size that fits the 340 m lattice honestly; 512² would pin pure ocean
+and call it proof), computed after the libm fix, asserted on all three
+CI OSes. Two lessons generalize: a new transcendental is a NEW
+determinism liability even inside a doctrine-covered crate; and a
+feature whose tests only compare a platform with itself has no
+cross-platform test at all, however green it looks.

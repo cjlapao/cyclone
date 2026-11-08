@@ -55,3 +55,43 @@ fn bytemuck_bytes(v: &[u16]) -> Vec<u8> {
     }
     out
 }
+
+#[test]
+fn islands_seed2_512_digest() {
+    // Archipelago mode gets its OWN pin: the default-path canary
+    // never sees the stamps, and island tests until round 178 were
+    // self-agreement-only (same OS vs itself) — cross-OS drift in
+    // the blob profile (first trig in continent-path code, fixed to
+    // libm::cos the same round) would have sailed green through all
+    // three CI OSes. This closes that: agreement here IS the proof.
+    // 512² (128 m) fits ZERO 340 m lattice sites — an all-sea digest
+    // would pin nothing but emptiness. 2048² = 512 m = 1.5 spacings:
+    // a few coins land, ~2 s of CPU, still honest cross-OS coverage
+    // of stamp, profile, sea line and (seed-dependent) river cuts.
+    let c = generate_continent(
+        2,
+        &ContinentConfig {
+            size: 2048,
+            islands: true,
+            ..Default::default()
+        },
+    )
+    .unwrap();
+    let mut h = blake3::Hasher::new();
+    h.update(&bytemuck_bytes(&c.heights));
+    h.update(&bytemuck_bytes(&c.water));
+    let digest = h.finalize().to_string();
+    // Pinned round 178 (libm::cos fix) on Linux; macOS + Windows CI
+    // must agree — that agreement is the proof the stamps don't drift.
+    assert_eq!(
+        digest,
+        "690cfabd36597464f33509d4fd431246c986cb4e5059a1254f3d9a2c969b208f"
+    );
+    let m = c.metrics;
+    assert!((m.ocean_ratio - 0.904019355774).abs() < 1e-9);
+    assert!((m.flat_ratio - 0.009327524021).abs() < 1e-9);
+    assert!(m.high_ratio == 0.0);
+    assert!(m.mountain_ratio == 0.0);
+    assert!(m.river_ratio == 0.0);
+    assert_eq!(m.max_height_m, 72.0);
+}

@@ -101,7 +101,14 @@ fn blob_field(dx: f64, dy: f64, r: f64, squish: f64) -> f64 {
         0.0
     } else {
         let t = d / r;
-        0.5 * (1.0 + (std::f64::consts::PI * t).cos())
+        // libm, not f64::cos — determinism rule A2.3 is absolute,
+        // and this profile feeds the SEA-LINE threshold: a last-bit
+        // drift in the system libm could flip a column's coast call
+        // on one OS only. The fbm path never noticed because it is
+        // transcendental-FREE (integer hash + smoothstep); the island
+        // stamps were the continent code's first trig (round 178).
+        // PI itself must stay f64-exact: same constant, libm::cos.
+        0.5 * (1.0 + libm::cos(std::f64::consts::PI * t))
     }
 }
 
