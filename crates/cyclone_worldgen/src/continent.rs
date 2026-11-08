@@ -14,6 +14,18 @@
 use crate::error::GenError;
 use crate::noise::{fbm, hash_pair};
 
+/// The ONE reader of `CYCLONE_ISLANDS`: archipelago mode scatters the
+/// land into islands. Lives here — beside the `ContinentConfig::islands`
+/// field it feeds — so every consumer (the game's mesher/sampler/spawn
+/// scan via re-export, and the CLI that links only this crate) calls
+/// THE SAME code. Round 226: the CLI inlined a copy that agreed by
+/// coincidence; 'a second reader with Default::default() bit me
+/// mid-round' (round 179 ink) — coincidence is how that happens.
+/// Env-read, std-only: this crate stays bevy-free.
+pub fn island_mode() -> bool {
+    std::env::var("CYCLONE_ISLANDS").is_ok_and(|v| v == "1")
+}
+
 /// Terrain shaping knobs. Distances are METERS (the voxel size only
 /// quantizes the result); frequencies below are cycles-per-meter.
 #[derive(Clone, Copy, Debug, serde::Serialize, serde::Deserialize)]

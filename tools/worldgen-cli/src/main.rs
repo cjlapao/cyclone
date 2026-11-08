@@ -300,7 +300,7 @@ fn main() -> Result<()> {
                 seed,
                 &cyclone_worldgen::ContinentConfig {
                     size,
-                    islands: std::env::var("CYCLONE_ISLANDS").is_ok_and(|v| v == "1"),
+                    islands: cyclone_worldgen::island_mode(),
                     ..Default::default()
                 },
             )?;

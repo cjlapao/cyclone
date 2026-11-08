@@ -388,22 +388,15 @@ pub fn build_continent_chunks(c: &Continent) -> Vec<ContinentChunk> {
     chunks
 }
 
-/// Convenience for callers without the Continent in hand: generate +
-/// mesh. (Dev mode uses this once per seed; is_changed gating upstream
-/// means rerolls pay it, menu stays free.)
-pub fn island_mode() -> bool {
-    // Env dial (dev terrain lab): CYCLONE_ISLANDS=1 scatters the land
-    // into islands — pilot round 179. ONE reader for everyone who
-    // must agree on what the world IS: mesher, sampler, spawn scan.
-    // (A second reader with Default::default() bit me mid-round: the
-    // sampler sampled continent land while the mesh built islands.)
-    std::env::var("CYCLONE_ISLANDS").is_ok_and(|v| v == "1")
-}
+/// Re-export of the worldgen crate's ONE reader of CYCLONE_ISLANDS
+/// (round 226: the fn body moved to its single home beside the config
+/// field it feeds — this path stays for existing callers).
+pub use cyclone_worldgen::island_mode;
 
 pub fn generate_and_mesh(seed: u64, size: u32) -> (Continent, Vec<ContinentChunk>) {
     let cfg = ContinentConfig {
         size,
-        islands: island_mode(),
+        islands: cyclone_worldgen::island_mode(),
         ..Default::default()
     };
     let c = generate_continent(seed, &cfg).expect("size within contract; dev preview dial");
@@ -463,7 +456,7 @@ pub fn spawn_over_land(
 pub fn surface_height_m(x_m: f64, y_m: f64, seed: u64, size: u32) -> f64 {
     let cfg = ContinentConfig {
         size,
-        islands: island_mode(),
+        islands: cyclone_worldgen::island_mode(),
         ..Default::default()
     };
     // The spawn sampler must see the RIVER, not just the mountain:

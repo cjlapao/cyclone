@@ -19,7 +19,7 @@ pub mod seed;
 
 pub use config::WorldGenConfig;
 pub use continent::{
-    Continent, ContinentConfig, ContinentMetrics, elevation_m, generate_continent,
+    Continent, ContinentConfig, ContinentMetrics, elevation_m, generate_continent, island_mode,
 };
 pub use error::GenError;
 pub use grid::Grid;
