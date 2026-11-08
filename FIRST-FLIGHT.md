@@ -236,24 +236,28 @@ the dial table (relief floors, orogeny, snowline, cell size).
    benches, rotated notched coasts — Esc-then-R through a few
    families first). Bonus while you're there: do the dark
    rectangles around islands still appear on screen? A close-up
-   pins them if yes. *(Update round 281: mechanism found —
-   `docs/sea_rectangles_evidence.png` shows the sea's own colour
-   field painted by the shipped sampler: navy-to-black 25 m
-   squares at shore edges, blackest beside thin islands. Your
-   close-up still decides how loud it is in-game; the fix waits
-   on the terrain freeze lifting, not on me. Round 282 took it
-   further: `docs/sea_fix_sim_preview.png` is the same seed
-   painted twice — LEFT the shipped sampler (black squares at the
-   shore; they turn out to be buckets SKIPPED entirely, holes to
-   background, when a bucket's centre is land), RIGHT the fix
+   pins them if yes — the rectangles have a full dossier; read
+   it AFTER the flight, not instead of it (bullets below).
+
+   *Rectangles dossier, rounds 281-282+ — nothing owed before the
+   close-up*: the mechanism is found — `docs/sea_rectangles_evidence.png`
+   is the sea's own colour field, painted by the shipped sampler:
+   navy-to-black 25 m squares at shore edges, blackest beside thin
+   islands. Round 282 went further: `docs/sea_fix_sim_preview.png`
+   paints the SAME seed twice — LEFT the shipped sampler (those
+   black squares turn out to be buckets SKIPPED entirely — holes
+   to background — when a bucket's centre is land), RIGHT the fix
    preview (footprint sampling, no skips): continuous cyan shelves
-   everywhere. The fix is armed AND seen; your verdict still owns
-   whether it fires.)*
-   *(Seed note 2026-11-08: if you're still flying your own seed
-   `1EDK-FQFN-XMZMK`, the v2 grammar puts spawn ~74 m above the
-   flagship with land at your skids, 11 big (>= 900 m²) landing
-   spots in the world and the nearest 11 m off the nose — measured
-   in-process with the dial set, on today's exact code.)*
+   everywhere. The fix is armed AND seen; your close-up decides
+   how loud it is in-game, your verdict owns whether it fires; the
+   fix waits on the terrain freeze lifting, not on me.
+
+   *Seed note, 2026-11-08 — witness about your world, not a task*:
+   if you're still flying your own seed `1EDK-FQFN-XMZMK`, the v2
+   grammar puts spawn ~74 m above the flagship with land at your
+   skids, 11 big (>= 900 m²) landing spots in the world, nearest
+   11 m off the nose — measured in-process with the dial set, on
+   today's exact code.
 2. **Feel verdicts in dial language**: `TUNING.md` has 13 numbered
    flight dials + the continent table. '1 too slow, 3 too twitchy'
    is the whole loop — or just say 'it feels wrong while landing'.

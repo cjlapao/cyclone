@@ -2705,3 +2705,26 @@ No pilot-facing doc touched (nothing witnessed today needs their
 eyes; the streak is reassurance, not verdict); ledger-only; four
 gates; terrain frozen.
 
+## Round 290 — the ask-list audit: truth that only appended had buried the question it asked
+
+Rounds 281-288 each appended TRUE words to the one text standing
+between the pilot and the verdict — and accumulation had grown
+the rectangle patch to fifteen parenthesized lines INSIDE the
+five-box item: the pilot's single eyes-on ask, physically buried
+under its own dossier. Today's audit asked not 'is it true' (it
+was) but 'will it be read': the answer was no.
+
+Repair with zero truth-loss: the box now ends 'the rectangles
+have a full dossier; read it AFTER the flight, not instead of it'
+and the dossier lives as two titled sub-bullets that label their
+own demands — 'nothing owed before the close-up' and 'witness
+about your world, not a task'. Every dated claim, every number,
+every image path kept verbatim; only the GRAVITY of the block
+moved: question first, evidence below, duties labeled.
+
+Law for the ask-list (and any pilot-facing ledger of asks):
+appending is editing's lazy path; each patch must be tested
+against 'does the reader still find the question in one breath?'
+A truth the pilot skips takes the whole ask-list's credibility
+down with it.
+
