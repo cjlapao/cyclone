@@ -1223,3 +1223,22 @@ fallback's domain, witnessed free of charge). Same seed REUSES
 directions hostile-tested: flipped freshness serves a stale world;
 broken reuse re-pays 8 s on every Enter. The stale-world class of
 bugs is now closed by CI, not by reading the condition.
+
+## Round 191 — a partial lock is no lock (re-learned the hard way)
+
+The reroll-chord test (9ec9992) shipped while two sibling flow tests
+FAILED and clippy was 2 — the review grep chain read stale numbers.
+The env flakes came back wearing the same lesson in a new hat:
+round 184's ENV_LOCK, applied only to the test that MUTATES envs,
+does nothing for the tests that merely READ them — rebuild_world
+samples CYCLONE_* every frame, so any app-building test in the
+binary is a reader. The lock must cover every member of the
+contending set, not just the offender. FlowEnv now serialises all
+12 flow tests and its Drop guard clears envs on panic — cleanup by
+construction beats cleanup by a tail statement a panic skips.
+
+Meta-lessons logged: (1) run the test binary as a BATCH before
+committing a new test — a solo green run proves only isolation;
+(2) never quote gate numbers from scrollback — fresh logs, this
+run; (3) Bevy 0.20 `World::query` needs `&mut World`, which turned a
+scope cut into a strictly stronger wait (planet presence asserted).
