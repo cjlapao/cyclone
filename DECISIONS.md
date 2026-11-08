@@ -2519,3 +2519,48 @@ And the median lesson from the probe's own output: printing
 numbers are born - the doc carries the properly sorted median
 62, not the probe's shortcut.
 
+## Round 285 — my own yesterday-claim met its phantom: the spawn sampler reads the ENV dial, and cfg fields don't reach it
+
+The question was the pilot's first 3 seconds: does the nose open
+on a landing place? The answer arrived only after walking through
+a self-built trap. First run: spawn heights 184-268 m —
+IMPOSSIBLE against this week's own 88-116 m island census. Two
+fresh censuses cannot disagree; one was measuring fiction. The
+bytes named the liar: surface_height_m builds its config with
+`islands: island_mode()` — the ENV dial AT CALL TIME — and the
+probe process had no dial set. The spawner was grading against
+MAINLAND phantoms: mountains analytic-relief imagines over open
+sea. My printed numbers were artifacts of dial-blindness — the
+auditor's-units law again, with the dial as the unit.
+
+Then the colder thought: the deleted round-278 census — source
+of FIRST-FLIGHT's 'flagship 12/12' line, shipped YESTERDAY — set
+islands as a CONFIG FIELD, and config fields do not reach this
+function. Its spawn claims were phantom-graded. Re-ran the probe
+WITH CYCLONE_ISLANDS=1: spawn heights 55-95 m (island range,
+phantom story fully explained), flagship 12/12 — the claim
+SURVIVES, but only now is it WITNESSED; the evidence-pin law
+(re-measure even the repairs) caught a live defect in my own
+fresh ink, which is exactly why the law exists.
+
+The truth, now dial-set: spawn never lands ON a flat spot (peaks
+are pointy — benches terrace below), but the nearest >= 900 m2
+level place sits 5-45 m from the nose in ELEVEN of twelve worlds
+— landing ground a bench down, a genuinely kind first view — with
+one outlier (2000013: 640 m). Honest scope: distances measured to
+BIG spots only; near-peak small spots not censused.
+
+Laws banked: (1) any probe calling a dial-reading function
+(spawn_over_land, surface_height_m, anything reaching
+island_mode()) must set the ENV dial — cfg fields stop at the
+caller; (2) when two fresh censuses disagree, hunt the fiction
+before touching either — here the disagreement was the whole
+diagnostic; (3) claims born dial-blind get re-witnessed, and
+FIRST-FLIGHT :59 and TUNING's spawn row now carry the re-
+witnessing plainly, including the embarrassing half.
+
+Probe deleted, residual diff READ empty; classic spawn tests at
+:593/:603 audited — mainland mode is their truth, dial-off is
+CORRECT there; table scanned; four gates; terrain frozen — this
+round moved no bytes, it moved a ruler back onto true ground.
+
