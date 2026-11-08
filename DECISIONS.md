@@ -2651,3 +2651,27 @@ the other. The pilot's wait is now promised as a range they can
 choose from, witnessed on both sides. Probe deleted, residual
 diff READ empty; four gates; terrain frozen.
 
+## Round 288b — the scar the commit itself told: backticks in a double-quoted -m ARE shell commands
+
+While shipping round 288, the commit message — written in double
+quotes — contained two backtick phrases. bash EXECUTED them:
+`cargo run --features dev` and `cargo test = [profile.dev]` ran
+as commands inside the -m string, failed (cargo unpathed in that
+subshell), and the pushed message lost those phrases: 'commands
+reading  — no --release'. Verified before deciding: HEAD ==
+origin/main == 5c67a67, push complete, damage limited to two
+holes in an otherwise-true body.
+
+Decision logged: NOT force-pushed. The era's law — history is
+read, not assumed — cuts against rewriting a shared main the
+pilot may pull at any moment, and the holes distort nothing
+false: the next sentences carry the whole truth. A cosmetic
+rewrite risking the pilot's pull is the worse pilot-facing prose.
+
+LAW BANKED, loud for every future round: commit messages go in
+SINGLE quotes. A double-quoted -m is an executing shell with a
+message wrapper — backticks and $() there are commands, and they
+run against the pilot's own log. The era's prose survived; the
+era's lawyer in me (audit-before-trust) walked the damage before
+accepting it.
+
