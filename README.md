@@ -5,6 +5,9 @@ Search-and-rescue over a generated archipelago. Bevy **0.20.1** (exact pin).
 > **v2 terrain lab**: `CYCLONE_CONTINENT=1 cargo run -p cyclone --features dev`
 > flies a 1 km² voxel-Earth heightfield (25 cm columns) with the same rig —
 > seed it, reroll it, tune it: dial table in [TUNING.md](TUNING.md).
+> Add `CYCLONE_ISLANDS=1` for archipelago mode: a few 100–250 m islands
+> with sand rings and a turquoise shelf, spawn scan dropping you on the
+> flagship. How the tour works: [FIRST-FLIGHT.md](FIRST-FLIGHT.md).
 V1 lives in [`v1/`](v1/); the V2 specs are in [`V2/`](V2/).
 
 ## Run
