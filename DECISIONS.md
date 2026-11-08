@@ -1902,3 +1902,19 @@ dd0b527 (round ~230, two eras before their screenshots) — the
 entire round-249→73f05bf stack changes NO dependencies; their
 git pull needs no network beyond the repo itself.
 
+## Round 263 — the dial sheet's anchors: census says clean, so the clean says it here
+
+Every TUNING island row instructs the pilot to change a line by
+grep-quoted text — and quoted text is a claim about bytes with
+one dated witness (round 257's own writing). Full census both
+ends this round: all seven anchors (bench count, tread mid,
+tallness, beach fraction, wobble, rotation, keep-coin) exist in
+continent.rs, one occurrence each; all six sheet rows quote them
+verbatim; the witness figures on the first row match the
+measured pair (88k of 256k). Zero drift, so nothing was touched
+— and a clean audit still gets its line, because the era's
+standing rule is that unlogged audits are audits that never
+happened. CI at read: the three docs commits mid-serial-lane,
+green expected (no code bytes between them and 81d2712's
+all-OS green).
+
