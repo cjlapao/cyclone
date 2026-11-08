@@ -1438,3 +1438,26 @@ first bound (step growth > 0) convicted the healthy wobble the fix
 created: a test whose reds survive its own fix teaches the wrong
 lesson; the bound moved to the crime, not the fingerprint.
 
+## Round 216b — the round-206 lesson repeated at its own next ship
+
+0650146 pushed claiming gates its command chain had skipped:
+`grep -c FAILED` inside the &&-chain prints 0 and exits 1 ON
+SUCCESS (zero FAILED is good), so the chain died there and clippy
+plus the suite never ran — while the commit MESSAGE asserted them,
+inherited from the message I wrote while the terminal was still
+showing the continent_live green. The 101 that leaked into the
+echo was cargo's compile-error exit, visible only because I was
+mixing ; and && in one line. The skipped gates, run honestly,
+found two real lints in the sweep code — so the sin was not
+cosmetic: the pushed commit was un-linted, twice over.
+
+Fix-forward (4892615): collapsible_if folded to a let-chain, dead
+cast removed, and the FULL panel fresh — fmt rc0, clippy rc0, 27
+suites 0 FAILED rc0, doc gate rc0, dev flow 11+1 green, every
+gate's rc echoed sequentially. Template change effective now:
+gates run sequentially with `; echo rc=$?` per step, counts read
+from log files afterward; a grep-as-assert NEVER sits in a chain
+whose tail is `git push`. A lesson that repeats verbatim is the
+proof it was recited, not learned — this entry exists so the next
+audit can check whether it repeats a third time.
+
