@@ -41,7 +41,7 @@ terraces; the canary proves the classic continent digest didn't
 flinch. Pull, rerun the islands line below, Esc-then-R a few
 times — the shape family is now: atolls to ridges, rotated,
 notched. If the benches read too like contour rings, that's a
-one-dial pile (TUNING's five new island rows).
+one-dial pile (TUNING's six new island rows — count verified against the commit, round 268).
 
 
 The archipelago is the GAME world; a separate dev world is the terrain

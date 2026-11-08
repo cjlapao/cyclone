@@ -2018,3 +2018,24 @@ confirmed flagship spawns.
 Throwaway probe deleted after use (examples never get resident
 slots; six tools stay six).
 
+## Round 268 — the island section's last un-audited claims, both ends git-checked
+
+Twelve claims sat in the round-257 island section; eleven read
+true against code bytes (sand 0–6, five benches, 46–136 band,
+±14 % wobble, 88k 8-m disks, classic canary untouched, six-seed
+family). Two needed git, not eyes:
+
+- 'TUNING's five new island rows' — the commit added SIX (the
+  density row is new too; a pilot told 'five' may never scan the
+  sixth and never learn island COUNT is theirs to dial). Fixed
+  to six, dated, count-verified.
+- 'shipped the same hour' — acquitted by the stamps: verdict
+  05:40 EST, feature commit 05:49, digest-assert-restore 05:56.
+  True even under strictest reading; left standing.
+
+Pattern worth naming: my own pilot-doc drift is never where I
+expect it — the big numbers were all right, the COUNT of a table
+was wrong. Claims of quantity ('five rows', '27 ok', '40/40')
+deserve the same byte-check as claims of value, and git is the
+cheap witness for claims about the past.
+
