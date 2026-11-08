@@ -1823,3 +1823,19 @@ The restored assert passes unchanged: 0fa64087 IS the terrain.
 The comment now tells the scar's story in the file itself, so the
 next reader of this block learns both the law and its price.
 
+## Round 259 — the island HUD's reroll promise: audited to the last link
+
+'Esc then R rerolls' sits on the islands preview screen in v2's own
+pixels. Read the test end-to-end rather than trusting its NAME:
+esc_in_continent_ingame_arms_the_reroll_the_hud_advertises runs the
+PILOT'S EXACT ENV (CONTINENT=1, SIZE=400, ISLANDS=1), flies via the
+Fly button to a live planet (one WorldRoot, rig cage = the planet's
+100 m box asserted, not the stale archipelago cage), presses real
+Escape, reaches preview, and requires PendingGen armed WITH auto —
+'R just presses Fly's route', and that route was proven THIS env
+three lines earlier; R's binding is env-agnostic InputMap data,
+the design that makes one binding proof cover every planet. No
+gap found — the HUD may keep its sentence. (Audit by READING the
+test's body this time, the round-258 scar keeping the pen honest:
+names describe intentions, bodies tell the truth.)
+
