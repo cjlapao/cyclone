@@ -3281,3 +3281,24 @@ the clock, five hours to the probe, one sleeping pilot between
 here and the verdict — all that's left to prepare has been
 prepared, all that remains cannot be prepared: the flight itself.
 
+## Round 313 — F3 named one place, true nowhere: fence-comment repair, and the seed-in-flight gap banked
+
+The docs' first fence called --features dev 'the F3 overlay'; the
+authoritative spots (FIRST-FLIGHT :317/:328, the source at
+screens.rs:1263) all say F3 is the CRATE-REVEAL toggle on the
+PREVIEW screen — an overlay it is not, and in-flight it never
+fires. Line 10 was the corpus's only F3 lie; repaired to name the
+toggle and its screen. (Round 298's graft authored this too — the
+comment was written to sell 'dev', not to describe F3.)
+
+Then the real question the fence prompted: CAN the pilot share a
+world they love? The state answers YES — CurrentWorld holds the
+seed (flow.rs:229) and the reroll chain is already TESTED
+(:1201/:1215: Esc preserves, R rolls new). The gap is display:
+only the MENU shows a seed; mid-flight, after rerolls, the seed
+is unreadable on screen — a shareability hole in the improvement
+loop. Code change = pilot-gated (post-flight, with the Q1-era
+batch: a small seed readout on the preview label is the whole
+ask); banked here, ready to fire, unspecced into the docs by
+choice — no promise before proof, the era's oldest law.
+

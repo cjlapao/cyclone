@@ -7,7 +7,8 @@ remaining acceptance boxes.
 
 ```sh
 cd ~/code/cjlapao/cyclone
-cargo run -p cyclone            # add --features dev for the F3 overlay
+cargo run -p cyclone            # --features dev also adds the F3
+                                      # crate-reveal on the preview screen
 ```
 ```sh
 # YOUR VERDICT LOOP — the v2 islands world (pick ONE fence: each
