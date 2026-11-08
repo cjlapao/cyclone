@@ -59,7 +59,7 @@ descends, Ctrl boosts. The in-game HUD and this table match the code
 
 The tour says plain `cargo run` (dev profile). Measured on the
 current code and config (160×160, 14 islands): `cargo bench` release
-198 ms per 18-seed sample = ~11 ms/world (re-measured round 116; re-verified round 200 at 194 ms — stable through the libm freeze and the whole continent era,
+198 ms per 18-seed sample = ~11 ms/world (re-measured round 116; re-verified round 200 at 194 ms and round 243 at 195 ms median — three dates, drift inside noise through the libm freeze, the whole continent era and the mesh rework,
 after the bench pool became "generable seeds from 1..=20" = 18 — the
 faster number vs the 20-seed era's 262 ms/13 ms partly *is* that
 filter: the exhausted seeds' full 8-attempt burn no longer lands in
