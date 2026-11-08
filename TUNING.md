@@ -11,7 +11,7 @@ unless noted. The Line column is a **search anchor, not a line number** —
 `grep -n "FLY_BASE" crates/cyclone_engine/src/camera_rig.rs` — because raw
 line numbers rotted twice already; identifiers don't.
 
-## Controls (defaults; remap by hand-editing the settings file — no remap UI exists yet)
+## Controls (defaults; remap by hand-editing the settings file — no remap UI; it's a pilot-ask)
 
 The overlay edits only Fullscreen / VSync / Window size / Camera speed.
 Keys live in the `keys:` block of the settings file (edit it with the

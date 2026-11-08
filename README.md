@@ -65,7 +65,7 @@ keys/display/vsync/fullscreen: `~/.config/rescue/settings.ron` on Linux
 on macOS). The in-game Settings overlay applies changes the same frame
 and writes these files; a hand-edit applies at next launch (a running
 game reads the file once, at boot — no file watcher exists). Key remaps
-live in the same file (remap UI not built yet; see `DECISIONS.md`).
+live in the same file (no remap UI — it's unspecced, a pilot-ask away; see `DECISIONS.md`).
 Display/input options also live in-menu: **Settings** row opens an overlay
 (↑↓ rows · ←→ or Enter adjust · **click a row** to adjust · Esc close) — fullscreen, vsync, window
 size, camera speed; edits apply the same frame and persist. Volume rows

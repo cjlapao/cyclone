@@ -3321,3 +3321,26 @@ matter grew, and the edit says so by matching it.
 
 Four gates; terrain frozen; six rounds on the clock.
 
+## Round 315 — the forward-promise channel closes: two unscheduled 'yets' converted to pilot-asks
+
+Numbers, commands, keys were audited; the unpainted promise
+channel was the FUTURE TENSE. First sweep (placeholder/not-yet/
+TODO markers) came back clean across every pilot doc and game/UI
+source — then exposed its own blind spot: 'no remap UI exists YET'
+(TUNING:14) and 'remap UI not built YET' (README:68) match no
+keyword sweep because 'yet' is a whisper, not a marker.
+
+Judge: does any schedule exist for a remap UI? None — never
+specced, never asked, not on the pilot's Q-list. An unscheduled
+'yet' is a promise the era never funded. Converted to the corpus's
+own idiom — the pilot-ask: '(no remap UI — it's unspecced, a
+pilot-ask away)'. Same truth, no funding fiction, and the pilot
+gains the feature to the ask-list by knowing they may ask.
+
+Third match acquitted by context: a meshing row's 'BIG must beat
+every true d2 YET keep +p2 exact' — adverbial yet, no future
+implied. Adverbs stay; promises go.
+
+Four gates; terrain frozen; five rounds on the clock, four to the
+probe. The corpus now keeps tense as well as numbers.
+
