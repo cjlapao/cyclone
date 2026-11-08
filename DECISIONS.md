@@ -3434,3 +3434,33 @@ round clock's end — completion without the pilot's eyes-on would
 violate the objective's own wording, and the wait is scheduled
 (probe ~2.3 h, pilot whenever), which is patience, not blockage.
 
+## Round 320 — round clock's close: engine complete and audited; the last clause stays first-person
+
+The clock ends where round 319 left it: every machine-verifiable
+clause of the objective holds by fresh witness (worldgen 14 ok,
+flow 15 ok, dials 1-13 certified, cross-OS digest identity in CI),
+and the close-read re-witnessed at the final hour: badge PASSING,
+origin == HEAD byte-exact, zero dirty files — claims made only
+after the instruments were looked at, to the last round.
+
+The terminal clause — the pilot's own eyes on the world — has been
+absent for twenty-two consecutive rounds. That block is concrete,
+external, and persistent; the goal tool records it as blocked
+rather than the ledger papering it over or the clock forcing a
+false complete. 'I need to be able to navigate the world' is
+grammatically the pilot's sentence to verify, and no green gate
+here speaks for their eyes.
+
+What stands in the repo at clock's end: the generation engine
+(two pinned digests, three OSes), free navigation (flow-proven
+entry chain, tested rig, 9.5 ms reroll worst-frame), the
+improvement loop (13 certified dials, measured margins, leak-free
+hopping, the rectangle fix fitted to today's bytes and gated on
+the pilot's word, the seed-readout ask banked), pilot-owned truth
+surfaces (re-entry digest, marked flight map, reader-runnable
+freeze proof), and the weekly probe armed 2026-11-09T06:00Z.
+
+Everything headless is done, checked, and said. The flight closes
+the loop; the map, the ledger, and four green gates wait at the
+chair.
+
