@@ -142,7 +142,7 @@ into defaults and prune this file.
 The terrain-sim pivot: a 1 km² voxel-Earth heightfield, 25 cm
 columns, flown with the same rig. Judge without building: `cargo
 run -p worldgen-cli -- continent --seed <S> --size 4000 --out <dir>`
-→ hillshade.png in ~7 s from the SAME `elevation_m` the mesh uses.
+→ hillshade.png from the SAME `elevation_m` the mesh uses (round-232 re-measure: ~8.1–8.6 s internal / 9–10 s wall at 4000², release, Linux dev box — the old '~7 s' had drifted; re-measure before quoting again).
 
 **Value law (round 228, pinned by `continent_dial_is_strict_one`):**
 every dial here activates on the exact value `1` — `CYCLONE_CONTINENT=0`

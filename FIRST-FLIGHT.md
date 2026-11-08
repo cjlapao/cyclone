@@ -56,16 +56,22 @@ nothing standable in the search radius you hover over the sea pitched
   Ctrl-boost up to ~300 m and a whole island fits the screen at true
   scale — judge the photo's grammar from up there.
 - **Judge sheets without launching**: `CYCLONE_ISLANDS=1
-  ./target/release/worldgen-cli continent --seed K7Q2-9XMB-4TRFW
-  --size 4000 --out /tmp/sheet` (release-build it first; ~20 s) —
+  ./target/release/worldgen-cli continent --seed 07Q2-9XMB-4TRFW
+  --size 4000 --out /tmp/sheet` (release-build it first; measured
+  round 232: 4000² in ~9–10 s on a Linux dev box, release build) —
   hillshade.png + stats (ocean/flat/high shares, max height). The
   `--seed` string is the SAME seed form the game shows and accepts
   (Crockford Base32 — one parser, so a seed pasted from New Game's
   screen regenerates byte-identically here; plain words work too,
-  they just mean what Crockford says they mean). Every island dial is
+  they just mean what Crockford says they mean; one honest edge: a
+   FULL 13-digit seed's first digit tops out at F — beyond that the
+   value cannot fit 64 bits, so no game-shown seed ever starts with
+   G–Z. An example here once started with K: the pilot's copy-paste
+   died on 'overflows 64 bits' — round 232 caught it, the example
+   now parses and flies). Every island dial is
   a one-constant change in `TUNING.md`, and the sheet is the 9-second
   answer before a flight.
-- **Blocks**: the voxel is 25 cm (40 000 across the map); the block you
+- **Blocks**: the voxel is 25 cm (4 000 across the 1 km map); the block you
   SEE is the mesh cell, 1 m since round 179. One constant (`CELL_VOX`)
   away from 0.5 m if you want it finer — say so and check the FPS.
 

@@ -1538,3 +1538,24 @@ structural, and the next semantics change is rent collected. Every
 dial's truth table is now unit-pinned or test-covered at its owner;
 the repo-wide census is four dials, four readers, zero coincidences.
 
+## Round 232 — the pilot's copy-paste was dead on arrival (twice), and my own claim fell
+
+(1) FIRST-FLIGHT's example seed K7Q2-9XMB-4TRFW was UNPARSEABLE by
+the game's own Seed parser: a full 13-char Crockford seed tops out
+at first-digit F (beyond that no u64 fits) — no game-shown seed can
+start with G–Z, and the doc example started with K: the pilot's
+first CLI copy-paste died on 'seed overflows 64 bits'. Example now
+parses and flies (07Q2-...), and the first-digit bound is INKED.
+(2) 'the voxel is 25 cm (40 000 across the map)': 1 km / 0.25 m =
+4 000 — an order-of-magnitude typo no arithmetic reading survived.
+(3) Both sheet timings in the docs had drifted (7 s, 20 s):
+measured 8.1–8.6 s internal / 9–10 s wall, release, dated.
+(4) SELF-INDICTMENT: yesterday's commit claimed 'no binaries/
+sounds shipped' — FALSE: eight .wav sit under assets/audio (V1-era,
+bundled in b55e5c8). The GROUND RULE stays true with a stronger
+witness than my sentence: v1/src/audio.rs:1 'All WAVs are
+synthesised by tools/gen_sfx.rs (original material)' and the tool
+exists at v1/tools/gen_sfx.rs. V2 loads none of them (audio is
+spec 05's). A claim about absence must census the tree, not a
+truncated grep — head -8 ate the wavs alphabetically.
+
