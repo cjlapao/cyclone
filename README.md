@@ -1,5 +1,7 @@
 # Cyclone Rescue (V2)
 
+[![CI](https://github.com/cjlapao/cyclone/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/cjlapao/cyclone/actions/workflows/ci.yml)
+
 Search-and-rescue over a generated archipelago. Bevy **0.20.1** (exact pin).
 
 > **v2 terrain lab**: `CYCLONE_CONTINENT=1 cargo run -p cyclone --features dev`

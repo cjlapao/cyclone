@@ -3051,3 +3051,26 @@ No pilot-facing change owed (spec-03's annotation was already the
 truth); ledger-only correction of 299's narrative. Four gates;
 terrain frozen.
 
+## Round 304 — the digest's CI claim was inferred, not read; the badge now lives in the repo itself
+
+Applying rounds 302-303's hardened rule to my own fresh prose:
+FIRST-FLIGHT's digest says 'CI green to the tip today' — a
+claim about MOVING external state whose last honest READ (the
+badge curl) was at 87f3764, thirteen ships ago. The claim was
+probably true (gates local + descendant law), which is exactly how
+'CI history is read, not assumed' dies: by inference wearing the
+claim's clothes. Read the instrument this minute: PASSING at tip.
+The claim stands — but the METHOD was the near-miss.
+
+Structural cure, not sentence-level: the instrument I used twice
+from the command line lived NOWHERE in the repo. GitHub's native
+badge (source of truth, no third-party hop) now heads README.md,
+and the digest's sentence points at it with the era's own warning
+in its parentheses: 'read it rather than trusting this sentence'.
+A claim about moving state either ships with an instrument or with
+self-dating — round 301's law, generalised from repo-counters to
+the world.
+
+Four gates; terrain frozen; the corpus gains its only
+self-refreshing sentence.
+

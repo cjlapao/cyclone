@@ -234,7 +234,10 @@ You said the islands were hills; islands v2 shipped the same hour
 the only key to unfreezing it.** The 45 and counting since then are
 all measurement, docs, and test arms: no height byte moved — the
 islands digest (0fa64087…) re-agrees on all three OSes with every
-push, CI green to the tip today. What those ships bought your
+push, CI green to the tip today (live: CI badge, top of README.md —
+read it rather than trusting this sentence; a claim about moving
+state that ships without an instrument is round-301's lesson in
+new clothes). What those ships bought your
 flight, by pointer, no repeats here: your seed's first frame is
 witnessed (seed note, TERRAIN-LAB box); the Esc-R reroll margin and
 leak-free family-hopping are measured (TUNING reroll paragraph);
