@@ -1725,3 +1725,39 @@ fact; putting the actual pads/crates/refugees ON the islands is
 spec-03 Q1's answer ('which world hosts gameplay') wearing an ask
 — the next round after the pilot says the LOOK is right.
 
+## Round 257 errata — the era's fastest self-catch, three findings
+
+1. **435a62d shipped suite-rc=101 claiming '27 ok'.** The gate
+   echoed rc=101 in the SAME command block, and the block kept
+   walking into commit && push anyway — an echo is a witness, not
+   a gate. Fix-forward: the red was the islands canary's METRIC
+   pins (ocean/flat/river/max-height, all frozen at 1e-9 to v1's
+   domes), which the v2 commit updated only for the digest — the
+   same-commit law lists metrics too for this exact reason. Fixed
+   here; law adopted: the ship commit runs in its OWN command,
+   entered only after the gate block's echoes are read.
+2. **A narrative I invented, caught by my own assert.** Told
+   myself the canary sample had 'gone pure sea, all-zeros,
+   vacuous' and drafted a re-sample story to ink into the test —
+   built from remembered lines, not read ones. The python died
+   asserting an anchor that didn't exist ('size: 512,
+islands:
+   true,' — the classic control holds the 512), and reading the
+   file then showed the truth: the canary has run 2048 since
+   round 178 ('512' is a legacy test-NAME; the era comment beside
+   it explains all-sea digests pin nothing — I had read that
+   comment once and not reread it). My 512 tmp_dump measured MY
+   file's 512, not the canary's. Had the anchor been looser, I
+   would have flipped the CLASSIC control to islands:true and
+   silently destroyed the untouched-branch proof. Grep locates,
+   reading concludes — this time the assert read for me.
+3. **/tmp/test.log is a Nov-6 fossil.** A grep -l over /tmp/*.log
+   surfaced 'preview_screen_mouse_and_topdown FAILED' from it —
+   that test is long-green; absence/presence claims about
+   CURRENT state must name CURRENT logs (s18.log: 27 ok, rc=0).
+
+The v2 metrics truth, measured: ocean 0.9081, flat 0.0929 (×10 —
+benches), river 0.000132 (off zero — tall islands earn rivers),
+max_height 84.75 m (was 72), high/mountain still 0. Canary green
+×2; suite 27 ok / 0 FAILED; render cm-pin b8794e32 stands.
+

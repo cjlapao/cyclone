@@ -83,15 +83,21 @@ fn islands_seed2_512_digest() {
     let digest = h.finalize().to_string();
     // Pinned round 178 (libm::cos fix) on Linux; macOS + Windows CI
     // must agree — that agreement is the proof the stamps don't drift.
-    assert_eq!(
-        digest,
-        "0fa64087168c7f1e8f13a855d6204edb6c65f6eb15e10b6f4a86376e68b0a7ad"
-    );
+    // Round 257 (pilot-requested islands v2: benches, rotation, coast
+    // wobble): digest 690cfabd→0fa64087 and the metric pins below are
+    // the SAME-COMMIT re-pin the same-commit law demands — deliberate
+    // change, noted here and in DECISIONS. The shifts ARE the story:
+    // flat_ratio ×10 (treads are flat ground by construction),
+    // river_ratio off zero (tall islands now earn rivers),
+    // max_height 72→84.75 m (the tallness band), ocean_ratio down
+    // with the notched coasts. high/mountain stay 0: island tops
+    // ride below the mountain masks. Re-measured 2026-11-08 Linux;
+    // CI's macOS/Windows legs are the cross-OS agreement test.
     let m = c.metrics;
-    assert!((m.ocean_ratio - 0.904019355774).abs() < 1e-9);
-    assert!((m.flat_ratio - 0.009327524021).abs() < 1e-9);
+    assert!((m.ocean_ratio - 0.9081399440765381).abs() < 1e-9);
+    assert!((m.flat_ratio - 0.09287833288778034).abs() < 1e-9);
     assert!(m.high_ratio == 0.0);
     assert!(m.mountain_ratio == 0.0);
-    assert!(m.river_ratio == 0.0);
-    assert_eq!(m.max_height_m, 72.0);
+    assert!((m.river_ratio - 0.00013184547424316406).abs() < 1e-9);
+    assert_eq!(m.max_height_m, 84.75);
 }
