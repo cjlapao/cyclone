@@ -39,7 +39,7 @@ fn smooth(t: f64) -> f64 {
     t * t * (3.0 - 2.0 * t)
 }
 
-/// Classic 2-D value noise in [0,1] at world scale (1 unit = 1 tile).
+/// Classic 2-D value noise in `[0,1]` at world scale (1 unit = 1 tile).
 pub fn value_noise(x: f64, y: f64, seed: u64) -> f64 {
     let ix = libm::floor(x);
     let iy = libm::floor(y);
@@ -58,7 +58,7 @@ pub fn value_noise(x: f64, y: f64, seed: u64) -> f64 {
     a + (b - a) * sy
 }
 
-/// Fractal Brownian motion of `value_noise`, normalised to ~[0,1].
+/// Fractal Brownian motion of `value_noise`, normalised to ~`[0,1]`.
 /// `freq` is cycles-per-tile at octave 0.
 pub fn fbm(x: f64, y: f64, freq: f64, octaves: usize, seed: u64) -> f64 {
     let mut sum = 0.0f64;

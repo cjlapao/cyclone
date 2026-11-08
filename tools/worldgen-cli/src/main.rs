@@ -788,7 +788,7 @@ fn contact_sheet(path: &Path, maps: &[&WorldMap], font: &FontArc) -> Result<()> 
 
 /// One recorded rejection -> the histogram keys it contributes.
 ///
-/// Rejection strings arrive shaped: "aN: <verdict>" or
+/// Rejection strings arrive shaped: `"aN: <verdict>"` or
 /// "aN: validation: A; B; C" (validate() joins its issues). Unwrap
 /// both wrappers, split joined issues, normalise instance text
 /// (digits -> `#`, trailing "(instances)" cut), and collapse the

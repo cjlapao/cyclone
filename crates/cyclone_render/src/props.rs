@@ -211,8 +211,8 @@ pub struct Crate {
 /// Map a camera heading (rig convention: canonical yaw = 45° + 90°·h,
 /// forward = rot(yaw)·-Z, so the viewpoint sits at −forward from the
 /// crate) onto worldgen's `hidden_from` index (gen rays run from the
-/// crate toward the viewpoint, CAM_DIRS[0] = (+x,+y)).
-/// Derivation: cam 0 ⇒ viewpoint offset (−S,+S) = CAM_DIRS[3]; each
+/// crate toward the viewpoint, `CAM_DIRS[0]` = (+x,+y)).
+/// Derivation: cam 0 ⇒ viewpoint offset (−S,+S) = `CAM_DIRS[3]`; each
 /// further cam step walks the offsets backwards ⇒ h_gen = (3 − cam) % 4.
 pub fn gen_heading_of(cam: u8) -> usize {
     (3 - cam % 4) as usize % 4
