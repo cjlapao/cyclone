@@ -2871,3 +2871,32 @@ CONTINENT is a half-set dial, and half-set dials print confident
 fiction with a real unit on it. Four gates; terrain frozen —
 measuring the frozen world is how the freeze stays honest.
 
+## Round 297 — the leak probe got a dial arm and a tooth that first ate itself
+
+The ignored-tools audit (round 296's sweep, continued): of six
+manual tools, b0004_trace self-labels its dial, fullscale_census
+carries the MAINLAND label, calibration census states its
+provenance ('assertions SET FROM THIS OUTPUT'), the classic-era
+golden table is classic by design — mesh_leak_probe alone claimed
+'across preview rerolls' armed with nothing. Ran it DIALED (both
+dials, size 400): BASE 52 -> PEAK 55 -> settled 44: the old planet
+is FREED across continent rerolls; the pilot's Esc-R family-hopping
+accumulates no graveyard.
+
+Then the round's true teacher: the tooth v1 (final <= base+5,
+'slack measured not felt') went RED on a healthy classic run. The
+suspect was the instrument, and the instrument was guilty: BASE is
+a WORLD, and worlds differ — classic BASEs ranged 37..52, even the
+DIALED BASE swung 33<->52 between identical commands (boot seeds
+differ). A leak is GROWTH, not difference; tooth v2 anchors at the
+FLOOR of settled rounds with slack 25 (legit spread measured 15,
+margin kept; a real +30/round leak trips by round three). Proved
+green classic x3 + dialed x1 the same minute.
+
+Law, sharpening the round-285 family: an instrument comparing
+against ONE SAMPLE of a fluctuating quantity measures the
+fluctuation. Anchor to the spread's own floor/ceiling, and when a
+test goes red on first use — suspect your units, then your
+baseline, and only then the world. Four gates; terrain untouched
+(measured, armed, never edited).
+
