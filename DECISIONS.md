@@ -1942,3 +1942,25 @@ Lesson kept: docs with tables get read as RENDERED, not as source
 — after inserting prose into a table file, look at where the
 table ends, not where the insert landed.
 
+## Round 265 — the bug class gets its sweep; yesterday's surgery fails its own follow-up
+
+'Round-264 taught us rendered-markdown matters' only means
+something if the LESSON runs as a class, not a memory. Program-
+matic scan (prose-in-table AND blank-line-in-table patterns) over
+every pilot-facing markdown: one hit, at TUNING — and the honest
+name for it: MY OWN YESTERDAY. The surgery lifted the note out of
+the table but left the note's blank line behind, splitting the
+same table at the same row with a cleaner-looking wound. Fixed
+(join the rows), rescan: clean across FIRST-FLIGHT, TUNING,
+DECISIONS, specs and all of V2/.
+
+The meta keeps sharpening: fixing a bug and FIXING A BUG are
+different acts — the first closes the instance, the second closes
+the class. Round-264 should have re-run the render check on its
+own edit before shipping; the follow-up scan existed a day late
+and caught the surgery's corpse. Adopted small: after any docs
+edit inside a table, the scan runs before the gate block, not
+someday. (Scan kept as throwaway logic in this entry's prose, not
+a resident tool — six tools stay six until a real need names a
+seventh.)
+
