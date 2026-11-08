@@ -2795,3 +2795,26 @@ law this family taught across four rounds: audit for READABILITY
 finds layout lies; audit for READING-ORDER finds promise lies; both
 only bite docs meant to be flown from.
 
+## Round 294 — cross-doc consistency matrix: twelve patches, zero drift, and the reason why
+
+The readability family audited form; its twin audits AGREEMENT —
+the same number now lives in up to four docs after twelve
+patch-ships, and inter-doc mismatch is the inconsistency a pilot
+spots before any buried text. Instrument: a fact matrix (presence
+of every key number per doc) plus a retired-number negative sweep
+(pre-repair median 124, phantom heights 184/268, variant ranges).
+
+Results: retired numbers EXTINCT everywhere; spawn-distance and
+big-spot claims single-valued across docs (FF's ASCII '>= 900 m2'
+inside its code-fence block vs TUNING's '≥ 900' — my first pattern
+missed the FORM, the fact matched; per-doc notation conventions
+are convention, not drift).
+
+The banked reason: drift was structurally impossible because
+every doc patch cited the MEASUREMENT (the shared ledger run),
+never paraphrased another doc. Paraphrase chains drift; citation
+trees don't. New law for multi-doc eras: docs cite measurements,
+not each other — and consistency audits exist to prove that law
+held, which today it did. No edits owed; no ship beyond this
+ledger; four gates; terrain frozen.
+
