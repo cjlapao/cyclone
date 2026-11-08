@@ -211,3 +211,53 @@ fn seed_swap_invalidates_the_continent_cache() {
         "seed swap rebuilt the planet — the cache did not serve a stale world"
     );
 }
+
+#[test]
+fn same_seed_reentry_respawns_from_cache_not_a_rebuild() {
+    // The cache's OTHER promise (FIRST-FLIGHT: "respawns instantly"):
+    // Esc→Enter with the SAME seed re-spawns the same meshes — not a
+    // second 8 s build. Observable handle-for-handle: the respawned
+    // children carry the identical Handle<Mesh> ids.
+    let _env = env_guard();
+    unsafe {
+        std::env::set_var("CYCLONE_CONTINENT", "1");
+        std::env::set_var("CYCLONE_CONTINENT_SIZE", "400");
+        std::env::set_var("CYCLONE_ISLANDS", "1");
+        std::env::remove_var("CYCLONE_CONTINENT_PREVIEW");
+        std::env::remove_var("CYCLONE_CONTINENT_SCALE");
+    }
+    let mut app = app_scaffold();
+    app.insert_resource(cyclone_engine::CurrentWorld(small_map()));
+    app.insert_resource(cyclone_render::ContinentLive(true));
+    for _ in 0..3 {
+        app.update();
+    }
+    let grab = |app: &mut App| -> std::collections::HashSet<bevy::asset::AssetId<Mesh>> {
+        let w = app.world_mut();
+        let mut q = w.query_filtered::<&Mesh3d, With<cyclone_engine::InWorld>>();
+        q.iter(w).map(|m| m.0.id()).collect()
+    };
+    let first = grab(&mut app);
+    assert!(!first.is_empty(), "world A meshed");
+    let count_before = first.len();
+    // Esc: game flips live false — the whole planet despawns…
+    app.world_mut()
+        .resource_mut::<cyclone_render::ContinentLive>()
+        .0 = false;
+    for _ in 0..3 {
+        app.update();
+    }
+    // …and Enter: live true again, SAME seed still CurrentWorld.
+    app.world_mut()
+        .resource_mut::<cyclone_render::ContinentLive>()
+        .0 = true;
+    for _ in 0..3 {
+        app.update();
+    }
+    let second = grab(&mut app);
+    assert_eq!(second.len(), count_before, "same mesh count");
+    assert_eq!(
+        first, second,
+        "same-seed re-entry reused the cached meshes (handle ids identical)"
+    );
+}
