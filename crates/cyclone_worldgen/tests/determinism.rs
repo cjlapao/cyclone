@@ -189,3 +189,45 @@ fn rejections_match_attempts() {
     }
     assert!(saw_rejected, "12 seeds should include a re-roll");
 }
+
+/// Spec 02's contact-sheet promise has a data half: 'a mix of
+/// archetypes' is checkable without eyes, and until now untested —
+/// the sheet PNG could have been quietly uniform for all CI knew.
+/// 64 default worlds: the island archetype pool must span at least
+/// 4 of the 5 (Flat, Hilly, Plateau, Peak, Atoll). 4, not 5,
+/// honestly: Base Island pins one slot by design, and a rare
+/// archetype across ~5 islands/world is a dice we refuse to roll
+/// for CI — the HISTOGRAM prints every run, so drift toward
+/// uniformity is visible to humans even when the assert passes.
+#[test]
+fn sixty_worlds_span_the_archetype_pool() {
+    use cyclone_worldgen::{ProgressNoop, WorldGenConfig, generate};
+    let cfg = WorldGenConfig::default();
+    let mut seen = std::collections::BTreeMap::new();
+    let mut worlds = 0;
+    for s in 0..64u64 {
+        let Ok(map) = generate(
+            format!("SEED-{s:04}")
+                .parse()
+                .ok()
+                .unwrap_or_else(|| "AAAA-AAAA".parse().unwrap()),
+            1,
+            &cfg,
+            &ProgressNoop,
+        ) else {
+            continue; // exhausted seeds are the known ~1%; diversity
+            // is judged on the worlds that DO exist
+        };
+        worlds += 1;
+        for isl in &map.islands {
+            *seen.entry(format!("{:?}", isl.archetype)).or_insert(0u64) += 1;
+        }
+    }
+    println!("archetype histogram over {worlds} worlds: {seen:?}");
+    assert!(worlds >= 56, "too many exhausted seeds to judge: {worlds}");
+    assert!(
+        seen.len() >= 4,
+        "the pool collapsed to {:?} — the contact sheet would NOT show a mix",
+        seen.keys().collect::<Vec<_>>()
+    );
+}
