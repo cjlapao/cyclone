@@ -2491,3 +2491,31 @@ for both nouns: how much flat ground, and how gathered.
 Probe deleted with residual diff READ empty; table row scanned
 (4 fields); four gates; terrain frozen — measured, never moved.
 
+## Round 284 — landing ground at flight scale: every world holds a village square of flat, and my edit line got corrected by its own tail
+
+Round 283 measured spots on the witness's 512 m window; the
+pilot flies 1 km2 worlds, so the ruler went full-scale: the
+census's own 12 seeds, 4000^2 islands, same flat mask, connected
+components, one 132-second run, probe deleted with residual diff
+READ empty.
+
+Per flown world: 25-116 connected flat spots >= 25 m2 (median
+62), 4-23 of them >= 900 m2, and the single largest level place
+per world runs 1,868-6,842 m2 - the thinnest world in twelve
+still holds nearly two thousand square metres of level ground,
+a village square. 'So then the game can happen' now has numbers
+at the scale it was asked at: not how much flat ground per map,
+but how much the pilot's own next Esc-R world will hold.
+
+Two craft lessons, both caught by READING THE EDITED REGION
+instead of trusting the edit's success: my FIRST-FLIGHT insert
+duplicated the following line ('# sand rings,' x2) and closed a
+parenthesis that had never been opened - the replace string
+re-emitted the anchor's successor by force of habit. The tail of
+an edit is where edits lie; the assert-on-count caught the
+second blemish only because sed re-printed the block after.
+And the median lesson from the probe's own output: printing
+'median*2 124' (sum-of-middle-pair, no divide) is how garbled
+numbers are born - the doc carries the properly sorted median
+62, not the probe's shortcut.
+

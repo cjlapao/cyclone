@@ -56,7 +56,10 @@ CYCLONE_CONTINENT=1 cargo run -p cyclone --features dev
 
 # YOUR islands (the photo): a few ~90–120 m islands (12-seed
 # full-scale census 2026-11-08: max heights 88–116 m, 3–8 islands
-# per world, median 6; spawn scan found the flagship 12/12),
+# per world, median 6; spawn scan found the flagship 12/12).
+# Landing ground, measured flat SPOTS (same 12-seed full-scale
+# census): 25-116 connected spots >= 25 m2 per world (median 62),
+# 4-23 of them >= 900 m2; biggest single level place 1.9-6.8 thousand m2.
 # sand rings,
 # turquoise 150 m shelf, deep blue beyond, 1 m mesh blocks:
 CYCLONE_CONTINENT=1 CYCLONE_ISLANDS=1 cargo run -p cyclone --features dev
