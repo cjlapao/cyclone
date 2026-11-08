@@ -2358,3 +2358,46 @@ Table integrity scanned before gates (4 fields every touched row,
 zero blank splits); two cell appends only; four gates, echoes
 READ; terrain frozen.
 
+## Round 280 — the dark rectangles have a mechanism now: centre-sampling sea buckets, comment caught lying mid-read
+
+Diagnostic prep for the pilot's ask-list bonus ('do the dark
+rectangles still appear? close-up pins them'). Reading build_sea
+to arrive briefed, the bytes gave the answer outright: the sea is
+ONE QUAD PER 25 m BUCKET, coloured from sea_dist_cells — which
+its comment claims samples 'the bucket's own footprint (max over
+the bucket = there is land in this tile)' but whose code samples
+ONLY BUCKET CENTRES (every wet() call takes centre coordinates).
+Consequence with a name: coast-edge buckets — centre in water,
+footprint over beach — are coloured by centre-to-centre lattice
+distance to the nearest CENTRE-WET bucket, which can be buckets
+across the island; the quad paints a navy-to-mid square of
+exactly 25 m, axis-aligned, hugging the shore: dark rectangles
+around islands, the pilot's screenshots explained without needing
+a close-up to form the theory (the close-up still decides whether
+it survived v2 and how loud it is). Small islands can be entirely
+INVISIBLE to the field — a landmass missing every bucket centre
+never darkens anything near it.
+
+The fix is ARMED, NOT FIRED — twice-armed out: (1) the terrain
+freeze forbids changing what the pilot sees mid-verdict, and the
+rectangles are precisely what they might still be looking at;
+(2) their close-up decides existence and severity. Dossier for
+firing: no exact distance sheet exists for continent (the era's
+DTM sheet lives in the classic path), so honest options are a
+multi-source BFS distance transform or real per-bucket footprint
+sampling as the comment always claimed; the sea has NO digest pin
+(the digest hashes CHUNKS, not the sea; the sea test asserts
+variety '>3 hues' and not-white — nothing today can see the
+rectangle, which is how it shipped), so the fix must arrive with
+the red-capable test: a bucket adjacent to land must read cyan
+(t below threshold) — an assertion the centre-sampler cannot pass.
+
+Comment-code drift joins the museum: the footprint sentence
+described a sampler that never existed — same species as round
+181's comments-only code. Read conclusion first; the comment
+testified second.
+
+No file in the engine was touched this round; ledger-only; four
+gates anyway (nothing can move, echoes READ proving it); terrain
+frozen; the close-up stays the pilot's, the mechanism is now ours.
+
