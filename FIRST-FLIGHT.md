@@ -242,7 +242,8 @@ read it rather than trusting this sentence; a claim about moving
 state that ships without an instrument is round-301's lesson in
 new clothes). What those ships bought your
 flight, by pointer, no repeats here: your seed's first frame is
-witnessed (seed note, TERRAIN-LAB box); the Esc-R reroll margin and
+witnessed AND mapped — every landing bench marked (seed note,
+TERRAIN-LAB box); the Esc-R reroll margin and
 leak-free family-hopping are measured (TUNING reroll paragraph);
 the build wait got profile honesty (above the tour); the dark
 rectangles have a dossier and an armed fix waiting on YOUR word

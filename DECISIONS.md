@@ -3302,3 +3302,22 @@ batch: a small seed readout on the preview label is the whole
 ask); banked here, ready to fire, unspecced into the docs by
 choice — no promise before proof, the era's oldest law.
 
+## Round 314 — the digest caught up with its own era: the flight map enters the re-entry surface
+
+Round 300's digest promised 'what those ships bought your flight,
+by pointer' — but it was authored seven rounds before the flight
+map existed, so the era's best pilot-facing artifact was invisible
+on the very surface built for the pilot's first re-entry read.
+One clause, pointer-only: first frame 'witnessed AND MAPPED —
+every landing bench marked (seed note, TERRAIN-LAB box)'. Gravity
+law intact: the map itself is described once, at its site; the
+digest points, never duplicates.
+
+Also read the goal instrument itself this round (active, armed,
+rev 17): the endgame handle — needed exactly once, and only from
+a fresh read. Graft-ripple discipline applied forward: the digest
+is now the only pilot surface that was edited AFTER its subject
+matter grew, and the edit says so by matching it.
+
+Four gates; terrain frozen; six rounds on the clock.
+
