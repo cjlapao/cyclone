@@ -1533,6 +1533,26 @@ fn ingame_keys(
 }
 
 #[cfg(test)]
+mod title_tests {
+    /// V2/README ground-rule witness (round 244): the working title
+    /// lives in ONE constant — and this menu's caps are BYTE-
+    /// IDENTICAL to what every screen has drawn since spec 01.
+    /// Renaming is one deliberate edit, but it must also be an
+    /// HONEST one: this test is the second edit on purpose, the
+    /// same law-golden pairing the generator uses. A ground rule
+    /// without a test is a comment waiting to rot.
+    #[test]
+    fn the_one_title_still_caps_to_the_menu_letters() {
+        assert_eq!(cyclone_engine::GAME_TITLE, "Cyclone Rescue");
+        assert_eq!(
+            cyclone_engine::GAME_TITLE.to_uppercase(),
+            "CYCLONE RESCUE",
+            "the menu draws to_uppercase(GAME_TITLE); if a rename's caps drift, screens change silently"
+        );
+    }
+}
+
+#[cfg(test)]
 mod settings_tests {
     use super::*;
 
