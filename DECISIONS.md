@@ -1559,3 +1559,19 @@ exists at v1/tools/gen_sfx.rs. V2 loads none of them (audio is
 spec 05's). A claim about absence must census the tree, not a
 truncated grep — head -8 ate the wavs alphabetically.
 
+## Round 238 — four checks, four holds (confirmations belong in the ledger too)
+
+(1) doc examples write --out out/ — .gitignore:4 'out/' ✓ no repo
+pollution by the documented commands; (2) CI queue: seven commits
+in flight across 3 OSes, zero red; (3) the workflows write NO
+CYCLONE_* dials — grep of .github/workflows/ is empty; the flow
+tests self-arm via set_var under their own locks (round-229
+architecture), so CI needs no dial env and cannot drift from the
+strict-'1' law; (4) 'launch-smoke step' — MY OWN era-shorthand,
+never a doc claim: zero 'smoke' in any .md; ci.yml's actual steps
+enumerated (fmt, clippy, rustdoc, build, gated test+annotate,
+gamepad, dev-bin-check, dev-flow+annotate, golden, dep-direction,
+bench, release-bins). Headless CI never launches windows — and
+never claimed to. Auditing one's own memory is the last audit
+frontier; a hold is worth logging, or it didn't happen.
+
