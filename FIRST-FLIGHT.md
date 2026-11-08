@@ -107,7 +107,11 @@ doesn't regenerate (round-187 made every printed key claim true; a
    config dir (verified against the `directories` crate): Linux
    `~/.config/rescue/`, macOS `~/Library/Application Support/com.cyclone.rescue/`,
    Windows `%APPDATA%\cyclone\rescue\config\`.
-3. **New Game** → Generating (≥300 ms, honest progress) → **World
+3. **New Game** → Generating (≥300 ms, honest progress — NOTE for
+   continent worlds: the planet's ~8 s MESHING runs when the preview
+   builds, main-thread: the window stops repainting for those
+   seconds, then the preview pops whole. Not a crash; a spinner
+   there is on the tab list) → **World
    Preview**: your fresh archipelago in orbiting 3D — chunked terrain,
    sea, foam ring, props. Press **Tab** for top-down.
    *(box: preview shows the generated world)*

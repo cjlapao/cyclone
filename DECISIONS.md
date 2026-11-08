@@ -1310,3 +1310,19 @@ fix sufficient rather than hopeful. Terrain floor itself: green on
 Linux+Windows in that same matrix; macOS's floor verdict rides in
 on the cm-digest run.
 
+## Round 201 — the 8 s freeze before preview is real, and now it's written
+
+Generating animates because run_generate rides the task pool
+(screens.rs:821) — but generate_and_mesh (8.3 s continent census)
+runs SYNCHRONOUSLY in rebuild_world (render lib.rs:234), so the
+preview transition stalls the repaint ~8 s before popping whole.
+Documented in FIRST-FLIGHT (not-a-crash + pilot can say if it
+matters). Designed-but-unbuilt fix (parked, next idle round):
+Generating PRE-WARMS the existing ContinentCache from the task
+pool — the cache's same-seed reuse is ALREADY test-proven
+(handle-identical, round 190), so pre-warm turns the freeze into
+instant preview at the cost of ~70 lines: a request/handshake
+resource + poll system in render; mesh asset creation stays
+main-thread where it belongs. Sketched here so future-me doesn't
+re-derive it.
+
