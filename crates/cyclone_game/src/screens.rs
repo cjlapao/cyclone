@@ -1402,7 +1402,7 @@ fn ingame_build(
     #[cfg(feature = "dev")]
     if std::env::var("CYCLONE_CONTINENT").is_ok() {
         eprintln!(
-            "continent mode: building 1 km² voxel world (one-time, ~8–10 s — release census: 8.2 islands / 9.1 continent)…"
+            "continent mode: building 1 km² voxel world (one-time, ~8–10 s — release census: 8.7 islands / 8.3 continent)…"
         );
     }
     // The renderer builds the planet only while this is true — set at
