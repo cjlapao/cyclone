@@ -3192,3 +3192,28 @@ CI read passing at the top of the round (instrument, not memory);
 7 headings structural. Four gates; terrain frozen — all repairs
 are prose.
 
+## Round 309 — the README led with the half-set dial: command-form fiction from the pre-verdict era
+
+Round 308's graft-ripple law, applied to its other grafted surface:
+README's head still led pilots with 'CYCLONE_CONTINENT=1 … Add
+CYCLONE_ISLANDS=1 for archipelago mode' — the half-set dial in
+COMMAND FORM, authored before the verdict existed: the solo
+continent command flies the mainland world the pilot called 'just
+hills'. A README-skimmer (GitHub's actual audience) was sent to
+the judged world, not the judged-and-fixed one.
+
+Repairs keep every original claim true, just attributed: the
+CONTINENT line keeps its voxel-Earth sentence; the islands dial is
+now stated as THE PAIR the verdict loop needs ('Set ISLANDS=1 too
+— the pair is the current verdict loop'), benches named, mainland
+demoted honestly ('real terrain but not what the tour is about').
+The Run fence gained the islands command — then round 298's law
+caught ME in the act mid-round: two choosable commands in one
+fence, annotated instead of split. Split, per the law, same round.
+
+Naming again: fiction lives not only in stale numbers but in
+commands that predate a dial layer — when a law changes which
+dials mean 'the thing', every command line is a suspect. FIRST-
+FLIGHT passed this test round 308; the README failed it by one
+era. Four gates; terrain frozen; prose-only.
+
