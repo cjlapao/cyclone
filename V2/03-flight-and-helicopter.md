@@ -53,7 +53,10 @@ Real, shipped, tested:
   *Annotation 2026-11-08 (islands v2): '~8 s' predates island mode —
   same-release census, dial-matched: islands 6.4 s, mainland 9.1 s at
   4000² columns; the dev console notice and FIRST-FLIGHT now quote the
-  dial-matched figure. Q1/Q5 are now the load-bearing pair for the
+  dial-matched figure — PROFILE note (same day): the typed run
+  command is the DEV profile, where islands gen alone measured
+  11.5 s on the dev box; FIRST-FLIGHT's profile-honesty paragraph
+  carries both machines. Q1/Q5 are now the load-bearing pair for the
   islands verdict ('so then the game can happen'): answering Q1 =
   voxel world hosts gameplay makes Q5 (landing zones, crates, refugees
   on stamped islands) the next decision.*

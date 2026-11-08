@@ -2774,3 +2774,24 @@ path — in a TABLE, its unit is the glance, and a cell that needs a
 paragraph has stopped being a table. Rows re-verified at four
 pipe-fields; edited regions READ whole; four gates; terrain frozen.
 
+## Round 293 — the spec-annotation audit: four lines of my ink, one clause owed
+
+The readability family's last member: V2/, where the pilot's
+verdict checkboxes actually live. Inventory: FOUR annotation lines
+across the whole spec set — no fossils possible, nothing to
+restructure; the never-rewrite-the-pilot law kept annotations born
+compact. But content-ageing was still audited, and it found one
+clause owed: spec-03's annotation quotes the release census (6.4/9.1
+s, correctly labeled) yet sits inside a section the pilot may read
+BEFORE FIRST-FLIGHT's profile-honesty paragraph — and round 288
+proved the typed run command builds DEV, where islands gen alone is
+11.5 s. A true sentence in the wrong reading order is how honest
+numbers become promises.
+
+Oneword-counted repair: the annotation now carries its own profile
+clause (11.5 s on the dev box, pointing at FIRST-FLIGHT for both
+machines) — pilot's text untouched, dated, verbatim-citable. The
+law this family taught across four rounds: audit for READABILITY
+finds layout lies; audit for READING-ORDER finds promise lies; both
+only bite docs meant to be flown from.
+
