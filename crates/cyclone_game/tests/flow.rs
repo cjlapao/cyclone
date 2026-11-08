@@ -14,6 +14,35 @@ use cyclone_render::WorldBuilderPlugin;
 use cyclone_ui::{Activated, CycloneUiPlugin, MenuFocus};
 use cyclone_worldgen::WorldGenConfig;
 
+/// One lock for this whole binary: every test builds apps whose
+/// terrain path READS CYCLONE_* envs — rebuild_world reads them EVERY
+/// frame — so any test that mutates envs must own the process, and
+/// every sibling must queue behind it (round-184 doctrine, made
+/// binary-wide after round-191's bleed showed a partial lock is no
+/// lock). Drop clears the envs even on panic.
+struct FlowEnv {
+    _lock: std::sync::MutexGuard<'static, ()>,
+}
+impl FlowEnv {
+    fn acquire() -> Self {
+        static FLOW_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
+        Self {
+            _lock: FLOW_LOCK.lock().unwrap_or_else(|e| e.into_inner()),
+        }
+    }
+}
+impl Drop for FlowEnv {
+    fn drop(&mut self) {
+        unsafe {
+            std::env::remove_var("CYCLONE_CONTINENT");
+            std::env::remove_var("CYCLONE_CONTINENT_SIZE");
+            std::env::remove_var("CYCLONE_ISLANDS");
+            std::env::remove_var("CYCLONE_CONTINENT_PREVIEW");
+            std::env::remove_var("CYCLONE_CONTINENT_SCALE");
+        }
+    }
+}
+
 #[derive(Resource, Default)]
 struct OnceFlag {
     seen: HashSet<&'static str>,
@@ -58,7 +87,7 @@ fn state(app: &App) -> AppState {
 /// point scales every timeout under CI rather than 12 literals
 /// drifting. A genuine deadlock still fails — with a 4x slower fuse,
 /// not a different one.
-fn wait_for(app: &mut App, what: &str, timeout: Duration, cond: impl Fn(&App) -> bool) {
+fn wait_for(app: &mut App, what: &str, timeout: Duration, mut cond: impl FnMut(&mut App) -> bool) {
     let timeout = if std::env::var_os("CI").is_some() {
         timeout * 4
     } else {
@@ -119,6 +148,7 @@ fn flow_app_with(auto: bool) -> App {
 
 #[test]
 fn full_flow_offscreen() {
+    let _env = FlowEnv::acquire();
     let mut app = flow_app();
 
     // The Boot placeholder is a real screen now (spec 00 C1): held for
@@ -222,6 +252,7 @@ fn full_flow_offscreen() {
 /// per-character KeyboardInput messages → Enter.
 #[test]
 fn play_seed_shows_identical_world() {
+    let _env = FlowEnv::acquire();
     use bevy::input::ButtonState;
     use bevy::input::keyboard::{Key, KeyboardInput};
     use cyclone_worldgen::{ProgressNoop, Seed, generate};
@@ -279,6 +310,7 @@ fn play_seed_shows_identical_world() {
 /// a world otherwise (this regression killed the flow test once already).
 #[test]
 fn menu_backdrop_always_generates() {
+    let _env = FlowEnv::acquire();
     use cyclone_worldgen::{ProgressNoop, Seed, generate};
     for k in 0..64u64 {
         let seed = Seed(k.wrapping_mul(0x9E37_79B9_7F4A_7C15) ^ 0xC0FFEE);
@@ -299,6 +331,7 @@ fn menu_backdrop_always_generates() {
 #[test]
 #[ignore = "manual hitch measurement"]
 fn reroll_hitch_measurement() {
+    let _env = FlowEnv::acquire();
     let mut app = flow_app();
     wait_for(&mut app, "menu", Duration::from_secs(10), |a| {
         state(a) == AppState::MainMenu && a.world().contains_resource::<MenuFocus>()
@@ -341,6 +374,7 @@ fn reroll_hitch_measurement() {
 
 #[test]
 fn menu_usable_with_gamepad_only() {
+    let _env = FlowEnv::acquire();
     use bevy::input::ButtonState;
     use bevy::input::gamepad::{GamepadButton, GamepadButtonStateChangedEvent};
     let mut app = flow_app();
@@ -388,6 +422,7 @@ fn menu_usable_with_gamepad_only() {
 
 #[test]
 fn settings_panel_opens_edits_live_and_closes() {
+    let _env = FlowEnv::acquire();
     let mut app = flow_app();
     wait_for(&mut app, "menu", Duration::from_secs(10), |a| {
         state(a) == AppState::MainMenu && a.world().contains_resource::<MenuFocus>()
@@ -469,6 +504,7 @@ fn live_entities(app: &mut App) -> usize {
 
 #[test]
 fn fly_loop_leaks_nothing() {
+    let _env = FlowEnv::acquire();
     let mut app = flow_app_with(false);
     wait_for(&mut app, "MainMenu", Duration::from_secs(60), |a| {
         state(a) == AppState::MainMenu && a.world().contains_resource::<CurrentWorld>()
@@ -519,6 +555,7 @@ fn fly_loop_leaks_nothing() {
 #[cfg(feature = "dev")]
 #[test]
 fn dev_peek_reroll_returns_hidden() {
+    let _env = FlowEnv::acquire();
     let mut app = flow_app_with(false);
     app.init_resource::<Probes>();
     app.add_systems(Last, probe_system);
@@ -646,6 +683,7 @@ fn dev_peek_reroll_returns_hidden() {
 /// never exercised.
 #[test]
 fn preview_screen_mouse_and_topdown() {
+    let _env = FlowEnv::acquire();
     let mut app = flow_app_with(false);
     app.init_resource::<Probes>();
     app.add_systems(Last, probe_system);
@@ -743,6 +781,7 @@ fn probe_system(
 #[cfg(feature = "dev")]
 #[test]
 fn f3_dev_reveal_on_preview() {
+    let _env = FlowEnv::acquire();
     use bevy::input::keyboard::KeyCode;
     let mut app = flow_app_with(false);
     app.init_resource::<Probes>();
@@ -798,6 +837,7 @@ fn key_msg(app: &mut App, code: KeyCode) {
 /// yield distinct worlds (checked on the serialized bytes, not just seeds).
 #[test]
 fn new_game_seeds_differ() {
+    let _env = FlowEnv::acquire();
     use cyclone_worldgen::{ProgressNoop, generate};
     let seeds: Vec<_> = (0..6).map(|_| cyclone_engine::random_seed()).collect();
     for i in 0..seeds.len() {
@@ -828,6 +868,7 @@ fn new_game_seeds_differ() {
 
 #[test]
 fn esc_in_continent_ingame_arms_the_reroll_the_hud_advertises() {
+    let _env = FlowEnv::acquire();
     // Round 187 wired InGame Esc (continent mode) to PRE-ARM a reroll
     // so the HUD's "Esc then R rerolls" chord is true. Round 191 tests
     // the arm: reach InGame with the planet envs on, press the SAME
@@ -843,56 +884,46 @@ fn esc_in_continent_ingame_arms_the_reroll_the_hud_advertises() {
         std::env::remove_var("CYCLONE_CONTINENT_PREVIEW");
         std::env::remove_var("CYCLONE_CONTINENT_SCALE");
     }
-    let result = (|| {
-        let mut app = flow_app_with(false); // stop at preview; keys ours
-        app.update();
-        wait_for(&mut app, "MainMenu", Duration::from_secs(30), |a| {
-            state(a) == AppState::MainMenu && a.world().contains_resource::<CurrentWorld>()
-        });
-        app.world_mut().write_message(cyclone_ui::Activated(0));
-        wait_for(&mut app, "WorldPreview", Duration::from_secs(60), |a| {
-            state(a) == AppState::WorldPreview
-        });
-        app.world_mut().write_message(cyclone_ui::Activated(20)); // B_PFLY — the Fly! button
-        wait_for(
-            &mut app,
-            "InGame + live flag",
-            Duration::from_secs(60),
-            |a| {
-                state(a) == AppState::InGame
-                    && a.world().resource::<cyclone_render::ContinentLive>().0
-                // (Planet presence beyond the flip flag is the job of
-                // continent_live.rs's four tests; wait_for's Fn(&App)
-                // cannot query in 0.20 — honest scope, not weaker claim.)
-            },
-        );
-        // The player's Esc — one frame of ButtonInput, exactly what a
-        // real keypress is once InputPlugin clears it next frame.
-        app.world_mut()
-            .resource_mut::<ButtonInput<KeyCode>>()
-            .press(KeyCode::Escape);
-        wait_for(
-            &mut app,
-            "preview after Esc",
-            Duration::from_secs(30),
-            |a| state(a) == AppState::WorldPreview,
-        );
-        let armed = app
+    let mut app = flow_app_with(false); // stop at preview; keys ours
+    app.update();
+    wait_for(&mut app, "MainMenu", Duration::from_secs(30), |a| {
+        state(a) == AppState::MainMenu && a.world().contains_resource::<CurrentWorld>()
+    });
+    app.world_mut().write_message(cyclone_ui::Activated(0));
+    wait_for(&mut app, "WorldPreview", Duration::from_secs(60), |a| {
+        state(a) == AppState::WorldPreview
+    });
+    app.world_mut().write_message(cyclone_ui::Activated(20)); // B_PFLY — the Fly! button
+    wait_for(
+        &mut app,
+        "InGame + live flag",
+        Duration::from_secs(60),
+        |a| {
+            state(a) == AppState::InGame && a.world().resource::<cyclone_render::ContinentLive>().0
+            // (Planet presence beyond the flip flag is the job of
+            // continent_live.rs's four tests; wait_for's Fn(&App)
+            // cannot query in 0.20 — honest scope, not weaker claim.)
+        },
+    );
+    // The player's Esc — one frame of ButtonInput, exactly what a
+    // real keypress is once InputPlugin clears it next frame.
+    app.world_mut()
+        .resource_mut::<ButtonInput<KeyCode>>()
+        .press(KeyCode::Escape);
+    wait_for(
+        &mut app,
+        "preview after Esc",
+        Duration::from_secs(30),
+        |a| state(a) == AppState::WorldPreview,
+    );
+    let armed = app
+        .world()
+        .contains_resource::<cyclone_game::screens::PendingGen>();
+    let auto = armed
+        && app
             .world()
-            .contains_resource::<cyclone_game::screens::PendingGen>();
-        let auto = armed
-            && app
-                .world()
-                .resource::<cyclone_game::screens::PendingGen>()
-                .auto;
-        (armed, auto)
-    })();
-    unsafe {
-        std::env::remove_var("CYCLONE_CONTINENT");
-        std::env::remove_var("CYCLONE_CONTINENT_SIZE");
-        std::env::remove_var("CYCLONE_ISLANDS");
-    }
-    let (armed, auto) = result;
+            .resource::<cyclone_game::screens::PendingGen>()
+            .auto;
     assert!(armed, "Esc in continent InGame armed PendingGen");
     assert!(
         auto,
