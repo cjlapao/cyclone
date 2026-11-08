@@ -1,7 +1,10 @@
 //! worldgen-cli — spec 02 Part C: judge the generator without running the
 //! game. `generate` dumps a labelled PNG + world.ron + stats.txt, `batch`
-//! sweeps seeds into a contact sheet + summary.csv, `golden` maintains the
-//! determinism hashes.
+//! sweeps seeds into a contact sheet + summary.csv, `golden` CHECKS the
+//! determinism hashes read-only (CI's invocation); only the explicit
+//! '--update' flag writes golden.ron, so no suite/CI run can dirty a
+//! tracked file (round-237 audit: 'maintains' described the flag's job,
+//! not the default's).
 
 use std::collections::BTreeMap;
 use std::fs;
