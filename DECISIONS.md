@@ -2198,3 +2198,24 @@ in-file mod — the result-line law held); flow 15 + 1. Four gates
 echoes READ before this separate ship block; terrain frozen — UI
 text, one pure fn, tests.
 
+## Round 274 — the sweep after the sweep: docs that CITE retired ink
+
+Round 273's ships changed pilot-visible strings; a doc quoting a
+retired string becomes a stale claim itself, so the truth-ship's
+last act is a citation sweep (patterns: '8.7', 'in 0 ms', '~8–10',
+'1 km² voxel', 'continent ready'). One hit earned the axe:
+FIRST-FLIGHT's own islands section promised '~8–10 s one-time build
+(census-measured)' UNDER the islands command — the mainland census
+quoted for the islands flight, the very number the notice retired
+this week. Now dial-matched: '~6–7 s (census 2026-11-08: islands
+6.4 s, mainland 9.1 s)'. Survivors checked and kept: the '1 km²'
+mentions at FIRST-FLIGHT :48/:175 and TUNING :142 describe the
+pilot's DEFAULT-SIZE run (no SIZE dial) or the pivot's history —
+true as-run, history as history; and V2 docs carry no citation of
+any console format (the README's 'meshed in 3D' is prose, not ink).
+The rule joins the audit list: when a string ships, grep the docs
+that quote it — engine truth and doc truth ship as one unit or
+drift apart by the next era.
+
+Doc-only diff; four gates run anyway (warm cache), echoes READ.
+
