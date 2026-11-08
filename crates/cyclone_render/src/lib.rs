@@ -331,8 +331,14 @@ fn rebuild_world(
     }
 
     let lh = cfg.map_or(LEVEL_HEIGHT, |c| c.0.level_height);
+    // White base: the ocean's colour lives in VERTEX COLOURS — the
+    // continent ramp (build_sea) and the classic foam/shallows
+    // (build_sea_classic) paint it. A navy base used to live here
+    // and MULTIPLIED the careful turquoise into near-black: a
+    // design palette the pilot never saw because the material ate
+    // it (found round 212, same audit that found the missing foam).
     let sea_mat = materials.add(StandardMaterial {
-        base_color: Color::srgb(0.05, 0.28, 0.47),
+        base_color: Color::WHITE,
         perceptual_roughness: 0.15,
         metallic: 0.1,
         ..default()
@@ -541,27 +547,40 @@ fn spawn_sea(
     sea_mat: &Handle<StandardMaterial>,
 ) {
     let (w, h) = map.size;
-    // Generous skirt: from any flight spawn or wall-bounce the horizon
-    // must be sea, never the clear-colour void (intro-screenshot band).
-    let pad = 160.0f32;
     let (ex, ez) = (w as f32, h as f32);
-    let mut b = QuadBuilder::new();
-    let col = srgb_to_vec4(1.0, 1.0, 1.0);
-    b.quad(
+    // Generous skirt DEEPER than the tiles: from any flight spawn or
+    // wall-bounce the horizon must be sea, never the clear-colour
+    // void (intro-screenshot band). Its colour is a vertex colour
+    // now — the material is white and stays out of the business.
+    let pad = 160.0f32;
+    let mut skirt = QuadBuilder::new();
+    skirt.quad(
         [
-            Vec3::new(-pad, 0.0, -pad),
-            Vec3::new(-pad, 0.0, ez + pad),
-            Vec3::new(ex + pad, 0.0, ez + pad),
-            Vec3::new(ex + pad, 0.0, -pad),
+            Vec3::new(-pad, -0.05, -pad),
+            Vec3::new(-pad, -0.05, ez + pad),
+            Vec3::new(ex + pad, -0.05, ez + pad),
+            Vec3::new(ex + pad, -0.05, -pad),
         ],
         Vec3::Y,
-        col,
+        srgb_to_vec4(0.05, 0.28, 0.47),
     );
     root.spawn((
         InWorld,
-        Mesh3d(meshes.add(b.into_mesh())),
+        Mesh3d(meshes.add(skirt.into_mesh())),
         MeshMaterial3d(sea_mat.clone()),
     ));
+    // The map itself gets a real shaded sea: foam where shore_dist
+    // ≤ 1, turquoise shallows to navy by 15 tiles (spec 02 B2's
+    // promise, finally consumed by the surface it names). The data
+    // grid has been baked by worldgen since the pipeline's first
+    // day — this is the consumer it never had.
+    if let Some(b) = continent_mesh::build_sea_classic(map) {
+        root.spawn((
+            InWorld,
+            Mesh3d(meshes.add(b.into_mesh())),
+            MeshMaterial3d(sea_mat.clone()),
+        ));
+    }
 }
 
 /// sRGB → linear helper for vertex colours.

@@ -1368,3 +1368,24 @@ catches audit findings one level up. Zero code shipped that way;
 this entry is the diff. CI: fc776e5 (prewarm) and 3a4bad6 (flake
 fix) both GREEN on all three OSes.
 
+## Round 212 — the foam the spec promised, and the material that ate colour
+
+Audit of the pilot's OWN acceptance boxes found the last real spec-02
+gap: 'sea with shoreline foam' — zero foam anywhere. Mid-audit I
+nearly shipped a WORSE myth: a grep with a non-recursive glob said
+shore_dist 'was never written' — WRONG, cleanup.rs has baked the
+BFS since the pipeline's first day; the second grep, with a real
+path, proved it before any claim shipped. Grep locates; reading
+concludes — caught one level up for the second round running.
+The true gap was a MISSING CONSUMER (doctrine's own shape): the
+baked grid fed sand shading and prop placement, but the classic sea
+was one white plane × navy material. build_sea_classic now paints
+foam (shore_dist ≤ 1, fading by 3), turquoise shallows, navy deep —
+same ramp constants as the continent sea so one ocean language
+spans modes. Same audit caught the multiplier myth: sea_mat's navy
+base MULTIPLIED build_sea's designed turquoise→navy into near-black
+— a palette the pilot was about to be told to judge, that the
+material had been eating. White base; vertex colours own the ocean.
+Skirt dropped to -0.05 under the -0.02 tiles (no z-war). Spec 02
+annotated with evidence; the 'shows' box stays the pilot's sense.
+

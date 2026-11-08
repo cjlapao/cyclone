@@ -494,6 +494,59 @@ pub fn surface_height_m(x_m: f64, y_m: f64, seed: u64, size: u32) -> f64 {
     lo
 }
 
+/// The classic archipelago's sea, shaded by the baked `shore_dist`
+/// grid (spec 02:66 — the data has ALWAYS been there; until now the
+/// sea was one blue plane that never read it). Same ramp constants
+/// as `build_sea` (continent) so the two modes share one ocean
+/// language, plus spec 02 B2's white foam band at shore_dist ≤ 1.
+/// Sea tile = height 0 (the waterline definition the whole pipeline
+/// shares). Determinism: integer distance → fixed float ramps, the
+/// same arithmetic the continent sea already ships with.
+pub fn build_sea_classic(map: &cyclone_worldgen::map::WorldMap) -> Option<QuadBuilder> {
+    let (w, h) = map.size;
+    if w == 0 || h == 0 {
+        return None;
+    }
+    let mut b = QuadBuilder::new();
+    let mut painted = 0u64;
+    for y in 0..h {
+        for x in 0..w {
+            if map.height.raw(x, y) != 0 {
+                continue; // land: the terrain mesh paints this tile
+            }
+            let d = map.shore_dist.raw(x, y).min(15) as f32;
+            let t = (d / 15.0).min(1.0);
+            let (mut r, mut g, mut bl) = (
+                0.180f32 * (1.0 - t) + 0.012 * t,
+                0.650 * (1.0 - t) + 0.055 * t,
+                0.720 * (1.0 - t) + 0.160 * t,
+            );
+            // Foam: spec 02's band is shore_dist ≤ 1 — full white at
+            // d = 1, fading by d = 3 so the band has an edge, not a
+            // cliff. (d = 0 is land-adjacent sub-tiles; the ramp
+            // keeps it brightest.)
+            let foam = ((3.0 - d) / 2.0).clamp(0.0, 1.0) * 0.85;
+            r += (0.90 - r) * foam;
+            g += (0.95 - g) * foam;
+            bl += (0.97 - bl) * foam;
+            let col = crate::srgb_to_vec4(r, g, bl);
+            let (x0, z0) = (x as f32, y as f32);
+            b.quad(
+                [
+                    Vec3::new(x0, -0.02, z0),
+                    Vec3::new(x0, -0.02, z0 + 1.0),
+                    Vec3::new(x0 + 1.0, -0.02, z0 + 1.0),
+                    Vec3::new(x0 + 1.0, -0.02, z0),
+                ],
+                Vec3::Y,
+                col,
+            );
+            painted += 1;
+        }
+    }
+    (painted > 0).then_some(b)
+}
+
 #[cfg(test)]
 mod tests {
     /// Binary-wide env lock for every test that reads or writes
@@ -856,5 +909,30 @@ mod tests {
         let ms = t0.elapsed().as_millis();
         println!("claim-frame assetify: {n} chunks in {ms} ms");
         assert!(ms < 3_000, "the pop-in became a freeze: {ms} ms");
+    }
+
+    /// Spec 02 B2's band, witnessed: the classic sea mesh must carry
+    /// FOAM (near-white vertices hugging coasts), SHALLOWS (bright
+    /// turquoise mid-band) and DEEP (dark navy) — three distinct
+    /// registers, not the historic one-blue plane. Determinism:
+    /// same map, byte-identical palette sets across builds.
+    #[test]
+    fn classic_sea_wears_foam_shallows_and_deep() {
+        use cyclone_worldgen::{ProgressNoop, Seed, WorldGenConfig, generate};
+        let seed: Seed = "AAA-AAAA".parse().unwrap();
+        let map = generate(seed, 1, &WorldGenConfig::default(), &ProgressNoop).unwrap();
+        let b = build_sea_classic(&map).expect("sea quads on a real map");
+        let cols: Vec<Vec4> = b.colours().to_vec();
+        let is_white = |c: &Vec4| c.x > 0.35 && c.y > 0.6 && c.z > 0.7; // linear foam
+        let is_deep = |c: &Vec4| c.x < 0.01 && c.y < 0.03 && c.z < 0.08;
+        let is_mid = |c: &Vec4| c.x > 0.008 && c.x < 0.06 && c.y > 0.12;
+        assert!(
+            cols.iter().any(is_white),
+            "no foam band: the ≤1-tile promise is unspent"
+        );
+        assert!(cols.iter().any(is_mid), "no turquoise shallows");
+        assert!(cols.iter().any(is_deep), "no deep ocean register");
+        let b2 = build_sea_classic(&map).unwrap();
+        assert_eq!(b.colours(), b2.colours(), "sea palette is deterministic");
     }
 }
