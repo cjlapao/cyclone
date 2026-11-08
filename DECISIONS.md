@@ -1575,3 +1575,18 @@ bench, release-bins). Headless CI never launches windows — and
 never claimed to. Auditing one's own memory is the last audit
 frontier; a hold is worth logging, or it didn't happen.
 
+## Round 239 — the third-party citation that aged perfectly, and rustdoc's fourth gate
+
+(1) acb4298 (title constant — code that runs EVERY launch: window
+title + both menu strings) completed success ×3 OSes. (2) Local
+RUSTDOCFLAGS=-D warnings cargo doc --workspace: clean — CI's
+fourth lint gate, unrun locally through the whole comment era,
+now proven green for every doc line added since. (3) TUNING's
+lone file:line citation 'directories-6.0.0 win.rs:75' audited to
+the byte: Cargo.lock pins 6.0.0, and line 75 of the vendored crate
+reads exactly 'let config_dir = app_data_roaming.join("config");'
+— the doc's '(the crate appends config)' claim, at the cited line,
+in the cited version. Third-party cites age with versions; pinning
+the version in the text is what makes them outlive eras. Holds:
+two logged, nothing to fix.
+
