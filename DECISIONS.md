@@ -1990,3 +1990,31 @@ law has no authorship exception including for sentences written
 eleven seconds ago. Round-265's scan-before-gates law executed on
 this very edit: clean. Four gates then.
 
+## Round 267 — four family seeds seen; the 'castaway' I invented was a units bug
+
+Esc-R's promise is the FAMILY, so the family got eyes: seeds
+33 / 7399 / 136,448,130 / 297 (the CLI's own decode of 11/777/
+424242/99 — one parser, verified route). What four km² renders
+show: terraces everywhere, rotations varied, a fused double-peak
+merge that reads volcanic, a banana-shaped max-squish island,
+sand-heavy atolls and green ridges, rivers on most — no
+degenerate blob, no dust. The claim 'atolls to ridges' now rests
+on six seen worlds, not two.
+
+Then the false alarm, kept in full because the failure is the
+lesson: seed 297 LOOKED sparse, I eyeballed nearest-land at
+~1800 m, declared a castaway counterexample to round 260's 40/40
+in writing, and went hunting. The direct probe answered
+FLAGSHIP over 97 m at 441 m from centre. My pixel-to-metre
+arithmetic treated a 4000-COLUMN world as a 4000-METRE one —
+every eyeballed distance was 4× oversized. When evidence
+'contradicts' a tested model, suspect the auditor's units first:
+the model here had a suite AND a 200-seed recount (castaway 0 of
+200) behind it; my eyes had arithmetic invented ninety seconds
+earlier. Round-260's 'rare fallback' stands, now 204/204 seeds
+flagship across two measurements; the four family worlds are all
+confirmed flagship spawns.
+
+Throwaway probe deleted after use (examples never get resident
+slots; six tools stay six).
+
