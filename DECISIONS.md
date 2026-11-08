@@ -3104,3 +3104,31 @@ Q5's questions, the pilot's. If Q1=NO the sheet is shelved whole
 nothing here wasted a decision. Pilot-facing docs untouched — this
 readiness lives where plans live.
 
+## Round 306 — the pilot seed's landing-site table: eleven benches, terraced like a flight course
+
+Read-only promotion of the round-305 selector claim: ran the
+>= 900 m2 census on seed 1EDK-FQFN-XMZMK with centroids, heights
+and spawn-relative bearings (dial set; one run; deleted; residual
+diff READ empty). Spawn (482,240) h74. Eleven sites:
+
+  2730 @ (319,233) h74  rel(-163, -6)  163 m   <- same altitude as spawn
+  2260 @ (338,252) h59  rel(-145,+12)  145 m
+  1960 @ (349,266) h44  rel(-133,+27)  136 m
+  1794 @ (351,277) h30  rel(-131,+37)  136 m
+  1756 @ (346,289) h15  rel(-136,+50)  145 m   <- one terraced mesa, 74->15 m
+  1103 @ (490,247) h98  rel(  +8, +7)   11 m   <- THE spawn plateau
+  1616 @ (148,375) h80  rel(-334,+135) 360 m
+  1467 @ (256,370) h16  rel(-226,+130) 261 m
+  1070 @ (228,372) h32  rel(-254,+132) 286 m
+   975 @ (159,374) h64  rel(-323,+135) 350 m
+   918 @ (182,374) h48  rel(-300,+135) 329 m
+
+Consistency won twice: the 11 m row IS round 287's 'nearest big
+spot: 11 m' with its centroid and area finally named; and the
+five-site descent 74-59-44-30-15 m on one landmass reads like a
+terraced mesa — a flight course, not a scatter, exactly what 'the
+game can happen' asks for. Post-Q1 site choice is now a lookup;
+post-flight, the pilot's words ('the big flat downhill south of me')
+will match a row. Table lives in the ledger — docs keep summaries;
+the digest law again. Terrain frozen; read-only all the way down.
+
