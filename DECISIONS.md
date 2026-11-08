@@ -2675,3 +2675,33 @@ run against the pilot's own log. The era's prose survived; the
 era's lawyer in me (audit-before-trust) walked the damage before
 accepting it.
 
+## Round 289 — CI's verdicts, eighteen hours early: nineteen greens, and the release probe is a day late to its own first meeting
+
+The scheduled probe (tomorrow 06:00Z) was found to be
+self-updating — no stale commit ranges anywhere in its prompt,
+ls-remote oracle and page-freshness traps intact — so its checks
+were simply run NOW, read-only. Freshness verified the era way:
+sidebar Lockfile pins 87f3764, today's tip — not a cached era.
+
+The news: ci #261 through #279 — NINETEEN consecutive runs,
+'b8fc130 family QA' through 'ad20532 spawn-dialed truth', every
+one 'completed successfully' on all three OSes. The entire
+census/rectangles/spots/first-view chain is cross-OS PROVEN, not
+scheduled-to-be-proven: the islands digest test rode those suites
+on macOS and Windows. #280-#283 (the last four, doc-era ships)
+In progress in the serial queue — tomorrow's probe inherits their
+closure.
+
+Release probe: 'This workflow has no runs yet', 6.5 hours past
+its first-ever firing target (Nov 8 06:00Z). Dated and banked,
+NOT yet sounded: the round-245 law gives new crons until Nov 15
+before the loud alarm, and one Sunday's silence matches the
+register-late pattern seen at creation. The hand-run suggestion
+to the pilot stays holstered one more week, unless tomorrow's
+probe finds a run materialized — then the Sunday-1 leg is simply
+proved and nothing is owed.
+
+No pilot-facing doc touched (nothing witnessed today needs their
+eyes; the streak is reassurance, not verdict); ledger-only; four
+gates; terrain frozen.
+
