@@ -1167,21 +1167,43 @@ fn preview_build(
                 // metric — so showing them is the panel describing a
                 // world the pilot is not looking at: a myth rendered
                 // as fact (found by the round-219 label audit).
-                if cyclone_render::continent_mode().is_some() {
-                    panel.spawn(
-                        theme
-                            .body("Terrain: CONTINENT — 1 km² voxel Earth"),
-                    );
-                    panel.spawn(theme.small(
-                        "terrain-lab dial CYCLONE_CONTINENT=1 · the seed below carves it",
-                    ));
+                // Round 272 finished that audit's half-done work: the
+                // continent line HARD-CODED '1 km²' (false under the
+                // SIZE dial — the flow test itself ran SIZE=400 = a
+                // 100 m world beside the green check), claimed 'voxel
+                // Earth' while ISLANDS=1 showed an archipelago, and the
+                // classic difficulty REASON still printed below the
+                // branch — fuel-stop prose over a world with no fuel
+                // stops. All three now read the dials, one hoisted read.
+                let cont = cyclone_render::continent_mode();
+                if let Some((_, ext_m)) = cont {
+                    let extent = if ext_m >= 1000.0 {
+                        format!("{:.2} km²", ext_m * ext_m / 1_000_000.0)
+                    } else {
+                        format!("{ext_m:.0} m across")
+                    };
+                    let isl = cyclone_render::continent_mesh::island_mode();
+                    panel.spawn(theme.body(format!(
+                        "Terrain: CONTINENT — {} · {extent}",
+                        if isl { "ISLANDS" } else { "voxel Earth" }
+                    )));
+                    panel.spawn(theme.small(format!(
+                        "terrain-lab dial{} CYCLONE_CONTINENT=1{} · the seed below carves it",
+                        if isl { "s" } else { "" },
+                        if isl { " + CYCLONE_ISLANDS=1" } else { "" }
+                    )));
                 } else {
                     panel.spawn(theme.body(format!("Islands: {islands} (Base Island first)")));
                     panel.spawn(theme.body(format!("Helipads: {pads}")));
                     panel.spawn(Node { height: Val::Px(10.0 * s), ..default() });
                     panel.spawn(theme.body(format!("Difficulty: {diff}")));
                 }
-                panel.spawn(theme.small(reason));
+                if cont.is_none() {
+                    // The reason sentence explains the CLASSIC metrics —
+                    // under continent it would leak fuel-stop prose for
+                    // a world that has none (round-272 leak).
+                    panel.spawn(theme.small(reason));
+                }
                 panel.spawn(Node {
                     flex_grow: 1.0,
                     ..default()

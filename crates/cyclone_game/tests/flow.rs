@@ -1051,6 +1051,64 @@ fn continent_preview_panel_tells_the_truth() {
          looks at voxel Earth — the round-219 myth, back in the UI: {joined}"
     );
     assert!(joined.contains("Seed"), "seed row stays: {joined}");
+    // Round 272 finished the audit this test started: extent must be
+    // TRUE (SIZE=400 here = a 100 m world; the old hard-coded '1 km²'
+    // sat green beside this very env), and the classic difficulty
+    // REASON must not leak fuel-stop prose over a fuel-stopless world.
+    assert!(
+        joined.contains("100 m"),
+        "SIZE=400 is a 100 m world — the panel must state its true \
+         extent, not a hard-coded '1 km²' (round-272): {joined}"
+    );
+    assert!(
+        !joined.contains("km²"),
+        "km² shown for a 100 m map (round-272): {joined}"
+    );
+    assert!(
+        !joined.contains("fuel") && !joined.contains("rescue routes"),
+        "classic difficulty REASON leaked under continent mode — \
+         fuel-stop prose over a world with no fuel stops (round-272): {joined}"
+    );
+}
+
+/// Round 272: under CYCLONE_ISLANDS=1 the panel must NAME the ISLANDS —
+/// 'voxel Earth' printed over a terraced archipelago was the dial's own
+/// lie, invisible to the sibling test precisely because it removes the
+/// dial. Green ink that cannot go red is a comment; this can.
+#[test]
+fn islands_preview_panel_names_the_islands() {
+    let _env = FlowEnv::acquire();
+    unsafe {
+        // SAFETY: FlowEnv serialises env mutations in this binary.
+        std::env::set_var("CYCLONE_CONTINENT", "1");
+        std::env::set_var("CYCLONE_CONTINENT_SIZE", "400");
+        std::env::set_var("CYCLONE_ISLANDS", "1");
+        std::env::remove_var("CYCLONE_CONTINENT_PREVIEW");
+        std::env::remove_var("CYCLONE_CONTINENT_SCALE");
+    }
+    let mut app = flow_app_with(false);
+    wait_for(
+        &mut app,
+        "MainMenu (islands)",
+        Duration::from_secs(60),
+        |a| state(a) == AppState::MainMenu && a.world().contains_resource::<CurrentWorld>(),
+    );
+    app.world_mut().write_message(Activated(0)); // New Game
+    wait_for(
+        &mut app,
+        "preview (islands)",
+        Duration::from_secs(60),
+        |a| state(a) == AppState::WorldPreview,
+    );
+    let joined = panel_texts(&mut app).join("|");
+    assert!(
+        joined.contains("ISLANDS"),
+        "the panel must name ISLANDS under the dial: {joined}"
+    );
+    assert!(
+        joined.contains("CYCLONE_ISLANDS=1"),
+        "the dial row must show the pilot's dials as run (round-272): {joined}"
+    );
 }
 
 /// The gate's other half: classic mode keeps its honest rows.

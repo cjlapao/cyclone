@@ -2129,3 +2129,35 @@ moved — the digest tests cannot flinch and the gates prove no
 collateral. Console honesty joined the audit list: pilot-visible
 claims live in stdout too.
 
+## Round 272 — the preview panel's three lies, caught by its own green test's blind spots
+
+The silent-inheritance audit reached the WORLD PREVIEW panel, where
+round 219's label fix had stopped half-done. Three pilot-visible
+false claims survived under the dials, and the panic dumps PROVED
+each, not inferred: under CONTINENT the panel said '1 km²' while
+its own flow test ran SIZE=400 (a 100 m world — the hard-code sat
+beside a green checkmark), said 'voxel Earth' while CYCLONE_
+ISLANDS=1 showed a terraced archipelago, and printed the CLASSIC
+map's difficulty reason — 'Balanced distances between fuel stops'
+verbatim in the captured text — over a world with no fuel stops.
+The sibling test had always run with ISLANDS REMOVED and forbade
+two strings; everything else leaked through its blind spots. Green
+ink that cannot go red is a comment: the test now carries four new
+assertions (true extent 100 m, no km² under that dial, no fuel/
+rescue-routes prose) plus a new islands-identity test, and the
+RED-PROOF RUN (fix stashed, old bytes): both new tests panicked
+on exactly those strings — teeth verified, not asserted.
+
+The fix reads the dials: one hoisted continent_mode() read (the
+era's ONE-reader law earning rent again — it already returned the
+true extent; the panel just never asked), size-true extent text,
+ISLANDS named and shown in the dial row as the pilot runs it, and
+the reason row gated to the world whose metrics it explains.
+UI text + tests only: no geometry, no logic, digests cannot move.
+
+The audit's own pattern, sharpened again: tests written beside a
+half-done fix inherit its blind spots — when a fix branches, ask
+which branch the test never walks. (Flow binary now 15 passed + 1
+ignored; suite still 27 binaries — the count law keeps its own
+numbers honest as they age.)
+
