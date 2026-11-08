@@ -232,6 +232,25 @@ fn seed_swap_invalidates_the_continent_cache() {
     );
     assert_ne!(small_map().seed.0, map_b.seed.0, "seeds truly differ");
     app.insert_resource(cyclone_engine::CurrentWorld(map_b));
+    // The WAIT state, caught deterministically: one update after
+    // the swap the worker task is microseconds old — poll CANNOT
+    // have landed a payload — so rebuild must have returned early:
+    // the OLD planet still stands, not a void, not a half-mesh.
+    // (No timing dice: same-frame is_finished on a just-spawned
+    // 400² build is structurally false.)
+    app.update();
+    let w = app.world_mut();
+    let mut q = w.query_filtered::<Entity, With<cyclone_render::WorldRoot>>();
+    let ids: Vec<_> = q.iter(w).collect();
+    assert_eq!(
+        ids.len(),
+        1,
+        "no void mid-reroll: the previous planet keeps the screen"
+    );
+    assert_eq!(
+        ids[0], root_before,
+        "continuity is the SAME entity, not a re-spawned copy"
+    );
     settle_until(&mut app, "reroll planet built", |a| {
         let w = a.world_mut();
         let mut q = w.query_filtered::<Entity, With<cyclone_render::WorldRoot>>();
