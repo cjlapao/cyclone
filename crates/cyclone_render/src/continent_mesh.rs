@@ -947,5 +947,41 @@ mod tests {
         assert!(crate::continent_mode().is_none(), "'yes' is not '1'");
         unsafe { std::env::remove_var("CYCLONE_CONTINENT") };
         assert!(crate::continent_mode().is_none(), "unset is OFF");
+
+        // The SIZE half of the round-229 value law, same lock, same
+        // honesty: the docs promise clamp 64–16 000 (worldgen caps at
+        // 16 384) against the 0.25 m/voxel invariant — now law.
+        unsafe {
+            std::env::set_var("CYCLONE_CONTINENT", "1");
+            std::env::set_var("CYCLONE_CONTINENT_SIZE", "10");
+        }
+        assert_eq!(
+            crate::continent_mode().map(|(s, _)| s),
+            Some(64),
+            "small SIZE must clamp UP to 64, not shrink past sanity"
+        );
+        unsafe { std::env::set_var("CYCLONE_CONTINENT_SIZE", "999999") };
+        assert_eq!(
+            crate::continent_mode().map(|(s, _)| s),
+            Some(16_000),
+            "huge SIZE must clamp DOWN to 16 000"
+        );
+        unsafe { std::env::set_var("CYCLONE_CONTINENT_SIZE", "1000") };
+        let (s_side, extent) = crate::continent_mode().expect("dial on");
+        assert_eq!(s_side, 1000);
+        assert!(
+            (extent - 250.0).abs() < 1e-3,
+            "extent must be size × 0.25 m — the voxel invariant of round 225"
+        );
+        unsafe { std::env::set_var("CYCLONE_CONTINENT_SIZE", "not-a-number") };
+        assert_eq!(
+            crate::continent_mode().map(|(s, _)| s),
+            Some(4000),
+            "garbage SIZE falls back to the 4000 default (parse().ok() path)"
+        );
+        unsafe {
+            std::env::remove_var("CYCLONE_CONTINENT_SIZE");
+            std::env::remove_var("CYCLONE_CONTINENT");
+        }
     }
 }
