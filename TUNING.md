@@ -144,6 +144,15 @@ columns, flown with the same rig. Judge without building: `cargo
 run -p worldgen-cli -- continent --seed <S> --size 4000 --out <dir>`
 → hillshade.png in ~7 s from the SAME `elevation_m` the mesh uses.
 
+**Value law (round 228, pinned by `continent_dial_is_strict_one`):**
+every dial here activates on the exact value `1` — `CYCLONE_CONTINENT=0`
+is OFF (it once read ON; the value trap is closed). One reader owns
+each dial (`continent_mode()`, `island_mode()`, the PREVIEW/SCALE
+gate): the meaning of a dial changes in its owner and nowhere else.
+`SIZE` is numeric: voxels per side, clamped 64–16 000, default 4000;
+the 0.25 m voxel edge is the invariant — the dial scales AREA, not
+resolution.
+
 | feel-word | dial (continent.rs) | current |
 | --- | --- | --- |
 | "flat / boring relief" | relief floor `40+80·fbm/160m` terms | 15.0 + 35.0 (post-census calm) |

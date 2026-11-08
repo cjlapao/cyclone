@@ -1525,3 +1525,16 @@ makes them slow, and cached pages make them look missing. The
 probe prompt now says: page list may lag; cross-check pushes with
 ls-remote, never conclude 'CI never ran' from a page.
 
+## Rounds 226–228 — the dial-ownership era, in one paragraph
+
+A doc line said 'the CLI reads the same env the game does' — true,
+by copy-paste. Round 226 moved each predicate to the crate owning
+its config field; round 227 finished the census (CONTINENT had
+three raw readers besides its owner, two gating behavior); round
+228 then changed a DIAL'S MEANING (presence → strict '1', closing
+the '=0 means ON' trap) in ONE LINE because one function owned it.
+The loop is the lesson: find the coincidental agreement, make it
+structural, and the next semantics change is rent collected. Every
+dial's truth table is now unit-pinned or test-covered at its owner;
+the repo-wide census is four dials, four readers, zero coincidences.
+
