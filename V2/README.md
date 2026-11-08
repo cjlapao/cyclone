@@ -7,7 +7,7 @@ These specs drive the build. Hand them to the coding agent in order. Each one is
 | 00 | [Engine architecture](00-engine-architecture.md) | Done | Cargo workspace, Bevy foundation, our own engine layer as plugins, state machine, camera rig, input, settings |
 | 01 | [Main menu](01-main-menu.md) | Done | Title screen, menu navigation, settings, seed entry, world preview screen |
 | 02 | [Map generation](02-map-generation.md) | Done | Random archipelago every game, deterministic from a seed, validated, meshed in 3D |
-| 03 | Flight and helicopter | Planned | — |
+| 03 | [Flight and helicopter](03-flight-and-helicopter.md) | **Draft — pilot review** | drafted from shipped code + surviving 1984 rules; five OPEN questions need the pilot's answers (which world hosts gameplay is the big one) |
 | 04 | Objectives, cyclone, planes | Planned | — |
 | 05 | HUD, map screen, audio | Planned | — |
 | 06 | Assets (Blender-scripted glTF) | Planned | — |
