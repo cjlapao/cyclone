@@ -6642,6 +6642,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "whichisl"
+version = "0.1.0"
+dependencies = [
+ "cyclone_worldgen",
+]
+
+[[package]]
 name = "wide"
 version = "0.7.33"
 source = "registry+https://github.com/rust-lang/crates.io-index"

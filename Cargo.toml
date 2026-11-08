@@ -8,7 +8,7 @@ members = [
     "crates/cyclone_game",
     "crates/cyclone",
     "tools/worldgen-cli",
-    "tools/islsize",
+    "tools/islsize", "tools/whichisl",
 ]
 # The macroquad V1 build is archived here; it is not part of the V2 workspace.
 exclude = ["v1"]

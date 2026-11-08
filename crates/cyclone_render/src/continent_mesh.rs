@@ -411,14 +411,19 @@ pub fn generate_and_mesh(seed: u64, size: u32) -> (Continent, Vec<ContinentChunk
     (c, chunks)
 }
 
-/// Find standable ground near a preferred spot, scanning outward in
+/// Find the BEST standable ground near a preferred spot, scanning
 /// golden-angle rings (40 m steps, ~7 angles/ring — 500 samples per
 /// 700 m radius, pure-function cheap). Island mode makes the map
 /// centre OCEAN for most seeds: dropping the pilot into open water
 /// and saying "look, an island, somewhere" is not a spawn. Land
 /// requires 3 m of honest height (the sampler's river-safe lower
-/// bound), so the rig never drowns on load. None = nothing standable
-/// within the search radius — the caller decides the fallback.
+/// bound). Preference: HIGHEST ground found within the radius, ties
+/// to the nearer (strict > keeps the first touch — and on an island
+/// world the highest ground is the flagship: a 4 m bar 160 m out beat
+/// a 93 m island 393 m out under first-touch, witnessed 2026-11-08;
+/// this is a flying camera, altitude IS the view). None = nothing
+/// standable within the search radius — the caller decides the
+/// fallback.
 pub fn spawn_over_land(
     pref_x_m: f64,
     pref_y_m: f64,
@@ -430,6 +435,7 @@ pub fn spawn_over_land(
     let mut r = 0.0f64;
     let golden = std::f64::consts::PI * (3.0 - 5.0f64.sqrt()); // ≈137.5°
     let mut k = 0usize;
+    let mut best: Option<(f64, f64, f64)> = None; // (x, y, height)
     while r <= max_r_m {
         // Ring circumference / step samples, golden-angle rotated so
         // successive rings don't march the same spokes.
@@ -442,14 +448,14 @@ pub fn spawn_over_land(
                 continue;
             }
             let h = surface_height_m(x, y, seed, size);
-            if h >= 3.0 {
-                return Some((x, y, h));
+            if h >= 3.0 && best.is_none_or(|(_, _, bh)| h > bh) {
+                best = Some((x, y, h));
             }
         }
         k += n;
         r += step;
     }
-    None
+    best
 }
 
 /// The pure elevation sampler (re-exported for rig placement: the game
@@ -535,7 +541,11 @@ mod tests {
         unsafe { std::env::set_var("CYCLONE_ISLANDS", "1") };
         let (x, y, h) = spawn_over_land(500.0, 500.0, 42, 4000, 500.0)
             .expect("islands exist within 500 m of centre");
-        assert!(h >= 3.0, "standable, not a bar: {h} m");
+        // The flagship contract (witnessed 2026-11-08): first-touch
+        // hit a 4 m bar 160 m out; highest-ground must instead pick
+        // the ~93 m flagship ~360 m out. This is a flying camera —
+        // altitude IS the view.
+        assert!(h > 20.0, "flagship, not a sandbar: {h} m");
         let d = ((x - 500.0).powi(2) + (y - 500.0).powi(2)).sqrt();
         assert!(d <= 500.0 + 1.0, "inside the search radius: {d} m");
         eprintln!("scan from open sea: island at ({x:.0}, {y:.0}), {h} m, {d:.0} m out");
