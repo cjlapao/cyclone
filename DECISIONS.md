@@ -1607,3 +1607,20 @@ truth that matters: the HANDOFF binary's release profile is
 proven only by this probe and by tag builds. Youngest watcher on
 the wall; its first real verdict arrives with scheduler grace.
 
+## Round 245 — the young cron's first absence, and arming tomorrow's witness
+
+Release-probe (repo-side, born Fri) passed its first-ever firing
+target five hours ago with ZERO scheduled runs (event=schedule
+total 0 — the API channel was alive, so absence is real). Not yet
+indictable: GitHub registers brand-new crons late and can silently
+SKIP a past occurrence (delivery resumes with future ones); the
+weekly-on-Sunday shape means if today skipped, next target is
+Nov 15. No unilateral tag pushed to force a release build — the
+release tag is the pilot's naming turf. Mitigations: (1) Linux's
+release leg already hand-proven green round 241; (2) tomorrow's
+DSH-side probe learned check (6): report whether ANY 'release
+probe' run exists, and if still none after TWO Sundays, say so
+loudly and suggest the pilot's one-time 'Run workflow' poke from
+the Actions tab — a human click that no unauthenticated API
+session can substitute. Silence watched is silence answered.
+
