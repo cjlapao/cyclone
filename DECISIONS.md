@@ -1272,3 +1272,17 @@ Stale-oracle class pre-killed by asserting installed-closure ≡
 surface fn for the live seed. First pilot-visible feel change of
 the audit era — and the one their fingers will find fastest.
 
+## Round 197 — stateful clamp × undefined Update order = machine-dependent bug
+
+The bounds guard wrote WorldBounds from Update; rebuild_world
+spawned the rig from Update; Bevy fixes no order across plugins.
+The free-fly clamp MUTATES the authoritative position, so the one
+frame where a stale archipelago box (160 m) could catch a planet
+spawn (up to 860 m out) would leave a PERMANENT teleport —
+reproducible only where the scheduler happens to flip. Doctrine:
+any resource a clamp/consumer mutates must be set in the same
+system beat that creates the consumer's world, never 'soon' by a
+backstop. Rebuild now sets bounds synchronously (guard kept as
+idempotent backstop); the esc-chord flow test asserts the cage is
+the planet's 0..100 m the instant InGame+WorldRoot stand.
+
