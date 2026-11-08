@@ -805,6 +805,12 @@ mod tests {
 
     /// Full-spec census, run by hand (release): 1 km² generation +
     /// chunking time and quad load — the numbers behind "can this fly".
+    /// MAINLAND, explicitly: run dial-OFF (its dial-blindness is by
+    /// design here), as every number it ever fed was mainland.
+    /// Island-scale census: DECISIONS rounds 284-285 (dial SET —
+    /// round 285's law: `generate_and_mesh` reads `island_mode()`
+    /// AT CALL TIME; a caller that means islands must set the env
+    /// dial, not just the config field).
     #[test]
     #[ignore = "release measurement; run with --release --ignored"]
     fn fullscale_census() {

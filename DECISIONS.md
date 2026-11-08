@@ -2564,3 +2564,36 @@ Probe deleted, residual diff READ empty; classic spawn tests at
 CORRECT there; table scanned; four gates; terrain frozen — this
 round moved no bytes, it moved a ruler back onto true ground.
 
+## Round 286 — the dial-blindness sweep: the era's protocol passed, one tool's doc learned which world it measures
+
+Yesterday's law got its systematic audit: every call-site of a
+dial-reading function (island_mode, continent_mode, everything
+reaching them), classified production/test/tool.
+
+Production (screens.rs x8, lib.rs spawn path): the pilot's own
+process env is the dial — correct by construction. Tests:
+CONTINENT dial semantics test and the islands mesh-digest test are
+both ENV_LOCK-guarded with RAII reset — the era had a PROTOCOL
+(lock every CYCLONE_* writer; set the dial explicitly; classic
+tests stay dial-off because classic is their truth), which is
+precisely why the islands canary agreed across three OSes: it
+hashed real island mesh, not a phantom. The two in-suite
+generate_and_mesh callers: islands digest (dial SET + lock,
+correct), classic 512 digest (dial off, correct for its era).
+The deleted round-278 example was the ONLY victim of the trap —
+and round 285 already repaired what it claimed.
+
+One residue stayed honest the cheap way: fullscale_census — the
+#[ignore] tool, seed-2 @ 4000^2, dial-off by construction — fed
+every MAINLAND census number and its doc never said so; an
+operator (me, a future round) could run it expecting island
+figures. Its doc comment now says MAINLAND explicitly and points
+at rounds 284-285 for island numbers plus the dial law itself, so
+the tool documents its own units. Test-file edit law: the diff
+was READ before gates — six doc lines, zero code.
+
+The reassuring finding IS the news: the machinery trusted by CI
+was dial-safe by protocol, not by luck; the phantoms lived only
+where the protocol wasn't applied (a deleted probe) and where a
+doc was silent (now fixed). Four gates; terrain frozen.
+
