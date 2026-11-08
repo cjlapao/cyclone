@@ -204,13 +204,21 @@ the dial table (relief floors, orogeny, snowline, cell size).
 
 ## What I need from you (dated: round 249, everything else waits on these)
 
-1. **Four boxes only eyes can check** — tick them in the specs when
+1. **Five boxes only eyes can check** — tick them in the specs when
    the screen agrees: 00 (window opens — the box asks Linux/macOS/
    Windows; your machine is one honest third, CI compiles all three;
    tick it with your OS named), 01 (boot under
    3 s), 02 (contact sheet shows CLEARLY DIFFERENT archipelagos — a real
    mix of archetypes; bonus question while you're there: do they
-   look like your island photo?), 02 (foam reads as foam).
+   look like your island photo?), 02 (foam reads as foam),
+   and one added dated round 261 after your island screenshots —
+   **TERRAIN-LAB**: in the CONTINENT+ISLANDS world, do the islands
+   now have realistic designs with flat spots *so the game can
+   happen* (quoted from your verdict; v2 ships sand flats, five
+   benches, rotated notched coasts — Esc-then-R through a few
+   families first). Bonus while you're there: do the dark
+   rectangles around islands still appear on screen? A close-up
+   pins them if yes.
 2. **Feel verdicts in dial language**: `TUNING.md` has 13 numbered
    flight dials + the continent table. '1 too slow, 3 too twitchy'
    is the whole loop — or just say 'it feels wrong while landing'.
