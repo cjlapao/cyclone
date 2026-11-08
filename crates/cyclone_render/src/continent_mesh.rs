@@ -496,6 +496,11 @@ pub fn surface_height_m(x_m: f64, y_m: f64, seed: u64, size: u32) -> f64 {
 
 #[cfg(test)]
 mod tests {
+    /// Binary-wide env lock for every test that reads or writes
+    /// CYCLONE_ISLANDS (generate_and_mesh reads the env directly —
+    /// any unlocked reader blinks between worlds under load).
+    static ENV_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
+
     use super::*;
 
     #[test]
@@ -777,8 +782,7 @@ mod tests {
     /// CI runs it on Linux/macOS/Windows: drift red before pilot eyes.
     #[test]
     fn islands_mesh_digest_platform_identical() {
-        static LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
-        let _g = LOCK.lock().unwrap_or_else(|e| e.into_inner());
+        let _g = ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner());
         struct IsReset;
         impl Drop for IsReset {
             fn drop(&mut self) {
@@ -834,6 +838,11 @@ mod tests {
     /// the rebuild tests; 512² keeps this one census-cheap.)
     #[test]
     fn claim_frame_assetification_is_bounded() {
+        // generate_and_mesh reads CYCLONE_ISLANDS — under the same
+        // binary-wide lock as the digest test (parallel suite,
+        // first run: the continent silently built islands because
+        // a sibling had the env set; the cap fired and said so).
+        let _g = ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner());
         let (_c, chunks) = generate_and_mesh(2, 512);
         assert!(!chunks.is_empty());
         let t0 = std::time::Instant::now();
