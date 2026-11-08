@@ -1205,3 +1205,21 @@ Doctrine stands and sharpens: claims live in docs, truth lives in
 tests — every pilot-facing sentence wants an env-setting,
 behaviour-asserting test behind it, and the round-185 spawn test is
 the template.
+
+## Rounds 188–190 — key rows verified; cache promises paired
+
+188: every key printed on the preview/in-game rows was checked
+against the default binding table and its handler — all true (the
+Reroll fiction had died in 187). Near-miss kept honest: Space is
+bound to BOTH confirm and climb; states gate each consumer, so no
+collision today — and a note that overlapping states would make it
+one.
+
+189–190: the continent cache's two promises now have tests. Seed
+swap REBUILDS (root entity changes; witnesses even showed the new
+seed's world can be legitimately all-sea at 100 m — the castaway
+fallback's domain, witnessed free of charge). Same seed REUSES
+(respawned meshes are handle-identical, HashSet equality). Both
+directions hostile-tested: flipped freshness serves a stale world;
+broken reuse re-pays 8 s on every Enter. The stale-world class of
+bugs is now closed by CI, not by reading the condition.
