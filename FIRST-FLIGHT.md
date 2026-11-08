@@ -88,7 +88,10 @@ watch for:
 
 If a world still feels flat despite #2, the one-knob answer is
 `level_height` in `assets/worldgen/default.ron` (vertical squash).
-`R` rerolls a whole new archipelago at any time.
+`Esc` returns to the preview; `R` (or the Reroll button) rerolls a
+whole new archipelago from there — the flight keyboard flies, it
+doesn't regenerate (round-187 made every printed key claim true; a
+`R` pressed mid-flight would delete your world under your own skids).
 
 ## The tour
 
@@ -133,7 +136,13 @@ If a world still feels flat despite #2, the one-knob answer is
 archipelago for a 1 km² voxel Earth: 25 cm columns, oceans, plains,
 ridged ranges, snow lines — one seed, one planet. New Game spends
 ~8 s building (the terminal says so first; the window paints after).
-You spawn 80 m over the centre column; `R` rerolls a whole world.
+You spawn over the **flagship** — the tallest standable land the
+scan finds near the map centre — hovering 80 m over its summit (never
+under 120 m). Land under the skids is a test now, not a hope: seed 42
+proves it, 156 m over a 76 m peak. Castaway fallback (no land near):
+centred hover, nose at −60°, so you look *for* the coast, not blind.
+`Esc` then `R` rolls a whole new planet — the dev HUD quotes the
+chord, because in-flight `R` flies instead of deleting worlds.
 Corner line reads CONTINENT (island metrics would lie here, so it
 doesn't quote them). Judge the look without building anything:
 `cargo run -p worldgen-cli -- continent --seed 42 --size 4000 --out
