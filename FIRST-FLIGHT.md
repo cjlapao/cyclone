@@ -182,6 +182,26 @@ PLAIN continent; for the islands you launch with today, use the
 CLI reads the same env the game does). TUNING.md has
 the dial table (relief floors, orogeny, snowline, cell size).
 
+## What I need from you (dated: round 249, everything else waits on these)
+
+1. **Four boxes only eyes can check** — tick them in the specs when
+   the screen agrees: 00 (window opens on your OS), 01 (boot under
+   3 s), 02 (contact sheet looks like your island photo), 02 (foam
+   reads as foam).
+2. **Feel verdicts in dial language**: `TUNING.md` has 13 numbered
+   flight dials + the continent table. '1 too slow, 3 too twitchy'
+   is the whole loop — or just say 'it feels wrong while landing'.
+3. **Spec 03's six OPEN questions** — the big one is #1: which
+   world (archipelago vs voxel Earth) hosts the rescue gameplay.
+   Specs 04–06 stay written-after, not written-now, because of it.
+4. **The release tag name** — binaries for all three OSes build on
+   any tag you push (`git tag v... && git push --tags`); the naming
+   is yours, CI is ready.
+5. **Last pass's loose ends**, if you have an opinion: ground-is-
+   ground feel on low passes; the Enter-mid-carve moment (old world
+   kept until new pops — a feature or a bug to you?); seed 42's
+   flagship at ~(860, 496); the F3 crate-reveal on the preview.
+
 ## When something misbehaves
 
 Building from source with `--features gamepad`? Linux needs the
