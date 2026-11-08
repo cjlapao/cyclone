@@ -1761,3 +1761,31 @@ benches), river 0.000132 (off zero — tall islands earn rivers),
 max_height 84.75 m (was 72), high/mountain still 0. Canary green
 ×2; suite 27 ok / 0 FAILED; render cm-pin b8794e32 stands.
 
+## Round 257 (second block) — the pilot's seed re-witnessed; the rectangle hunt ends honestly
+
+Rendered the seed from the pilot's screenshot — parsed through the
+game's OWN Seed parser (CLI passes strings to seed.parse(), the
+single-parser law cashing out), my python mirror agreeing to the
+digit (1672647164521250451) after being verified against it, not
+assumed. Under v2 that world holds 5-6 rotated islands, ridges
+AND low sandy atolls, 104 m max, a river — the exact map that
+produced 'just hills' is the control group for the fix. Dated
+render: hillshade 2026-11-08, /tmp/pilot257.
+
+The dark-rectangle hunt: build_sea reviewed and found innocent
+(one map-wide pass, opaque bucket quads, no per-chunk duplication,
+correct 150 m ramp); CHUNKS reviewed; heightfield can't cast
+axis-aligned rects (pure columns). Every remaining hypothesis
+needs a screen I don't have — so the hunt STOPS at the evidence
+line, no speculative fix shipped against an artifact I cannot
+reproduce. If v2 on the pilot's screen still shows the rects, one
+close-up pins the code path; until then it is an observation with
+a named witness (the screenshot), not a bug with a guess.
+
+CI: the two terrain commits still in_progress when checked — the
+cross-OS canary agreement (the whole libm-law payoff) lands with
+tomorrow's probe report. Terrain left UNTOUCHED from here until
+the pilot flies v2: no dial drifts under a pilot mid-flight —
+the bench-drift one-liner is written in this ledger's margin and
+waits for a verdict, not for my taste.
+
