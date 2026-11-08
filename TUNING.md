@@ -171,10 +171,6 @@ resolution.
 | "eggs all point the same way" | rotation `(((h2 >> 8) & 0xFF) …) * …TAU` per stamp | was: NONE — every egg axis-aligned until round 257 |
 | "too many / too few islands" | keep-coin `if coin < 0.45` at SPACING 340 m | 55 % of lattice sites |
 
-(Island path round-257 measure: 6.2 s internal / 7.6 s wall at
-4000², release, Linux dev box — islands generate CHEAPER than the
-classic continent quoted above; the two paths share the noise kit,
-the mask math differs.)
 | "blocky under me" | CELL_VOX (render/cyclone_render) | 4 (1 m mesh cells at 25 cm voxels — the VOXEL was always 25 cm, the MESH CELL was the visible cube; sea stays one quad via sparse drop) |
 | "no rivers / too many rivers" | `CATCH` (carve_rivers, continent.rs) | 25k columns ≈ 1.6 km² of rain to earn a stream (3k over-carved a canyon — round-177 crater) |
 | "rivers too thin / too wide" | flood window `1 + acc/(4·CATCH)` cap | 1–17 cells (≈0.25–4 m) |
@@ -189,6 +185,17 @@ the mask math differs.)
 | "a few islands like this photo" | `ContinentConfig.islands` (CYCLONE_ISLANDS=1) | point-process stamps on a 340 m lattice: coin 0.45, cosine blobs r=90–200 m, seeded squish; fbm tail-cut REJECTED by census (one island + gravel) |
 | "islands have no beaches" | `near_wet` = river OR height-0 neighbour | beaches are sea-ADJACENCY; the water array only holds rivers |
 | "shelf too wide / sea banded" | shelf ramp 150 m; sheet DTM normalised voxels² BIG=1e8 | f64 ulp: BIG must beat every true d² yet keep +p² exact — 1e18 erased sources, 1e13 faked distances |
+
+(Islands-vs-mainland release census, 2026-11-08, SAME tool run
+back-to-back (`fullscale_census --ignored`, seed 2, 4000², release,
+Linux dev box — one combined gen+MESH wall time, no split):
+islands **6.4 s / 59 chunks / 174 k quads** vs mainland
+**9.1 s / 227 chunks / 1.94 M quads** — the islands path builds in
+71 % of the time and carries an ELEVENTH of the mesh, so 'islands
+cheaper than continent' is now a same-minute pair, not a cross-era
+quote; the 60 s regression tripwire passes with 10× margin. Frame
+rate is the pilot's screen to judge; quads are the load I can
+count.)
 
 Rivers are DETERMINISTIC HYDROLOGY, not painted lines: D8 flow
 accumulation over the real grid (counting-sort descent), carve where

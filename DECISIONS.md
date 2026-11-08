@@ -1918,3 +1918,27 @@ happened. CI at read: the three docs commits mid-serial-lane,
 green expected (no code bytes between them and 81d2712's
 all-OS green).
 
+## Round 264 — the parked release measurement runs; a pilot-visible layout bug found inside the fix
+
+Six tools still six (census at read). fullscale_census — the
+parked 'continent_dial release measurement' — executed with
+--release --ignored, back-to-back modes, seed 2, 4000²: islands
+6.433 s / 59 chunks / 173,933 quads vs mainland 9.068 s / 227
+chunks / 1,943,906 quads; ocean 0.90 vs 0.24; tripwire (60 s)
+passes at 10× margin. For the first time the 'islands cheaper'
+claim is a same-minute paired witness, not a quote across eras —
+71 % of the build time, an eleventh of the mesh. Frame rate stays
+the pilot's to judge; quads are load, not fps, and the sentence
+says so.
+
+The find while updating TUNING: the round-257 timing note was
+inserted MID-TABLE — a non-'|' line — which in rendered markdown
+murders every table row below it into paragraph mush. The pilot
+reads the RENDERED sheet: a note that silently destroys the
+table under it is pilot-visible damage even when every number in
+it is true. Lifted out, re-dated with the pair, re-attached after
+the table's true end (walked to it line by line, not guessed).
+Lesson kept: docs with tables get read as RENDERED, not as source
+— after inserting prose into a table file, look at where the
+table ends, not where the insert landed.
+
