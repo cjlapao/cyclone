@@ -227,6 +227,11 @@ the dial table (relief floors, orogeny, snowline, cell size).
 3. **Spec 03's six OPEN questions** — the big one is #1: which
    world (archipelago vs voxel Earth) hosts the rescue gameplay.
    Specs 04–06 stay written-after, not written-now, because of it.
+   *(Dated round 277, after your verdict: Q1 and Q5 now load as a
+   pair — 'so then the game can happen' reads as Q1 leaning voxel
+   world, and that answer decides Q5: pads, crates and refugees
+   on the stamped islands. High Scores stay buried until Q1
+   answers either way.)*
 4. **The release tag name** — binaries for all three OSes build on
    any tag starting with `v` (`git tag v2-preview && git push --tags`;
    the filter is `v*` — a tag without the v builds binaries NOTHING).

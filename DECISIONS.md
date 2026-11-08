@@ -2274,3 +2274,28 @@ measure before quoting even the repairs.
 Annotation-only diff across 00/03; pilot's design text untouched
 throughout; four gates run anyway, echoes READ; terrain frozen.
 
+## Round 277 — V2/README clean under audit; ask-list re-pointed at the load-bearing pair
+
+README status table witnessed honest: 00/01/02 Done (accepted,
+headless witnesses in-file), 03 marked Draft-pilot-review,
+'four'→six OPEN questions checked by reading all six, 04–06
+Planned. The camera drift the round-276 annotation reconciled
+turns out to have been recorded by the era all along — in THIS
+file ('free-perspective fly camera… evolved on user direction') —
+so 276 added consistency, not a first record. Not every audit
+earns the axe; a clean verdict is an audit result too.
+
+Ask-list (FIRST-FLIGHT 'What I need from you') walked item by
+item against v2: TERRAIN-LAB box carries the verdict quoted
+verbatim ✓; quantity claims re-byte-checked per law — 'five
+benches' true by code (k = floor(5q).min(4) → values 0..4), '13
+numbered flight dials' true by table (rows 1–13 unbroken,
+re-counted not inherited). Item 3 got the round-277 dated
+upgrade: Q1/Q5 load as a PAIR after the verdict ('so then the
+game can happen' reads Q1-ward voxel), Q5 decides pads/crates/
+refugees on stamped islands, High Scores stay buried until Q1
+answers — the harvest now sits where the pilot actually reads.
+
+Two files touched, both pilot-facing prose; four gates run
+anyway, echoes READ; terrain frozen; V2 spec design text untouched.
+
