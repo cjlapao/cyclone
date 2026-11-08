@@ -1069,3 +1069,81 @@ fn classic_preview_panel_keeps_its_rows() {
         "classic shows the dial lie: {joined}"
     );
 }
+
+/// The gesture FIRST-FLIGHT teaches, witnessed end to end (round 225):
+/// R mid-flight does NOTHING (docs: 'R intentionally does nothing
+/// while flying' — the only reroll consumer is gated to WorldPreview),
+/// Esc lands back on WorldPreview holding the SAME world (the no-
+/// rebuild comment in ingame_keys is a promise, now a witness), and
+/// THEN R rerolls to a different seed.
+#[test]
+fn esc_then_r_gesture_matches_the_docs() {
+    let _env = FlowEnv::acquire();
+    unsafe {
+        std::env::remove_var("CYCLONE_CONTINENT");
+        std::env::remove_var("CYCLONE_CONTINENT_SIZE");
+        std::env::remove_var("CYCLONE_ISLANDS");
+    }
+    let mut app = flow_app_with(false);
+    wait_for(
+        &mut app,
+        "MainMenu (gesture)",
+        Duration::from_secs(60),
+        |a| state(a) == AppState::MainMenu && a.world().contains_resource::<CurrentWorld>(),
+    );
+    app.world_mut().write_message(Activated(0)); // New Game
+    wait_for(
+        &mut app,
+        "preview (gesture)",
+        Duration::from_secs(60),
+        |a| state(a) == AppState::WorldPreview,
+    );
+    let seed_before = app.world().resource::<CurrentWorld>().0.seed;
+    app.world_mut().write_message(Activated(20)); // B_PFLY
+    wait_for(&mut app, "InGame (gesture)", Duration::from_secs(30), |a| {
+        state(a) == AppState::InGame
+    });
+
+    // R mid-flight must be a no-op — eight updates, still flying.
+    tap(&mut app, KeyCode::KeyR);
+    for _ in 0..8 {
+        app.update();
+    }
+    assert_eq!(
+        state(&app),
+        AppState::InGame,
+        "R rerolled mid-flight — the docs' 'Esc first' is a myth"
+    );
+
+    // Esc lands on preview with the SAME seed (no rebuild).
+    tap(&mut app, KeyCode::Escape);
+    wait_for(
+        &mut app,
+        "preview again (gesture)",
+        Duration::from_secs(30),
+        |a| state(a) == AppState::WorldPreview,
+    );
+    assert_eq!(
+        app.world().resource::<CurrentWorld>().0.seed,
+        seed_before,
+        "Esc rebuilt the world — the no-rebuild promise lies"
+    );
+
+    // Then R: Generating, and the preview that returns holds a NEW seed.
+    tap(&mut app, KeyCode::KeyR);
+    wait_for(
+        &mut app,
+        "Generating (gesture)",
+        Duration::from_secs(30),
+        |a| state(a) == AppState::Generating,
+    );
+    wait_for(
+        &mut app,
+        "preview after reroll (gesture)",
+        Duration::from_secs(60),
+        |a| {
+            state(a) == AppState::WorldPreview
+                && a.world().resource::<CurrentWorld>().0.seed != seed_before
+        },
+    );
+}
