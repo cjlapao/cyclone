@@ -146,7 +146,7 @@ doesn't regenerate (round-187 made every printed key claim true; a
 7. **Fly the map edges** — you hit soft walls 60 units off-map (never a
    fall-through), ceiling at 600.
 8. **Roughly how it feels?** Those impressions are the whole point of
-   TUNING.md: 13 numbered dials with file:line that still points true.
+   TUNING.md: 13 numbered dials with grep-anchors that still point true (round 241 audited all 12 anchorable rows — two were re-pointed; the numbers were right, the quoted SHAPES of code were invented).
    "Dial 1 too slow, dial 3 too twitchy" is the loop.
 
 ## Terrain-lab mode (the v2 pivot, if you want it today)
