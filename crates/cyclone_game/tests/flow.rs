@@ -913,6 +913,20 @@ fn esc_in_continent_ingame_arms_the_reroll_the_hud_advertises() {
                 }
         },
     );
+    // The box the rig will be clamped by is THE PLANET'S — set
+    // synchronously at build, not one frame late by the Update
+    // guard: with the stale archipelago box (160 m) a clamp would
+    // have yanked the flagship spawn (out past 100 m here) and
+    // PERSISTED, since rig position is stateful. SIZE 400 voxels
+    // × 0.25 m = 100 m extent, both axes, min at the origin.
+    let wbb = app.world().resource::<cyclone_engine::WorldBounds>();
+    assert!(
+        wbb.min == Vec2::ZERO && wbb.max == Vec2::new(100.0, 100.0),
+        "rig cage must be the planet's, not the archipelago's: min {:?} max {:?}",
+        wbb.min,
+        wbb.max
+    );
+
     // The player's Esc — one frame of ButtonInput, exactly what a
     // real keypress is once InputPlugin clears it next frame.
     app.world_mut()

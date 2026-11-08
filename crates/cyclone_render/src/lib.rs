@@ -117,6 +117,8 @@ fn rebuild_world(
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut images: ResMut<Assets<Image>>,
     old: Query<Entity, With<WorldRoot>>,
+
+    mut wb: ResMut<cyclone_engine::WorldBounds>,
 ) {
     let continent_env = continent_mode().is_some();
     // Dev knob (NOT a shipped product dial): `CYCLONE_CONTINENT_
@@ -191,6 +193,16 @@ fn rebuild_world(
     // keeps its historic flat y ≥ 2.5 floor untouched (no oracle,
     // no regression — deliberate scope).
     if continent {
+        // Bounds BEFORE any rig can see them: the Update-schedule
+        // guard below stays as a backstop, but a stale archipelago
+        // box (160 m) clamping this planet's flagship spawn (860 m
+        // out) would PERSIST — rig position is stateful, so the
+        // 700 m teleport would stick. Set here, synchronously,
+        // three statements before the root (the rig's future
+        // home) exists as an entity.
+        let extent_m = cont_size as f32 * 0.25;
+        wb.min = Vec2::ZERO;
+        wb.max = Vec2::new(extent_m, extent_m);
         let seed = map.seed.0;
         let size = cont_size;
         commands.insert_resource(cyclone_engine::TerrainFloor(std::sync::Arc::new(

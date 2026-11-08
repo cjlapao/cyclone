@@ -164,7 +164,7 @@ impl Default for RigTarget {
 }
 
 /// World rectangle in tile units, refreshed when a world loads.
-#[derive(Resource, Default)]
+#[derive(Debug, Resource, Default)]
 pub struct WorldBounds {
     pub min: Vec2,
     pub max: Vec2,
