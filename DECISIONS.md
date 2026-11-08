@@ -1303,4 +1303,10 @@ still moves the hash by oceans, sub-cm drift is declared invisible
 by design. FIRST-FLIGHT now states the mesh scope honestly.
 If macOS reddens on THIS digest, that's a different animal — real
 terrain disagreement — and the assert message says so.
+Addendum (same round, verdicts in): cac50e8 red on macOS with the
+EXACT same left-hand digest d8dab0ee… — drift is DETERMINISTIC
+(libm difference, not scheduler noise), which is what makes the cm
+fix sufficient rather than hopeful. Terrain floor itself: green on
+Linux+Windows in that same matrix; macOS's floor verdict rides in
+on the cm-digest run.
 
