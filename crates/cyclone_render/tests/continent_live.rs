@@ -160,3 +160,54 @@ fn preview_flag_flips_live_at_boot_nothing_else() {
     assert_eq!(b.max.x, 100.0, "extent = size·0.25, unscaled, ever");
     unsafe { std::env::remove_var("CYCLONE_CONTINENT_PREVIEW") };
 }
+
+#[test]
+fn seed_swap_invalidates_the_continent_cache() {
+    // The cache makes Esc→Enter re-entry instant — the stale-world
+    // lie it could tell (reroll, re-enter, see the OLD planet) lives
+    // or dies on `k.seed != map.seed.0`. Never tested until round 189.
+    let _env = env_guard();
+    unsafe {
+        std::env::set_var("CYCLONE_CONTINENT", "1");
+        std::env::set_var("CYCLONE_CONTINENT_SIZE", "400");
+        std::env::set_var("CYCLONE_ISLANDS", "1");
+        std::env::remove_var("CYCLONE_CONTINENT_PREVIEW");
+        std::env::remove_var("CYCLONE_CONTINENT_SCALE");
+    }
+    let mut app = app_scaffold();
+    app.insert_resource(cyclone_engine::CurrentWorld(small_map()));
+    app.insert_resource(cyclone_render::ContinentLive(true)); // fly it
+    for _ in 0..3 {
+        app.update();
+    }
+    let root_before = {
+        let w = app.world_mut();
+        let mut q = w.query_filtered::<Entity, With<cyclone_render::WorldRoot>>();
+        let ids: Vec<_> = q.iter(w).collect();
+        assert_eq!(ids.len(), 1, "one world stands");
+        ids[0]
+    };
+    // Reroll: a DIFFERENT seed enters (flow: Generating replaces
+    // CurrentWorld; same insert the real flow uses).
+    let seed_b: Seed = "BBB-BBB".parse().unwrap();
+    let map_b = Arc::new(
+        generate(seed_b, 1, &WorldGenConfig::default(), &ProgressNoop)
+            .expect("second frozen-form seed generates"),
+    );
+    assert_ne!(small_map().seed.0, map_b.seed.0, "seeds truly differ");
+    app.insert_resource(cyclone_engine::CurrentWorld(map_b));
+    for _ in 0..4 {
+        app.update();
+    }
+    let root_after = {
+        let w = app.world_mut();
+        let mut q = w.query_filtered::<Entity, With<cyclone_render::WorldRoot>>();
+        let ids: Vec<_> = q.iter(w).collect();
+        assert_eq!(ids.len(), 1, "still exactly one world (old one despawned)");
+        ids[0]
+    };
+    assert_ne!(
+        root_before, root_after,
+        "seed swap rebuilt the planet — the cache did not serve a stale world"
+    );
+}
