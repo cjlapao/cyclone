@@ -24,7 +24,14 @@ pub struct WorldRoot;
 /// voxels, extent in metres)). rebuild, the bounds guard, and the game
 /// all ask this — no scattered env reads that can drift apart.
 pub fn continent_mode() -> Option<(u32, f32)> {
-    if std::env::var("CYCLONE_CONTINENT").is_err() {
+    // Value semantics (round 228): strictly '1', like island_mode and
+    // the PREVIEW/SCALE gates. Mere presence used to mean ON, so the
+    // friendly typo 'CYCLONE_CONTINENT=0' turned the world ON — the
+    // one dial whose 'off' read as 'on'. Every doc, test (8/8), and
+    // CI site already spells '=1', so the truth table only changes
+    // for values nobody ever used. One reader made this a one-line
+    // change: round 227's consolidation paid rent the next day.
+    if !std::env::var("CYCLONE_CONTINENT").is_ok_and(|v| v == "1") {
         return None;
     }
     let size: u32 = std::env::var("CYCLONE_CONTINENT_SIZE")

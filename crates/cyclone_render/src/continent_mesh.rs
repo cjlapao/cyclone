@@ -928,4 +928,24 @@ mod tests {
         let b2 = build_sea_classic(&map).unwrap();
         assert_eq!(b.colours(), b2.colours(), "sea palette is deterministic");
     }
+
+    /// Round 228: the dial's value semantics, pinned. '1' is ON;
+    /// EVERYTHING ELSE — including '0' — is OFF. (Before this test,
+    /// presence itself was ON, so '=0' meant ON: the pilot-typing
+    /// trap. env-locked like every CYCLONE_* writer.)
+    #[test]
+    fn continent_dial_is_strict_one() {
+        let _g = ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+        unsafe { std::env::set_var("CYCLONE_CONTINENT", "1") };
+        assert!(crate::continent_mode().is_some(), "'1' must be ON");
+        unsafe { std::env::set_var("CYCLONE_CONTINENT", "0") };
+        assert!(
+            crate::continent_mode().is_none(),
+            "'=0' read as ON — the round-228 value trap"
+        );
+        unsafe { std::env::set_var("CYCLONE_CONTINENT", "yes") };
+        assert!(crate::continent_mode().is_none(), "'yes' is not '1'");
+        unsafe { std::env::remove_var("CYCLONE_CONTINENT") };
+        assert!(crate::continent_mode().is_none(), "unset is OFF");
+    }
 }
