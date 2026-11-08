@@ -240,7 +240,9 @@ islands digest (0fa64087…) re-agrees on all three OSes with every
 push, CI green to the tip today (live: CI badge, top of README.md —
 read it rather than trusting this sentence; a claim about moving
 state that ships without an instrument is round-301's lesson in
-new clothes). What those ships bought your
+new clothes). Stronger still, and yours to run: `git log --oneline
+435a62d..HEAD -- crates/cyclone_worldgen/src/` prints NOTHING —
+zero commits in the height code since the verdict-hour ship. What those ships bought your
 flight, by pointer, no repeats here: your seed's first frame is
 witnessed AND mapped — every landing bench marked (seed note,
 TERRAIN-LAB box); the Esc-R reroll margin and

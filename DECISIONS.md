@@ -3368,3 +3368,25 @@ practice; it is now a git fact.
 
 Four gates; four rounds on the clock; probe in ~3.7 h.
 
+## Round 317 — the freeze's proof handed to the pilot as a command: trust-me upgraded to run-it-yourself
+
+Round 316 found the git-fact; round 317 delivered it where trust
+is spent: the re-entry digest's 'no height byte moved' now ends
+with a command — `git log --oneline 435a62d..HEAD --
+crates/cyclone_worldgen/src/` — and its witnessed output:
+NOTHING. The claim chain completes: the digest says frozen, CI
+attests by digest, the badge lives in the README, and now the
+pilot can execute the proof in ten characters of muscle memory.
+Evidence shape, ranked by this era: assertion < badge < typed
+command whose emptiness you watched.
+
+Emptiness itself was witnessed before the promise (round 316's
+change-history check IS that command's run — the era's quantity
+law applied to negatives: claim 'prints NOTHING' only after
+watching it print nothing). Three sentences of trust bought with
+two of ink; the digest is now three instruments deep — and every
+one of them belongs to the pilot, not the author.
+
+Four gates; terrain frozen (git itself now says so); three rounds
+on the clock, probe ~3.3 h out.
+
