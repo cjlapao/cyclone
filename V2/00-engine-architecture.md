@@ -54,6 +54,13 @@ cyclone (bin)
  └──────────────────┴──> cyclone_worldgen (pure, no bevy)
 ```
 
+*(Round-253 note: the tree above is the target layout as specced; the
+implemented layout differs exactly where the pilot chose — the specs
+themselves live in `V2/`, not `docs/specs/`; `assets/models` +
+`shaders` arrive with spec 06 as planned, and `docs/` today carries
+generated samples (contact-sheet.png, regenerated from current code
+round 253).)*
+
 `cyclone_worldgen` stays Bevy-free so it compiles fast, tests fast, and runs in the CLI tool.
 
 ## Build profiles
