@@ -170,7 +170,7 @@ resolution.
 | "coast too egg-smooth" | wobble `0.28 * (fbm(wx / 120.0` → radius ±14 % | ±14 % at 120 m |
 | "eggs all point the same way" | rotation `(((h2 >> 8) & 0xFF) …) * …TAU` per stamp | was: NONE — every egg axis-aligned until round 257 |
 | "too many / too few islands" | keep-coin `if coin < 0.45` at SPACING 340 m | 55 % of lattice sites |
-| "blocky under me" | CELL_VOX (render/cyclone_render) | 4 (1 m mesh cells at 25 cm voxels — the VOXEL was always 25 cm, the MESH CELL was the visible cube; sea stays one quad via sparse drop) |
+| "blocky under me" | `const CELL_VOX` (render/cyclone_mesh — A CONST in cyclone_render/src/continent_mesh.rs: recompiles, no env) | 4 (1 m mesh cells at 25 cm voxels — the VOXEL was always 25 cm, the MESH CELL was the visible cube; sea stays one quad via sparse drop). CELL_VOX=2 MEASURED (2026-11-08, release, same census, both modes): islands 6.5 s / 161 chunks / 602 k quads (quad load ×3.5 for +1 % build time); mainland 10.2 s / 859 chunks / 6.76 M quads (mesh ×3.5, build +12 %) — a real dial, not a free one; every mesh digest re-pins with it |
 | "no rivers / too many rivers" | `CATCH` (carve_rivers, continent.rs) | 25k columns ≈ 1.6 km² of rain to earn a stream (3k over-carved a canyon — round-177 crater) |
 | "rivers too thin / too wide" | flood window `1 + acc/(4·CATCH)` cap | 1–17 cells (≈0.25–4 m) |
 | "rivers should flood more" | surface fill `bed + depth·2/3` | 2/3 of the cut holds water |

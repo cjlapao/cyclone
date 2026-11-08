@@ -1964,3 +1964,29 @@ someday. (Scan kept as throwaway logic in this entry's prose, not
 a resident tool — six tools stay six until a real need names a
 seventh.)
 
+## Round 266 — CELL_VOX=2 measured honestly: a dial, not a free one
+
+The parked item was a measurement and stayed one: const flipped
+in the WORKING TREE only, release census both modes, const back,
+`git diff` empty of code before anything was written down. No
+digest moved; nothing shipped mid-measurement; the six tools ran
+their one tool.
+
+Islands at 0.5 m mesh cells: 6.495 s / 161 chunks / 602 k quads
+(quad load ×3.5 for +1 % build time — on the map the pilot
+actually flies, smooth cliffs are nearly free in seconds and
+expensive in mesh). Mainland: 10.2 s / 859 chunks / 6.76 M quads
+(×3.5 mesh, +12 % build). The TUNING 'blocky under me' row now
+carries the cost next to the cure, both dated, and states the
+dial's true nature — A CONST (recompiles, no env), which the row
+previously blurred (its old text implied a dial-table citizen;
+the env-name check came BEFORE the measurement, and the answer
+changed the measurement's procedure, not just its prose).
+
+Self-check caught one more: my replacement row first named the
+file 'render/cyclone_mesh' — wrong path, caught re-reading my own
+line seconds after writing, corrected before the gate block; the
+law has no authorship exception including for sentences written
+eleven seconds ago. Round-265's scan-before-gates law executed on
+this very edit: clean. Four gates then.
+
