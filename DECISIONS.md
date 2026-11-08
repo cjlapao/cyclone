@@ -2329,3 +2329,32 @@ metrics band — true for mainland, untouched; DECISIONS is history.
 Every census number in the doc line is the loop's own output —
 the quantity law shipping with its instrument attached.
 
+## Round 279 — the census ruler applied: dial rows learn their OBSERVED ranges
+
+Every island-number claim that predated the 12-seed ruler got
+measured against it. :168 tallness '46-136 m' is the FORMULA's
+range - census observed 88-116 m inside it, no contradiction, but
+a pilot asking 'too low/too tall?' deserves the observed range,
+so the row now carries both, dated, with the honest note that the
+formula's ends are rarely both reached. :172 keep-coin '55 % of
+lattice sites' is the MECHANISM - census observed 3-8 median 6,
+consistent, attached. Rows audited and untouched: :167 pad-scale
+witness (scale-independent by construction), :184 r=90-200 m blob
+parameters (true in code; observed equivalent-circle radii 71-140
+m consistent under squish/erosion), the classic 160x160 rows (the
+control, scoped by its own header).
+
+The round's own catch, mid-edit: the :172 append first shipped a
+CAUSAL STORY in my head - 'edge sites lose coin AND sea' - written
+as if the double filter were measured. It was never measured: the
+spread's cause is a hypothesis, and hypothesis ink is the exact
+sin every truth-ship this week has been repairing. The cell now
+carries the spread with 'no cause claimed here'. Law, restated for
+the hundredth time because it keeps needing restating: a number
+without an instrument is a rumor; a CAUSE without one is a myth -
+and myths are what the round-219 audit was named for.
+
+Table integrity scanned before gates (4 fields every touched row,
+zero blank splits); two cell appends only; four gates, echoes
+READ; terrain frozen.
+
