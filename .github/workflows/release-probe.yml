@@ -1,5 +1,6 @@
 # Weekly release-profile probe (spec 01: the <3 s boot claim is a RELEASE
-# claim, and per-push CI only compiles debug). Tag pushes already build
+# claim, and per-push CI tests the debug profile (the bench job release-compiles
+# worldgen alone; the HANDOFF binary never sees release per-push). Tag pushes already build
 # release binaries; this proves main's code keeps compiling in release
 # across three OSes between releases — compile-only, no tests, so it
 # stays cheap.

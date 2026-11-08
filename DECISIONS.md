@@ -1590,3 +1590,20 @@ in the cited version. Third-party cites age with versions; pinning
 the version in the text is what makes them outlive eras. Holds:
 two logged, nothing to fix.
 
+## Round 240 — two probes, one false suspicion, one header nuance
+
+release-probe.yml (repo-side: weekly release COMPILE on 3 OSes,
+created Fri 2026-11-06) had zero scheduled runs — suspicion
+'disabled cron' resolved by its BIRTHDAY: first firing target is
+TODAY 06:00Z and GitHub scheduler lag of hours is normal; a two-
+day-old cron that 'never fired' is young, not dead. grep locates,
+reading concludes — creation dates conclude too. (My own note
+'probe fires Nov 9' named the OTHER probe: the DSH-side weekly
+Actions sweep — two weekly probes share a name and a 06:00Z hour;
+this file probes compile health, that one probes CI verdicts.)
+Header overstatement fixed: 'per-push CI only compiles debug' —
+the bench job release-compiles worldgen; claim narrowed to the
+truth that matters: the HANDOFF binary's release profile is
+proven only by this probe and by tag builds. Youngest watcher on
+the wall; its first real verdict arrives with scheduler grace.
+
