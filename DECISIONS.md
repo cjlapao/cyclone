@@ -3025,3 +3025,29 @@ true finding is this entry: era evidence lives in THREE places
 requires searching all three — the absence of proof is only proof
 of absence after you've read everywhere.
 
+## Round 303 — the third site speaks again: round 299's 'unlabelled ancestor' was labelled, in spec-03, all along
+
+Sweeping V2/ for islands measurements by annotation (the round-302
+law's unpaid debt): found spec-03's era annotation stating 'same
+release census, DIAL-MATCHED: islands 6.4 s, mainland 9.1 s' —
+written in the 270s, beside the very box whose reroll annotation
+had already corrected round 296. Round 299's narrative — the
+islands figure 'lived on an unlabelled ancestor's authority',
+'a rumor' — was a partial-read story a second time: the ancestor
+had labelled its dial, in the third site, in words.
+
+What 299 still earned honestly: a fresh dial-set witness (6.7 s,
+exact to the quad) that CONFIRMED the era number — the re-measure
+was valuable; the accusation of unlabelled provenance was not.
+Two consecutive rounds where my sweeping claims ('never measured',
+'unlabelled ancestor') failed three-site searches force the rule
+to harden: before ANY claim that evidence does not exist, all
+three sites — ledger, docs/tests, spec-box annotations — must be
+read, and the claim's verb ('never', 'nobody', 'unlabelled') is
+guilty until the sweep is clean. Era memory is distributed, and
+I keep under-searching my own filing system.
+
+No pilot-facing change owed (spec-03's annotation was already the
+truth); ledger-only correction of 299's narrative. Four gates;
+terrain frozen.
+
