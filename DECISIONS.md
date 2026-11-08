@@ -3407,3 +3407,30 @@ end of an era is to stop generating work and keep generating
 truth. Weapons fitted, probe ~2.7 h out, pilot asleep or Sunday
 outside. Objective's last mile: one flight, one sentence.
 
+## Round 319 — the objective audited clause by clause: every machine clause holds; the last clause is a person
+
+Completion instruction taken seriously at round 319 (not scrambled
+for at 320): each clause of the objective against the instrument
+that proves it, run FRESH this round.
+
+GENERATE THE MAP: cyclone_worldgen 14 ok live (digest canaries
+pinned and re-agreed, reject-rules, cross-OS byte-identity) — plus
+the CLI path, the in-game path, and CI's three-OS digest assertion
+every push.
+NAVIGATE FREELY: flow 15 ok live (Boot→Menu→Generate→Preview→
+Enter, three input modalities, seed repro bit-identical, Esc keeps
+/R rolls the reroll chain); camera-rig heading tests run in the
+workspace suite on all CI OSes; reroll worst-frame 9.5 ms measured
+on the dialed stack.
+KEEP IMPROVING: TUNING's 13 numbered dials certified (round 311),
+feedback protocol live, leak-free family-hopping proven, the armed
+rectangle fix fitted to today's bytes (316) and the seed-readout
+ask banked (313) — the loop has vocabulary, margins, and weapons.
+
+THE LAST CLAUSE: 'I need to be able to navigate the world' is
+written in the first person because only its author can evidence
+it. 'fly when ready' waits at :252; the goal stays ACTIVE at the
+round clock's end — completion without the pilot's eyes-on would
+violate the objective's own wording, and the wait is scheduled
+(probe ~2.3 h, pilot whenever), which is patience, not blockage.
+
