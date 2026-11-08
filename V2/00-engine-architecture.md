@@ -122,6 +122,18 @@ Every screen spawns its entities with a `DespawnOnExit(AppState::X)` marker (or 
 - Zoom: three fixed levels on the mouse wheel. Default the middle one.
 - Expose `CameraHeading` as a resource (0–3). Spec 02 uses it for crate occlusion checks.
 
+*(Annotation 2026-11-08: the shipped camera drifted from this section
+while the pilot was choosing worlds, not silently — spec 03's
+"where the code stands" records it: free mouse-look with WASD+Space/
+Shift/Ctrl fly (`camera_rig.rs`, ~600 lines), perspective, not the
+orthographic iso rig specced above; Q/E still snap yaw and
+`CameraHeading` keeps its four-quadrant occlusion role (re-pointed
+witness, round 222). The zoom-levels line is dev-tool reality on the
+free cam (wheel = continuous FOV zoom, eased toward a target; the
+three-fixed-levels spec never shipped). Which camera survives gameplay is
+spec 03's OPEN Q2 — until the pilot answers, this section is
+prescription in review, not status.)*
+
 ### Input bindings (defaults)
 
 | Action | Keyboard | Gamepad |
@@ -158,4 +170,4 @@ GitHub Actions matrix: `ubuntu-latest`, `macos-latest`, `windows-latest`.
 - [x] `cyclone_worldgen` has no `bevy` in `cargo tree -p cyclone_worldgen`. *(Same guard step, every CI run on 3 OSes.)*
 - [x] Camera rig rotates through all four headings and returns to the start after four presses. *(Witness re-pointed round 222: `heading_snaps_track_quadrants` (camera_rig.rs) asserts all four headings AND return-to-start after four presses; the game-crate occlusion tests exercise it through the real rig. Both run on all CI OSes.)*
 - [x] Settings survive a restart. Deleting the settings file restores defaults without a crash. *(Disk round-trip + fallback tests in `cyclone_engine`.)*
-- [x] CI is green on all three OSes. *(Proven on `24459f8` — the last failure was ron's platform-default CRLF in golden text, root-caused via the in-test fingerprint table, DECISIONS round 39. Fresh proof of current-era state: `3e3d5a6` green ×3 verified round 217 via the Actions pages; freshest proof round 235: `29b2697` (a BEHAVIOR change — strict-'1' dials) completed successfully ×3 OSes, closing a green ×6 that spans the whole dial-ownership era. See the weekly probe.)*
+- [x] CI is green on all three OSes. *(Proven on `24459f8` — the last failure was ron's platform-default CRLF in golden text, root-caused via the in-test fingerprint table, DECISIONS round 39. Fresh proof of current-era state: `3e3d5a6` green ×3 verified round 217 via the Actions pages; freshest proof round 235: `29b2697` (a BEHAVIOR change — strict-'1' dials) completed successfully ×3 OSes, closing a green ×6 that spans the whole dial-ownership era. Islands-v2 era proof: `ede9f17`+`81d2712` completed success on all three OSes, the island canary digest ASSERTED and AGREED on every runner — libm law intact. See the weekly probe.)*

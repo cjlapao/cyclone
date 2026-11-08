@@ -2243,3 +2243,34 @@ pointing toward the voxel world hosting gameplay, which wakes Q5
 later spec plus the buried High Scores. That framing went into
 the annotation for the pilot's next read.
 
+## Round 276 — spec-00 audited: camera reconciliation noted; my own draft's evidence caught drifting mid-audit
+
+Full read of 00-engine-architecture.md. Audit principle stated
+explicitly: PRESCRIPTIVE text is specs-by-design (the iso rig
+section, the sea material, the 0.19 pin 'at the time of writing')
+— no fossil axe for targets; only STATUS ink gets re-witnessed.
+Status lines held: layout note true (tools/worldgen-cli EXISTS,
+plus two census tools), acceptance boxes keep their witnesses.
+One reconciliation annotation added, file's own note-style: the
+camera section prescribes the orthographic iso rig while the
+shipped reality is the free mouse-look the pilot flies (Q/E snaps
+survive; CameraHeading keeps its quadrant/occlusion role; wheel =
+eased FOV zoom — the three-fixed-levels spec never shipped; code
+bytes checked before the claim). Which camera survives gameplay =
+spec-03 OPEN Q2, said in the note: prescription in review, not
+status. CI status line re-dated with the islands-v2 ×3 proof
+(ede9f17+81d2712, canary digest agreed on all runners).
+
+The round's own lesson, three catches logged per no-exception law:
+spec-03's draft said '515 lines', the file is 605 — MY OWN
+draft's evidence drifted in two commits (measured: ba0c0b2,
+cac50e8) since its pin. First repair wrote 'in five commits' —
+an INVENTED quantity, measured down to two before it shipped. My
+fix then wrote 'the pin below' when the pin sits above. Quantity
+law, third form this era: evidence pins age inside the very docs
+that record them — annotate numbers with their date, and re-
+measure before quoting even the repairs.
+
+Annotation-only diff across 00/03; pilot's design text untouched
+throughout; four gates run anyway, echoes READ; terrain frozen.
+

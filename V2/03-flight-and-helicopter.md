@@ -22,7 +22,10 @@ this spec builds).
 
 Real, shipped, tested:
 
-- `crates/cyclone_engine/src/camera_rig.rs` — 515 lines. Free mouse-look
+- `crates/cyclone_engine/src/camera_rig.rs` — 515 lines (re-measured
+  2026-11-08: 605 — this draft's own evidence drifted in two commits
+  since the section's pin (terrain floor, bounds race); line counts
+  date, designs don't). Free mouse-look
   camera: `CameraRig` (yaw/pitch/fov), `RigFollow`/`RigTarget` (follow
   an entity), `CameraHeading` (the four-heading quadrant that drives
   crate occlusion), `WorldBounds`, `CameraRigPlugin`.
