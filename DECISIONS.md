@@ -1839,3 +1839,27 @@ gap found — the HUD may keep its sentence. (Audit by READING the
 test's body this time, the round-258 scar keeping the pen honest:
 names describe intentions, bodies tell the truth.)
 
+## Round 260 — the first-view question: spawn on an island world, measured 40/40
+
+The question worth asking before a pilot flies: islands mode is
+92 % open ocean — does the flagship spawn deliver land, or does
+the castaway fallback (nose-down −60° over water) become the
+first impression? The code path: continent_clear →
+spawn_over_land, a golden-angle ring scan capped at 500 m, and
+THE SCAN READS THE ISLANDS DIAL AT CALL TIME (line 459: islands:
+island_mode() — verified before trusting the number). The era had
+ALREADY put teeth here (:594 .expect('islands exist within 500 m
+of centre')); the fresh measurement at the pilot's scale, seeds
+0..40, CYCLONE_ISLANDS=1: land found 40/40 — flagship spawn is
+the rule, castaway is the rare-seed fallback the round-185 myth
+list already policed. The pilot's own seed by arithmetic on
+today's render: nearest island centres 321 m and 405 m from the
+spawn ring — well inside range; their first view is terraced
+rock, not ocean.
+
+Measurement cost honesty: the probe was a throwaway example
+target, deleted after one run — data collectors don't get
+permanent compile slots; the six #[ignore] tools remain the only
+resident probes. No code moved; the world stayed frozen; the
+spawn question closed with a count, not a hope.
+
