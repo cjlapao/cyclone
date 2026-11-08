@@ -2432,3 +2432,33 @@ pads its display one column; two edit failures lost to memory's
 bytes before the file's bytes won — anchor edits on file content,
 not remembered indentation.
 
+## Round 282 — the fix, seen before it exists: one seed painted twice across a white seam
+
+Round 281's probe machinery, reused at zero drift and deleted
+after one run (residual diff READ empty again): the SAME island
+seed painted side by side — left half through the shipped
+sea_dist_cells, right half through a footprint-min sampler over a
+chamfer distance field (10/14 two-pass, /10 = cells; an honest
+approximation labelled in the probe, bucket-scale differences are
+what the eye judges). Committed as docs/sea_fix_sim_preview.png.
+
+The eye's verdict: right half, every island sits on a continuous
+cyan shelf — the jet-black shore squares of the left are gone,
+thin islands included. And the seam sharpened the MECHANISM
+itself beyond round 280's colour story: those black squares are
+buckets SKIPPED entirely — centre on land, no quad — holes to
+background where sea cells of the same bucket just lost their
+only painter. The dossier upgrades accordingly: remove the
+centre-skip AND colour from the footprint; the preview proves
+both halves visually. What the fix does NOT claim: the residual
+25 m staircase is the bucket DESIGN (one quad per bucket), not
+the sampler — smoothing it is a different, bigger call, and no
+doc says otherwise.
+
+Zero engine bytes moved — the chamfer field, the skip removal,
+the preview sampler all lived and died inside one throwaway test.
+The armed fix is now also a SEEN fix: when the pilot's close-up
+calls for it, the look has already been witnessed by the only
+eyes here that can judge colour, and the pilot has the preview
+in-repo to judge with their own.
+

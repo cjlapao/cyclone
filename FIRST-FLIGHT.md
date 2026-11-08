@@ -228,7 +228,14 @@ the dial table (relief floors, orogeny, snowline, cell size).
    field painted by the shipped sampler: navy-to-black 25 m
    squares at shore edges, blackest beside thin islands. Your
    close-up still decides how loud it is in-game; the fix waits
-   on the terrain freeze lifting, not on me.)*
+   on the terrain freeze lifting, not on me. Round 282 took it
+   further: `docs/sea_fix_sim_preview.png` is the same seed
+   painted twice — LEFT the shipped sampler (black squares at the
+   shore; they turn out to be buckets SKIPPED entirely, holes to
+   background, when a bucket's centre is land), RIGHT the fix
+   preview (footprint sampling, no skips): continuous cyan shelves
+   everywhere. The fix is armed AND seen; your verdict still owns
+   whether it fires.)*
 2. **Feel verdicts in dial language**: `TUNING.md` has 13 numbered
    flight dials + the continent table. '1 too slow, 3 too twitchy'
    is the whole loop — or just say 'it feels wrong while landing'.
