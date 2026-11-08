@@ -1642,3 +1642,17 @@ re-run today: its verdict is fresh-dated, and it deliberately has
 NO doc claim feeding on the number — the property is witnessed,
 not marketed.
 
+## Round 252 erratum — 87039f1's own message broke the count law it cited
+
+The ISLANDS-tooth commit wrote 'suite 28 ok / 0 FAILED' where the
+fresh log's grep said 27 — the new test joined an EXISTING binary
+(cyclone_worldgen lib), so the RESULT-LINE count never moves;
+test count inside that binary moved, result lines did not. The
+27-count invariant survived the whole era exactly because new
+tests join existing binaries; the message author forgot it for one
+sentence while describing the law in the same paragraph. Fix
+forward (no history rewrite, ever): 27 ok / 0 FAILED, worldgen's
+lib line now carries one more green test inside it. Commit
+messages are pilot-facing prose too — the audit does not exempt
+the era's own ink, not even minutes later.
+
