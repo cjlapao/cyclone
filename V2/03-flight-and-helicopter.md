@@ -154,3 +154,12 @@ function/module the tests can call without a window (same discipline as
 5. **Helipad on voxel terrain** (only if Q1 flips): landing zones
    painted by `spawn_over_land`-style scan, or explicit pads in the
    island stamp?
+
+6. **Floor unification** (the question line 37's collision note
+   points at): the archipelago flies with its historic flat floor;
+   the voxel world flies on the per-seed `TerrainFloor` oracle (skid
+   at surface + 2.5 m). Keep them separate while gameplay lives on
+   the archipelago, or unify onto the oracle now so BOTH worlds
+   share one collision rule? Recommendation: keep flat until Q1
+   flips or the archipelago retires — the flat floor is witnessed
+   behavior, the oracle is witnessed only on voxel terrain.
