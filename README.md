@@ -73,7 +73,7 @@ orbit framing, tints…) is mapped to a file:line in
 cargo run -p worldgen-cli --release -- generate --seed 0x1 --out out/
 cargo run -p worldgen-cli --release -- batch --count 1000 --out out/batch/
 cargo run -p worldgen-cli -- golden          # determinism check (CI runs it)
-cargo bench -p cyclone_worldgen              # 262 ms per 20-seed sample on my box ≈ 13 ms/world (dev ≈ release; CI's runner ~2× slower; validate gates re-roll most seeds 1–3 extra attempts — the batch summary.csv `attempts` column is the live distribution, capped at max_world_attempts=8)
+cargo bench -p cyclone_worldgen              # ≈194 ms per generable-seed sample (18 of seeds 1..=20; validate drops 2) on my box ≈ 11 ms/world — re-measured round 200 (dev ≈ release; CI's runner ~2× slower; validate gates re-roll most seeds 1–3 extra attempts — the batch summary.csv `attempts` column is the live distribution, capped at max_world_attempts=8)
 ```
 
 `generate` writes a labelled top-down `map.png` (props, `H` helipads, `X`
