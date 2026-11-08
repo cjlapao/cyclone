@@ -27,10 +27,14 @@ Real, shipped, tested:
   an entity), `CameraHeading` (the four-heading quadrant that drives
   crate occlusion), `WorldBounds`, `CameraRigPlugin`.
 - Fly controls on the preview/in-game camera: WASD + Space up + Shift
-  down + Ctrl boost (`screens.rs:1451`).
-- Terrain collision for the rig: `surface_height_m` (continent/voxel
-  worlds) and `spawn_over_land` (golden-angle scan for standable
-  ground) — the rig never sinks through the world.
+  down + Ctrl boost (rig_fly, `camera_rig.rs`).
+- Terrain collision for the rig (TRUE since round 195, `cac50e8` —
+  it was a written-then-tested myth; the test-first order now
+  official): `TerrainFloor` oracle resource (engine) installed by
+  the world builder per seed; free-fly holds skid at surface + 2.5
+  m. `spawn_over_land` remains the golden-angle scan for standable
+  spawn ground. Archipelago keeps its flat historic floor — Part A
+  may unify if the pilot wants collision there too (OPEN #6).
 - Speed model: `FLY_BASE` (38 u/s at fov 45, fov-scaled) in
   `TUNING.md` — a *velocity*, but with no mass, no drag, no fuel.
 - World DATA for the round is generated and validated already: 14

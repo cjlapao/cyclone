@@ -143,6 +143,10 @@ proves it, 156 m over a 76 m peak. Castaway fallback (no land near):
 centred hover, nose at −60°, so you look *for* the coast, not blind.
 `Esc` then `R` rolls a whole new planet — the dev HUD quotes the
 chord, because in-flight `R` flies instead of deleting worlds.
+Ground is GROUND now: skids hold 2.5 m over whatever the voxel
+column says is under you — low passes skim the ridge, they do not
+thread it (round 195; if you WANT to fly through mountains for
+photomode, say so and it becomes a dial).
 Corner line reads CONTINENT (island metrics would lie here, so it
 doesn't quote them). Judge the look without building anything:
 `cargo run -p worldgen-cli -- continent --seed 42 --size 4000 --out

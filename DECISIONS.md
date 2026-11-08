@@ -1255,3 +1255,20 @@ choice logged: the digest lives as a UNIT test so the builder's
 existing pub(crate) accessors serve it — the product API stays
 exactly as wide as players need, tests reach through crate
 visibility like they always do.
+
+## Round 195 — myth #9 was the big one: mountains were holograms
+
+Spec 03's inventory credited `surface_height_m` with rig terrain
+collision ("never sinks through the world"); camera_rig's only
+floor was the box's flat y ≥ 2.5 — flying through a 270 m range was
+the default physics. The claim-audit campaign's purpose in one
+found: prose promised what no consumer executed. Fixed as
+architecture, not patch: engine owns `TerrainFloor` (opaque f32→f32
+oracle — dependency direction intact), world builder installs a
+closure bound to its own seed (reroll re-arms), free-fly clamps
+skid to surface + 2.5 m. Archipelago deliberately keeps the flat
+floor (guard-tested; unifying it is spec-03 OPEN #6, a pilot call).
+Stale-oracle class pre-killed by asserting installed-closure ≡
+surface fn for the live seed. First pilot-visible feel change of
+the audit era — and the one their fingers will find fastest.
+
