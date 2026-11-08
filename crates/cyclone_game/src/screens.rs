@@ -1417,14 +1417,14 @@ fn ingame_build(
     // runs — the 8 s one-time build must not read as a freeze (the
     // window paints once this system returns).
     #[cfg(feature = "dev")]
-    if std::env::var("CYCLONE_CONTINENT").is_ok() {
+    if cyclone_render::continent_mode().is_some() {
         eprintln!(
             "continent mode: building 1 km² voxel world (one-time, ~8–10 s — release census: 8.7 islands / 8.3 continent)…"
         );
     }
     // The renderer builds the planet only while this is true — set at
     // the one place that knows the pilot is actually flying.
-    if std::env::var("CYCLONE_CONTINENT").is_ok() {
+    if cyclone_render::continent_mode().is_some() {
         commands.insert_resource(cyclone_render::ContinentLive(true));
     }
     // Start OVER the Base Island, archipelago ahead. Starting beyond
@@ -1522,7 +1522,7 @@ fn ingame_keys(
         // No PendingGen is consumed until Generating runs, so quitting
         // from the preview instead of pressing R simply abandons it
         // (the menu never reads it).
-        if std::env::var("CYCLONE_CONTINENT").is_ok() {
+        if cyclone_render::continent_mode().is_some() {
             commands.insert_resource(PendingGen {
                 seed: random_seed(),
                 auto: true,
