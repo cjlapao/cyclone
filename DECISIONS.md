@@ -3262,3 +3262,22 @@ suspects remained there beyond what those reads fixed. No edits
 owed: a clean verification is itself a keepable result. Four
 gates; terrain frozen; the vocabulary layer is certified.
 
+## Round 312 — state-of-the-union: probe armed, badge passing, oracles exact — read, not remembered
+
+With the audit map painted, the round went to the last trust
+surface: the instruments that watch while nobody can. Read fresh,
+all three clean: (1) the weekly probe — ACTIVE, fires
+2026-11-09T06:00Z, prompt intact with every self-update law it
+earned since round 245 (ls-remote as push-truth, the Lockfile
+staleness trap, triage-by-descendant, tag oracle incl. the
+'releases-page NEVER' clause, release-probe with the Nov-15
+loud-alarm threshold, untrusted-web-data rule); (2) CI badge
+PASSING at tip; (3) `ls-remote` origin main == local HEAD,
+byte-exact — no stranded ships.
+
+Nothing to fix IS the finding; verification rounds exist precisely
+because trust decays faster than instruments do. Eight rounds on
+the clock, five hours to the probe, one sleeping pilot between
+here and the verdict — all that's left to prepare has been
+prepared, all that remains cannot be prepared: the flight itself.
+
