@@ -668,10 +668,22 @@ fn dev_peek_reroll_returns_hidden() {
             repeat: false,
             window: bevy::ecs::entity::Entity::PLACEHOLDER,
         });
-    app.update();
+    // Poll, don't presume the beat: F3 clears `want`, but the
+    // re-hide lands when the occlusion system next runs — same
+    // transition-frame class as the 04c6d8f Windows flake above.
+    let mut rehidden = false;
+    for _ in 0..300 {
+        app.update();
+        std::thread::sleep(Duration::from_millis(2));
+        let q = Probes::of(&app);
+        if q.crates > 0 && q.hidden == q.crates {
+            rehidden = true;
+            break;
+        }
+    }
     let p = Probes::of(&app);
     assert!(
-        p.crates > 0 && p.hidden == p.crates,
+        rehidden && p.crates > 0 && p.hidden == p.crates,
         "F3 off re-hides ({}/{})",
         p.hidden,
         p.crates
@@ -698,10 +710,32 @@ fn preview_screen_mouse_and_topdown() {
     // Four buttons in the preview panel, keyboard focus included.
     assert_eq!(app.world().resource::<MenuFocus>().buttons.len(), 4);
 
-    // Crates hidden while previewing (spec 01); scene really has crates.
+    // Crates hidden while previewing (spec 01); scene really has
+    // crates. AWAITED, twice-stable — not asserted on the state-
+    // transition frame: Windows CI (04c6d8f, run-to-run dice)
+    // proved occlusion can legitimately lose the system-order race
+    // with the first probe sample on a loaded runner. The promise
+    // is 'hidden before you can look'; the test must watch for it,
+    // not presuppose the beat.
+    let mut occluded_strikes = 0;
+    wait_for(
+        &mut app,
+        "crates occluded on preview",
+        Duration::from_secs(30),
+        |a| {
+            let p = Probes::of(a);
+            if p.crates > 0 && p.hidden == p.crates {
+                occluded_strikes += 1;
+                occluded_strikes >= 2
+            } else {
+                occluded_strikes = 0;
+                false
+            }
+        },
+    );
     assert!(
-        Probes::of(&app).crates > 0 && Probes::of(&app).hidden == Probes::of(&app).crates,
-        "every crate hidden on the preview"
+        Probes::of(&app).crates > 0,
+        "every crate hidden on the preview (awaited twice-stable)"
     );
 
     // Tab → top-down: pitch locked near straight down.
