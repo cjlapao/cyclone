@@ -1480,3 +1480,28 @@ the streak has no green descendant — both rules now in the probe's
 own prompt, which quotes fetched pages as data and follows nothing
 inside them.
 
+## Round 219 — the preview panel was describing a world nobody was looking at
+
+Label audit (every pilot-facing string vs the world it renders over):
+in continent mode the WORLD PREVIEW panel showed 'Islands: N (Base
+Island first)', 'Helipads', 'Difficulty' — numbers of the CLASSIC
+map, which under the terrain-lab dial is the hidden input, not the
+visible Earth. The pilot flies voxel Earth and the HUD recites
+statistics of an archipelago that isn't there. Myth class: a
+pilot-facing claim that was TRUE for a different world.
+
+Fix: continent_mode() — the dial's one reader — gates the rows;
+continent mode says 'Terrain: CONTINENT — 1 km² voxel Earth' +
+which dial carves it, keeps the seed (shared truth), drops the
+misrepresented metrics. Both halves witnessed from the UI's own
+Text spans: continent panel must contain CONTINENT and must NOT
+contain Base Island/Helipads; classic keeps its rows and must not
+sprout the dial text. The continent witness also quietly proved a
+nice thing: a 400² carve behind the preview settles in seconds
+headless — the wait-state story holds at test speeds.
+
+Also refreshed: spec-01's reroll box carries its round-215 margin
+(9.4 ms, ~81%) beside the dated round-55 3.6 ms evidence — dated
+evidence ages, undated claims rot, and a box's margin percentage
+is a claim of TODAY.
+

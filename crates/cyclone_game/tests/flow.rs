@@ -986,3 +986,86 @@ fn esc_in_continent_ingame_arms_the_reroll_the_hud_advertises() {
         "a machine-rolled reroll (auto) — R just presses Fly's route"
     );
 }
+
+/// Helper: every Text string the WorldPreview panel spawned.
+fn panel_texts(app: &mut App) -> Vec<String> {
+    let w = app.world_mut();
+    let mut q = w.query::<&Text>();
+    q.iter(w).map(|t| t.to_string()).collect()
+}
+
+/// Round-219 label audit, witnessed: in continent mode the preview
+/// panel must NOT describe the hidden classic map (islands/helipads/
+/// difficulty rows are a myth rendered as fact over voxel Earth),
+/// and must say what the world IS. Small SIZE keeps the carve fast.
+#[test]
+fn continent_preview_panel_tells_the_truth() {
+    let _env = FlowEnv::acquire();
+    unsafe {
+        std::env::set_var("CYCLONE_CONTINENT", "1");
+        std::env::set_var("CYCLONE_CONTINENT_SIZE", "400");
+        std::env::remove_var("CYCLONE_ISLANDS");
+        std::env::remove_var("CYCLONE_CONTINENT_PREVIEW");
+        std::env::remove_var("CYCLONE_CONTINENT_SCALE");
+    }
+    let mut app = flow_app_with(false);
+    wait_for(
+        &mut app,
+        "MainMenu (continent)",
+        Duration::from_secs(60),
+        |a| state(a) == AppState::MainMenu && a.world().contains_resource::<CurrentWorld>(),
+    );
+    app.world_mut().write_message(Activated(0)); // New Game
+    wait_for(
+        &mut app,
+        "preview (continent)",
+        Duration::from_secs(60),
+        |a| state(a) == AppState::WorldPreview,
+    );
+    let texts = panel_texts(&mut app);
+    let joined = texts.join("|");
+    assert!(
+        joined.contains("CONTINENT"),
+        "the panel must say CONTINENT; saw: {joined}"
+    );
+    assert!(
+        !joined.contains("Base Island") && !joined.contains("Helipads"),
+        "the panel describes the hidden classic map while the pilot \
+         looks at voxel Earth — the round-219 myth, back in the UI: {joined}"
+    );
+    assert!(joined.contains("Seed"), "seed row stays: {joined}");
+}
+
+/// The gate's other half: classic mode keeps its honest rows.
+#[test]
+fn classic_preview_panel_keeps_its_rows() {
+    let _env = FlowEnv::acquire();
+    unsafe {
+        std::env::remove_var("CYCLONE_CONTINENT");
+        std::env::remove_var("CYCLONE_CONTINENT_SIZE");
+        std::env::remove_var("CYCLONE_ISLANDS");
+    }
+    let mut app = flow_app_with(false);
+    wait_for(
+        &mut app,
+        "MainMenu (classic)",
+        Duration::from_secs(60),
+        |a| state(a) == AppState::MainMenu && a.world().contains_resource::<CurrentWorld>(),
+    );
+    app.world_mut().write_message(Activated(0));
+    wait_for(
+        &mut app,
+        "preview (classic)",
+        Duration::from_secs(60),
+        |a| state(a) == AppState::WorldPreview,
+    );
+    let joined = panel_texts(&mut app).join("|");
+    assert!(
+        joined.contains("Base Island") && joined.contains("Helipads"),
+        "classic rows vanished with the continent gate: {joined}"
+    );
+    assert!(
+        !joined.contains("CONTINENT"),
+        "classic shows the dial lie: {joined}"
+    );
+}

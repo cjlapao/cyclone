@@ -1160,10 +1160,27 @@ fn preview_build(
                 panel.spawn(Node { height: Val::Px(16.0 * s), ..default() });
                 panel.spawn(theme.body(format!("Seed  {seed_disp}")));
                 panel.spawn(Node { height: Val::Px(10.0 * s), ..default() });
-                panel.spawn(theme.body(format!("Islands: {islands} (Base Island first)")));
-                panel.spawn(theme.body(format!("Helipads: {pads}")));
-                panel.spawn(Node { height: Val::Px(10.0 * s), ..default() });
-                panel.spawn(theme.body(format!("Difficulty: {diff}")));
+                // The island/helipad/difficulty numbers describe the
+                // CLASSIC map. Under the terrain-lab dial that map is
+                // hidden — the world on screen is the voxel Earth with
+                // neither islands, helipads, nor a classic difficulty
+                // metric — so showing them is the panel describing a
+                // world the pilot is not looking at: a myth rendered
+                // as fact (found by the round-219 label audit).
+                if cyclone_render::continent_mode().is_some() {
+                    panel.spawn(
+                        theme
+                            .body("Terrain: CONTINENT — 1 km² voxel Earth"),
+                    );
+                    panel.spawn(theme.small(
+                        "terrain-lab dial CYCLONE_CONTINENT=1 · the seed below carves it",
+                    ));
+                } else {
+                    panel.spawn(theme.body(format!("Islands: {islands} (Base Island first)")));
+                    panel.spawn(theme.body(format!("Helipads: {pads}")));
+                    panel.spawn(Node { height: Val::Px(10.0 * s), ..default() });
+                    panel.spawn(theme.body(format!("Difficulty: {diff}")));
+                }
                 panel.spawn(theme.small(reason));
                 panel.spawn(Node {
                     flex_grow: 1.0,
