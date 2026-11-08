@@ -2926,3 +2926,30 @@ separate fences; a fence is a paste unit, and a paste unit that
 starts two games starts none the pilot meant. Four gates; terrain
 frozen; tour untouched.
 
+## Round 299 — the last dial suspect cleared: islands 6.4 s re-witnessed dialed at 6.7 s, exact to the quad
+
+The census paragraph credits 'the SAME tool run' with islands 6.4 s
+/ 59 chunks / 174 k quads AND mainland 9.1 s — but round 286 had
+just labeled fullscale_census EXPLICITLY MAINLAND, and reading the
+tool's bytes confirmed it: generate_and_mesh(2, 4000), no dial —
+its run is mainland, correctly labeled. So the islands figure had
+lived on an unlabelled ancestor's authority since the 270s. After
+two rounds (285, 296) where half-set dials unseated real cited
+numbers, this one could not stay a rumor: terrain is frozen, but
+MEASURING a frozen world stays in-scope, so a throwaway re-ran
+gen+mesh at full scale, RELEASE, dial SET process-wide.
+
+Result: 6.7 s / 59 chunks / 173,933 quads. The ancestor's numbers
+survive essentially exactly — chunk count identical, quads matching
+to four digits (proving islands ran: mainland sat at 227/1.94M),
+time well inside the docs' '~6-7 s' promise, which therefore needed
+NO edit. The era's round-270-era probes, it turns out, had set
+their env correctly; the doubt was in my labeling discipline, not
+their dial discipline.
+
+Law, closing the dial-saga loop: a number's PROVENANCE needs the
+dial state written next to it, or the number inherits suspicion
+forever — honest ancestors with unlabeled runs still spawn audit
+rounds. The probe died with the residual diff READ empty; four
+gates; terrain frozen, freshly witnessed, unedited.
+
