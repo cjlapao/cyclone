@@ -899,10 +899,18 @@ fn esc_in_continent_ingame_arms_the_reroll_the_hud_advertises() {
         "InGame + live flag",
         Duration::from_secs(60),
         |a| {
-            state(a) == AppState::InGame && a.world().resource::<cyclone_render::ContinentLive>().0
-            // (Planet presence beyond the flip flag is the job of
-            // continent_live.rs's four tests; wait_for's Fn(&App)
-            // cannot query in 0.20 — honest scope, not weaker claim.)
+            state(a) == AppState::InGame
+                && a.world().resource::<cyclone_render::ContinentLive>().0
+                && {
+                    // wait_for takes FnMut(&mut App) precisely so the
+                    // PLANET itself is awaited (0.20 queries need
+                    // &mut World) — not just the flip flag.
+                    let w = a.world_mut();
+                    w.query_filtered::<Entity, With<cyclone_render::WorldRoot>>()
+                        .iter(w)
+                        .count()
+                        == 1
+                }
         },
     );
     // The player's Esc — one frame of ButtonInput, exactly what a
