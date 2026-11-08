@@ -1505,3 +1505,23 @@ Also refreshed: spec-01's reroll box carries its round-215 margin
 evidence ages, undated claims rot, and a box's margin percentage
 is a claim of TODAY.
 
+## Round 220 — a key myth that wasn't, and a page that cached yesterday
+
+(1) Label audit continued: flight HUD says 'Q/E snap view'. Greps
+for KeyCode::Q/Code::E found ZERO bindings — a confident myth was
+one sentence from being shipped. Reading killed it: bindings are
+DATA (settings.rs rotate_left: k(&["KeyQ"]) → parse_key →
+InputMap; gamepad mirror lives in its own table). The HUD tells
+the truth about defaults that are user-rebindable — an audit of a
+rebindable key must read the settings DEFAULTS table, not literal
+key enums. False alarm class #3 caught pre-ship: grep locates,
+reading concludes.
+(2) The Actions WEB PAGE list can be HOURS stale — it topped out
+at #208 while three newer pushes sat queued; the sidebar's
+lockfile blob sha pinned the page's era (a cache tell worth
+learning). git ls-remote is the push-truth oracle: d88b556 IS on
+origin. Verdicts aren't lost; the free-tier macOS serial queue
+makes them slow, and cached pages make them look missing. The
+probe prompt now says: page list may lag; cross-check pushes with
+ls-remote, never conclude 'CI never ran' from a page.
+
