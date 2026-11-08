@@ -609,6 +609,37 @@ mod tests {
         }
     }
 
+    /// The ISLANDS leg of the value law (rounds 228/229: ALL dials
+    /// activate on exact '1'). CONTINENT+SIZE have their witness
+    /// (render's continent_dial_is_strict_one); ISLANDS' law lived
+    /// only as a comment on the function — a rewrite of island_mode
+    /// to 'any value = ON' would have kept the whole suite green.
+    /// Teeth, in the crate that owns the fn. SAFETY: nothing else
+    /// in THIS test binary reads CYCLONE_ISLANDS (production reads
+    /// live in the render/game binaries — separate processes), and
+    /// this lock serializes the only writers here.
+    #[test]
+    fn island_dial_is_strict_one() {
+        static ENV_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
+        let _g = ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+        unsafe {
+            std::env::set_var("CYCLONE_ISLANDS", "1");
+            assert!(island_mode(), "'1' turns the dial ON");
+            std::env::set_var("CYCLONE_ISLANDS", "0");
+            assert!(
+                !island_mode(),
+                "'0' is OFF — the value trap that once read ON, pinned"
+            );
+            std::env::set_var("CYCLONE_ISLANDS", "yes");
+            assert!(!island_mode(), "anything else is OFF");
+            std::env::remove_var("CYCLONE_ISLANDS");
+            assert!(
+                !island_mode(),
+                "unset is OFF — classic world is the default planet"
+            );
+        }
+    }
+
     #[test]
     fn island_mode_scatters_walkable_islands_with_open_sea() {
         // The round-179 contract, as arithmetic not vibes: mostly sea,
