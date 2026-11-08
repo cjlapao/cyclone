@@ -113,6 +113,26 @@ fn live_flip_swaps_archipelago_for_planet() {
     );
     assert!(meshes > 1, "planet spawned land meshes");
     assert_eq!(roots, 1, "exactly one world root stands");
+    // Myth #9's wiring, witnessed: the planet world ships WITH the
+    // terrain oracle (rig cannot sink); crates going 0 while the
+    // oracle arrives is the swap in one line.
+    assert!(
+        app.world()
+            .contains_resource::<cyclone_engine::TerrainFloor>(),
+        "planet world installs the terrain floor"
+    );
+    // And the oracle speaks THIS seed's ground, not a stale one:
+    // flagship witness (860,496) at seed AAA-AAA-mapped-u64 → same
+    // closure the rig will call must agree with surface_height_m.
+    let tf = app.world().resource::<cyclone_engine::TerrainFloor>();
+    let probe = (tf.0)(860.0, 496.0);
+    let truth =
+        cyclone_render::continent_mesh::surface_height_m(860.0, 496.0, small_map().seed.0, 400)
+            as f32;
+    assert!(
+        (probe - truth).abs() < 1e-3,
+        "oracle ≡ surface fn for the live seed: {probe} vs {truth}"
+    );
 }
 
 #[test]

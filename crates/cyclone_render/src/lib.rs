@@ -184,6 +184,24 @@ fn rebuild_world(
     // the Transform half has been quieter but is the SAME bug —
     // witnessed headless this round: exactly one Transform-less
     // parent, this root, one line per mesh chunk per rebuild.
+    // Terrain floor for the rig: the camera cannot sink under this
+    // world's own surface (myth #9's fix; the engine clamp + unit
+    // test own the promise, this is the wiring). Per BUILD, so a
+    // reroll re-arms the oracle with its own seed; the archipelago
+    // keeps its historic flat y ≥ 2.5 floor untouched (no oracle,
+    // no regression — deliberate scope).
+    if continent {
+        let seed = map.seed.0;
+        let size = cont_size;
+        commands.insert_resource(cyclone_engine::TerrainFloor(std::sync::Arc::new(
+            move |x: f32, z: f32| {
+                continent_mesh::surface_height_m(x as f64, z as f64, seed, size) as f32
+            },
+        )));
+    } else {
+        commands.remove_resource::<cyclone_engine::TerrainFloor>();
+    }
+
     commands
         .spawn((
             InWorld,

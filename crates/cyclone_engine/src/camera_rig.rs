@@ -126,6 +126,20 @@ impl CameraRig {
 #[derive(Component)]
 pub struct RigFollow(pub Entity);
 
+/// Terrain height oracle (metres → metres): the world's own surface
+/// under any XZ. Inserted by the world builder for voxel worlds;
+/// ABSENT means "flat floor at the box limit" — the archipelago
+/// keeps its historic y ≥ 2.5 exactly (deliberate scope: the pivot
+/// world gets collision first, nothing regresses on the old one).
+/// Round 195: free-fly's flat y ≥ 2.5 floor let the camera plough
+/// through a 270 m mountain — spec 03 promised 'never sinks'; this
+/// makes the promise real.
+#[derive(Resource)]
+pub struct TerrainFloor(pub std::sync::Arc<dyn Fn(f32, f32) -> f32 + Send + Sync>);
+
+/// What the rig keeps between skid and surface.
+pub const MIN_GROUND_CLEAR: f32 = 2.5;
+
 /// Orbit centre + auto-orbit rate (menu background, world preview).
 /// `auto_orbit != 0` selects orbit mode; 0 selects free fly.
 #[derive(Resource)]
@@ -291,6 +305,7 @@ fn rig_update(
     transforms: Query<&GlobalTransform>,
     target: Res<RigTarget>,
     bounds: Res<WorldBounds>,
+    floor: Option<Res<TerrainFloor>>,
 ) {
     let dt = time.delta_secs();
     let k_fast = 1.0 - (-10.0 * dt).exp(); // fov smoothing
@@ -344,6 +359,13 @@ fn rig_update(
             let lo = Vec3::new(bounds.min.x - FREE_PAD, 2.5, bounds.min.y - FREE_PAD);
             let hi = Vec3::new(bounds.max.x + FREE_PAD, 600.0, bounds.max.y + FREE_PAD);
             rig.position = rig.position.clamp(lo, hi);
+            // Terrain floor: the box is a cage, NOT the ground —
+            // mountains live inside it (myth #9: 'never sinks' was
+            // prose until this line existed).
+            if let Some(f) = &floor {
+                let gy = f.0(rig.position.x, rig.position.z);
+                rig.position.y = rig.position.y.max(gy + MIN_GROUND_CLEAR);
+            }
         }
 
         rig.fov += (rig.fov_target - rig.fov) * k_fast;
@@ -379,6 +401,74 @@ impl Plugin for CameraRigPlugin {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// Myth #9's epitaph: free-fly's box floor (y ≥ 2.5) let the
+    /// camera plough THROUGH terrain — 'the rig never sinks' was
+    /// spec prose with no code. The TerrainFloor oracle now holds
+    /// the skid above the surface, headless-tested: place a rig
+    /// inside a flat 100 m plateau, run a frame, it stands at
+    /// 102.5 m — never lower, no input needed.
+    #[test]
+    fn terrain_floor_holds_the_rig_above_the_surface() {
+        let mut app = App::new();
+        app.add_plugins((
+            bevy::MinimalPlugins,
+            bevy::input::InputPlugin,
+            crate::input::ActionsPlugin,
+            CameraRigPlugin,
+        ));
+        app.insert_resource(crate::settings::Settings::default());
+        app.insert_resource(TerrainFloor(std::sync::Arc::new(|_x, _z| 100.0)));
+        app.world_mut().spawn((
+            Camera::default(),
+            Projection::default(),
+            CameraRig {
+                position: Vec3::new(10.0, 10.0, 10.0),
+                ..default()
+            },
+            Transform::from_xyz(10.0, 10.0, 10.0),
+        ));
+        app.update();
+        let mut q = app.world_mut().query::<(&CameraRig, &Transform)>();
+        let (rig, t) = q.single(app.world()).unwrap();
+        let _ = rig;
+        assert!(
+            (t.translation.y - (100.0 + MIN_GROUND_CLEAR)).abs() < 1e-3,
+            "pushed out of the mountain, not left inside: {}",
+            t.translation.y
+        );
+    }
+
+    /// No oracle = the historic flat floor, to the millimetre —
+    /// the archipelago regression guard for the new branch.
+    #[test]
+    fn no_orbit_floor_no_change_when_absent() {
+        let mut app = App::new();
+        app.add_plugins((
+            bevy::MinimalPlugins,
+            bevy::input::InputPlugin,
+            crate::input::ActionsPlugin,
+            CameraRigPlugin,
+        ));
+        app.insert_resource(crate::settings::Settings::default());
+        app.world_mut().spawn((
+            Camera::default(),
+            Projection::default(),
+            CameraRig {
+                position: Vec3::new(10.0, 10.0, 10.0),
+                ..default()
+            },
+            Transform::from_xyz(10.0, 10.0, 10.0),
+        ));
+        app.update();
+        let mut q = app.world_mut().query::<(&CameraRig, &Transform)>();
+        let (_, t) = q.single(app.world()).unwrap();
+        assert!(
+            t.translation.y > 9.9 && t.translation.y < 10.1,
+            "untouched: {}",
+            t.translation.y
+        );
+    }
 
     /// RMB aim must grab the OS cursor in free-fly mode: without a grab
     /// the cursor hits the window edge, motion deltas stop, and aiming
