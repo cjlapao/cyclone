@@ -2597,3 +2597,30 @@ was dial-safe by protocol, not by luck; the phantoms lived only
 where the protocol wasn't applied (a deleted probe) and where a
 doc was silent (now fixed). Four gates; terrain frozen.
 
+## Round 287 — the pilot's own seed, seen: spawn 74 m over the flagship, landing ground 11 m off the nose
+
+The first-view law meets its most personal subject: seed
+1EDK-FQFN-XMZMK (1672647164521250451), the world the pilot keeps
+flying, measured on today's exact code with CYCLONE_ISLANDS=1
+set IN-PROCESS — the round-285 protocol applied to the one seed
+that matters to the verdict. Result: spawn 74 m above the
+flagship, land directly beneath the skids (0 m), 11 big (>= 900
+m2) landing places in the world, the nearest 11 m off the nose.
+The first frame of their next Enter-key is witnessed, not
+assumed.
+
+Honesties: the era's '321/405 m from spawn' was a pre-bench
+dome-era measurement — never promised in FIRST-FLIGHT (grep
+proved it: the seed and those numbers live only in shared
+history), so no doc carried a stale claim; the fresh numbers
+describe the grammar that will actually render, and they are
+better. The probe's on-flat field was DROPPED as unevidence: its
+membership check could never fire (components are consumed before
+the column test runs) — a dead test is a comment, and I caught
+mine printing nothing before it became a doc word.
+
+The measurement lived one run and died (residual diff READ empty);
+FIRST-FLIGHT's TERRAIN-LAB box gained a seed note written to the
+pilot, dated, dial-stated. Four gates; terrain frozen — the
+pilot's world was looked at, not touched.
+

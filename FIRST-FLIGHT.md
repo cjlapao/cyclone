@@ -243,6 +243,11 @@ the dial table (relief floors, orogeny, snowline, cell size).
    preview (footprint sampling, no skips): continuous cyan shelves
    everywhere. The fix is armed AND seen; your verdict still owns
    whether it fires.)*
+   *(Seed note 2026-11-08: if you're still flying your own seed
+   `1EDK-FQFN-XMZMK`, the v2 grammar puts spawn ~74 m above the
+   flagship with land at your skids, 11 big (>= 900 m²) landing
+   spots in the world and the nearest 11 m off the nose — measured
+   in-process with the dial set, on today's exact code.)*
 2. **Feel verdicts in dial language**: `TUNING.md` has 13 numbered
    flight dials + the continent table. '1 too slow, 3 too twitchy'
    is the whole loop — or just say 'it feels wrong while landing'.
