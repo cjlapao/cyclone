@@ -138,8 +138,10 @@ doesn't regenerate (round-187 made every printed key claim true; a
 
 `CYCLONE_CONTINENT=1 cargo run -p cyclone --features dev` swaps the
 archipelago for a 1 km² voxel Earth: 25 cm columns, oceans, plains,
-ridged ranges, snow lines — one seed, one planet. New Game spends
-~8 s building (the terminal says so first; the window paints after).
+ridged ranges, snow lines — one seed, one planet. New Game answers
+immediately: the ~8 s carve runs on a worker behind the preview
+(the paragraph below has the choreography; the window never stops
+repainting).
 You spawn over the **flagship** — the tallest standable land the
 scan finds near the map centre — hovering 80 m over its summit (never
 under 120 m). Land under the skids is a test now, not a hope: seed 42
