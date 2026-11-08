@@ -24,7 +24,14 @@ pub enum Action {
     RotateCamRight,
     Climb,
     Descend,
+    /// RESERVED slot, not dead code: spec 01:65 promises the top-down
+    /// view is 'the same one the in-game map screen will reuse in
+    /// spec 05'. Binding (M + gamepad Select) is live so spec 05
+    /// wires a consumer, not a keymap. (Audit round 221.)
     Map,
+    /// RESERVED slot: the Esc menu is today's pause; a real pause
+    /// screen, when it comes, gets its action pre-wired. No consumer
+    /// yet — deliberately, not by rot. (Audit round 221.)
     Pause,
     Reroll,
     CopySeed,
