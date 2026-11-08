@@ -44,10 +44,14 @@ nothing standable in the search radius you hover over the sea pitched
   NEVER judge how the land LOOKS from it. No flag = true 25 cm scale,
   which is what the photo verdict needs.
 - **Judge sheets without launching**: `CYCLONE_ISLANDS=1
-  ./target/release/worldgen-cli continent --seed 42 --size 4000 --out
-  /tmp/sheet` (release-build it first; ~20 s) — hillshade.png + stats
-  (ocean/flat/high shares, max height). Every island dial is a
-  one-constant change in `TUNING.md`, and the sheet is the 9-second
+  ./target/release/worldgen-cli continent --seed K7Q2-9XMB-4TRFW
+  --size 4000 --out /tmp/sheet` (release-build it first; ~20 s) —
+  hillshade.png + stats (ocean/flat/high shares, max height). The
+  `--seed` string is the SAME seed form the game shows and accepts
+  (Crockford Base32 — one parser, so a seed pasted from New Game's
+  screen regenerates byte-identically here; plain words work too,
+  they just mean what Crockford says they mean). Every island dial is
+  a one-constant change in `TUNING.md`, and the sheet is the 9-second
   answer before a flight.
 - **Blocks**: the voxel is 25 cm (40 000 across the map); the block you
   SEE is the mesh cell, 1 m since round 179. One constant (`CELL_VOX`)
