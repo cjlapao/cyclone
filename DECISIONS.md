@@ -3344,3 +3344,27 @@ implied. Adverbs stay; promises go.
 Four gates; terrain frozen; five rounds on the clock, four to the
 probe. The corpus now keeps tense as well as numbers.
 
+## Round 316 — the armed weapon fits today's gun: three-layer proof, and the freeze is now file-provable
+
+An armed fix that fires only on the pilot's word must still fit
+the code at the moment the word arrives — 'armed' is a claim about
+TODAY's bytes, not the day it was drawn. Three layers, all read:
+(1) FILE MOTION since the islands-v2 anchor: worldgen src ZERO
+commits (the freeze holds at file level — provable, not asserted);
+continent_mesh.rs moved only by the test-label commit; lib.rs by
+the console-print commit. (2) HUNK NATURE: 6a89dbf's two hunks
+bracket the sea zone but ARE the println move + count capture
+(the E0382 scar's own trail) — no geometry. (3) ANCHOR LIVENESS,
+byte-checked: build_sea's centre-skip still reads exactly as the
+fix described — centre-sample, heights>0 continue — and colouring
+still runs from sea_dist_cells at the bucket centre. The
+footprint-min fix lands on byte-identical code.
+
+Weapon status: FITS, re-verified 2026-11-08. And the free gem of
+the round: 'terrain frozen' — the era's most repeated sentence —
+gained its strongest form: the worldgen src directory has moved
+zero commits since the verdict-hour anchor. The freeze is not a
+practice; it is now a git fact.
+
+Four gates; four rounds on the clock; probe in ~3.7 h.
+
