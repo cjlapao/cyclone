@@ -2299,3 +2299,33 @@ answers — the harvest now sits where the pilot actually reads.
 Two files touched, both pilot-facing prose; four gates run
 anyway, echoes READ; terrain frozen; V2 spec design text untouched.
 
+## Round 278 — full-scale islands census: the eyeball era ends at 1 km²
+
+The islands claims rested on six eyeballed worlds; the mainland's
+era claims came from the fullscale census tool (8.7 islands /
+8.3 continent). Measurement is not construction — the freeze
+protects height bytes, not the odometer. Throwaway example (one
+run, deleted): 12 seeds at 4000², config-field islands:true (no
+env, no dial trap — the dial flows as a CONTINENT CONFIG FIELD at
+both construction sites, so a probe can set it directly and the
+silent-mainland trap the era warned of cannot spring).
+
+Results: ocean 0.85-0.96 (claim 0.91 holds); gen-only 5.0-6.5 s —
+with mesh the shipped '~6-7 s' stands (units checked BEFORE
+believing the loop: the 6.4 s census figure brackets gen+mesh, my
+loop brackets gen alone — different instruments, no drift found);
+islands 3-8, median 6 — the family-witnessed '4-7' was honestly
+sample-scoped but narrower than the true range, and 'big islands'
+(>=6250 m2) run 2-6: the count claim needed the census, and got
+it. Flagship peaks median 96 m. SPAWN 12/12 at full scale: the
+flagship law's 204 samples were smaller maps; full scale adds 12
+— 216/216.
+
+The census's first catch: FIRST-FLIGHT's comment 'a few 100-250 m
+islands' is a v1-era fossil — measured max heights run 88-116 m,
+flagship peaks median 96. Comment now quotes the census itself.
+Repo-wide sweep: the only other '250 m' is mainland.rs's h>=250 m
+metrics band — true for mainland, untouched; DECISIONS is history.
+Every census number in the doc line is the loop's own output —
+the quantity law shipping with its instrument attached.
+

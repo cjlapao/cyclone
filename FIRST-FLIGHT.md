@@ -54,7 +54,10 @@ In-Game (the menu never pays the build):
 # continents, mountains, rivers — the original terrain sim:
 CYCLONE_CONTINENT=1 cargo run -p cyclone --features dev
 
-# YOUR islands (the photo): a few 100–250 m islands, sand rings,
+# YOUR islands (the photo): a few ~90–120 m islands (12-seed
+# full-scale census 2026-11-08: max heights 88–116 m, 3–8 islands
+# per world, median 6; spawn scan found the flagship 12/12),
+# sand rings,
 # turquoise 150 m shelf, deep blue beyond, 1 m mesh blocks:
 CYCLONE_CONTINENT=1 CYCLONE_ISLANDS=1 cargo run -p cyclone --features dev
 ```
