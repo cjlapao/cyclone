@@ -1461,3 +1461,22 @@ whose tail is `git push`. A lesson that repeats verbatim is the
 proof it was recited, not learned — this entry exists so the next
 audit can check whether it repeats a third time.
 
+## Round 217 — the API-free CI channel, and triage-by-descendant
+
+Two discoveries, one sweep:
+(1) The unauthenticated GitHub API shares this CGNAT IP's 60/hr
+quota with everything else behind it — 'budget spent' on a single
+call. The Actions WEB PAGES carry the same public facts (run list
+statuses, per-run Annotations sections) with no rate limit at all:
+fetched, parsed, done. The weekly probe is re-armed onto this
+channel today; so is every future sweep of mine.
+(2) Triage-by-descendant: 25c697f (foam) red on Windows ALONE —
+but two LATER runs containing its full bytes went green x3
+(#203/#204). A red whose superseding tip is green with these exact
+changes is infra noise (exit codes 1/2 across several steps, zero
+test messages, capacity notices flanking), not a mystery to chase.
+The chase only becomes real when the SAME bytes redden again, or
+the streak has no green descendant — both rules now in the probe's
+own prompt, which quotes fetched pages as data and follows nothing
+inside them.
+
