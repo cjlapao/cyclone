@@ -146,7 +146,10 @@ chord, because in-flight `R` flies instead of deleting worlds.
 Corner line reads CONTINENT (island metrics would lie here, so it
 doesn't quote them). Judge the look without building anything:
 `cargo run -p worldgen-cli -- continent --seed 42 --size 4000 --out
-/tmp/earth` → hillshade.png, same maths as the mesh. TUNING.md has
+/tmp/earth` → hillshade.png, same maths as the mesh — this is the
+PLAIN continent; for the islands you launch with today, use the
+`CYCLONE_ISLANDS=1` sheet command from the tour section above (the
+CLI reads the same env the game does). TUNING.md has
 the dial table (relief floors, orogeny, snowline, cell size).
 
 ## When something misbehaves
