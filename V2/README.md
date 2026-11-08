@@ -14,7 +14,7 @@ These specs drive the build. Hand them to the coding agent in order. Each one is
 
 ## What changed from the first build spec
 
-The earlier "Cyclone Remake — Agent Build Spec" doc is still the source for **gameplay rules** (crates, refugees, fuel, cyclone zones, planes, scoring). These specs replace its **technical** parts:
+The earlier "Cyclone Remake — Agent Build Spec" doc (**repo root:** `specs.md` — it lives OUTSIDE `V2/`, so the folder alone can't find it) is still the source for **gameplay rules** (crates, refugees, fuel, cyclone zones, planes, scoring). These specs replace its **technical** parts:
 
 - **Engine**: Bevy instead of macroquad, because the game is now 3D with rotatable, low-poly glTF models.
 - **View**: a free-perspective fly camera (mouse aim) replaces the north/south flip —
