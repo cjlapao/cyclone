@@ -13,6 +13,50 @@ Optional before you start — tune the world knobs first:
 `assets/worldgen/default.ron` (commented; e.g. `island_count: 10`,
 `island_radius: (8, 22)`, `size: (200, 200)`).
 
+## The terrain lab — voxel Earth (newest first)
+
+The archipelago is the GAME world; a separate dev world is the terrain
+SIMULATOR: a 1 km² voxel Earth at 25 cm voxels, flown with the free
+camera (WASD · Space up · Shift down · Ctrl boost, mouse look). It only
+exists with env flags, and only flips in when you press Enter into
+In-Game (the menu never pays the build):
+
+```sh
+# continents, mountains, rivers — the original terrain sim:
+CYCLONE_CONTINENT=1 cargo run -p cyclone --features dev
+
+# YOUR islands (the photo): a few 100–250 m islands, sand rings,
+# turquoise 150 m shelf, deep blue beyond, 1 m mesh blocks:
+CYCLONE_CONTINENT=1 CYCLONE_ISLANDS=1 cargo run -p cyclone --features dev
+```
+
+What the islands build does for you before you fly: ~8–10 s one-time
+build (census-measured), then the spawn scan drops the camera over the
+FLAGSHIP island — highest ground in reach, so you start ON the big
+island looking down its beach ring, not at a sandbar. If a seed shows
+nothing standable in the search radius you hover over the sea pitched
+−60° to find land — one honest fallback, never a dark screen.
+
+- **Roll a different world**: any New Game seed flows through; or fix
+  the map size: `CYCLONE_CONTINENT_SIZE=4000` (voxels; 4000 = 1 km).
+- **Preview scale — careful**: `CYCLONE_CONTINENT_PREVIEW=1` renders
+  the whole map at 0.2× (map-overview shot). It flattens relief 5×:
+  NEVER judge how the land LOOKS from it. No flag = true 25 cm scale,
+  which is what the photo verdict needs.
+- **Judge sheets without launching**: `CYCLONE_ISLANDS=1
+  ./target/release/worldgen-cli continent --seed 42 --size 4000 --out
+  /tmp/sheet` (release-build it first; ~20 s) — hillshade.png + stats
+  (ocean/flat/high shares, max height). Every island dial is a
+  one-constant change in `TUNING.md`, and the sheet is the 9-second
+  answer before a flight.
+- **Blocks**: the voxel is 25 cm (40 000 across the map); the block you
+  SEE is the mesh cell, 1 m since round 179. One constant (`CELL_VOX`)
+  away from 0.5 m if you want it finer — say so and check the FPS.
+
+Every seed is byte-identical on Linux/macOS/Windows (digest-pinned in
+CI for BOTH the continent and islands paths) — a seed you like can fly
+on any machine.
+
 ## Since your last flight (the feel pass)
 
 You flew a build before these landed — what changed, and what to
