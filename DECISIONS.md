@@ -1181,3 +1181,27 @@ the planet with true-scale bounds, and the test pair serialises under
 an env mutex (process-global env × runner threads was a real flake,
 caught same commit). Doctrine amended: grepping consumers proves a
 value is READ; only a test proves the consumer is REACHED.
+
+## Round 185 — the spawn was beside the flagship, not over it
+
+The game-side InGame spawn — the FIRST-FLIGHT doc's headline claim —
+had zero test coverage (grep: no game test ever set a terrain env).
+Extracting the decision to a pure fn and running it caught the real
+bug: a +90 m south offset, tuned when the OLD islands filled a
+screen, shifted the rig off the scan's land find — on the 1 km
+flagship that put it over open sea. The docs' "drops you over the
+flagship" was almost true, which is worse than false loudly.
+
+Same pass collapsed a THIRD reader of CYCLONE_CONTINENT_SIZE into
+continent_mode's single source. And three test-side lessons in one
+sitting: tuple slot order is the rig's (x, UP, z, pitch) — names
+that lie about slots cost an hour; a fallback must be proven to
+EXIST before it's asserted (my "centre is sea at 16 m" premise held
+for seed 42 but not most — probe, don't assume); witnessed output
+beats clever reasoning (the WITNESS line found the destructure bug
+in one run).
+
+Doctrine stands and sharpens: claims live in docs, truth lives in
+tests — every pilot-facing sentence wants an env-setting,
+behaviour-asserting test behind it, and the round-185 spawn test is
+the template.
