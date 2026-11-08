@@ -119,12 +119,33 @@ fn rebuild_world(
     old: Query<Entity, With<WorldRoot>>,
 ) {
     let continent_env = continent_mode().is_some();
-    let live_on = live.as_deref().is_some_and(|c| c.0);
+    // Dev knob (NOT a shipped product dial): `CYCLONE_CONTINENT_
+    // PREVIEW=1` (legacy alias: CYCLONE_CONTINENT_SCALE=1) skips the
+    // menu gate — the planet goes live at boot instead of at Enter.
+    // It does NOTHING else — round 183 proved the 0.2× "toy-scale
+    // overview" ever existed only in comments (no mesh anchor,
+    // transform, spawn height or WorldBounds ever multiplied by it);
+    // the myth text died, the flag stays under honest names because
+    // "boot straight into flying" is genuinely useful. A true
+    // overview is a raised camera: Ctrl-boost to ~300 m and a whole
+    // island fits the screen at TRUE scale.
+    let skip_gate = std::env::var("CYCLONE_CONTINENT_PREVIEW").is_ok_and(|v| v == "1")
+        || std::env::var("CYCLONE_CONTINENT_SCALE").is_ok_and(|v| v == "1");
+    let live_on = live.as_deref().is_some_and(|c| c.0) || (continent_env && skip_gate);
     // The fly-mode toggle can flip without a world change (Enter from a
     // preview of an already-built world): that flip is a trigger too.
     let live_flipped = continent_env && live_on && live.as_ref().is_some_and(|r| r.is_changed());
     if !world.is_changed() && !live_flipped {
         return;
+    }
+    // The flip is made REAL here (round 184): a local `live_on` never
+    // reached WorldBounds or the game's own env readers — PREVIEW
+    // half-skipped the gate (planet built) while the camera framed a
+    // default-bounds void, caught the day the flag got its first
+    // test. One insert, every reader agrees — no second source of
+    // "is the planet flying".
+    if continent_env && skip_gate && !live.as_deref().is_some_and(|c| c.0) {
+        commands.insert_resource(ContinentLive(true));
     }
     // Continent flies InGame only: the menu backdrop stays archipelago
     // (no 8 s planet build before New Game is even pressed).
@@ -152,29 +173,6 @@ fn rebuild_world(
     } else {
         0
     };
-
-    // Dev knob (NOT a shipped product dial): `CYCLONE_CONTINENT_
-    // PREVIEW=1` (legacy alias: CYCLONE_CONTINENT_SCALE=1) skips the
-    // menu gate — the planet goes live at boot instead of at Enter.
-    // It does NOTHING else. Round 183 proved the 0.2× ever existed
-    // only in comments: since this flag's introduction (4f7c0a2) no
-    // mesh anchor, transform, spawn height or WorldBounds has ever
-    // multiplied by it — the "toy-scale overview, relief 5× flatter"
-    // story (mine, repeated into docs and a pilot run command)
-    // described a scale that was never wired to anything. Dead myth,
-    // deleted; the flag stays under its honest names because "boot
-    // straight into flying" is genuinely useful. A true overview is
-    // a raised camera, not a shrunken world: Ctrl-boost and climb —
-    // at 1 m mesh cells a whole island fits the screen from ~300 m.
-    let skip_gate = std::env::var("CYCLONE_CONTINENT_PREVIEW").is_ok_and(|v| v == "1")
-        || std::env::var("CYCLONE_CONTINENT_SCALE").is_ok_and(|v| v == "1");
-
-    if continent && skip_gate {
-        // Flip live at boot rather than at the game's Enter. Before
-        // the spawn chain — `commands` is borrowed for its whole
-        // duration.
-        commands.insert_resource(ContinentLive(true));
-    }
 
     let mut deferred_cache: Option<ContinentCache> = None;
     // WorldRoot carries Visibility AND Transform. Bevy validates two
