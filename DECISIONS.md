@@ -3240,3 +3240,25 @@ specs — dated, adjacent, honest.
 Corpus-wide, the dial-pair era is now written identically in every
 surface a reader or a shell can touch. Four gates; terrain frozen.
 
+## Round 311 — the pilot's vocabulary verified: dial numbers 1-13 exact, tables internally uniform
+
+TUNING.md is the surface the pilot SPEAKS IN ('1 too slow, 3 too
+twitchy' is the ask-list's protocol), so it got the structural
+reading its numbered rows deserve: the dial table's first column
+runs 1,2,...,13 — exact, no gap, no twin — under the proven header
+'# | Dial | Line | Now | Feel it as', and the count matches the
+two places FIRST-FLIGHT promises it. The pilot can say any number
+1-13 and it lands.
+
+Table-shape truth also corrected my own law-note: rows are NOT
+'4 pipe fields' corpus-wide (over-generalized memory) — the real
+invariant is uniformity WITHIN each table: controls 2-field x10,
+classic-config 3-field x32, flight-dials 5-field x15. All three
+uniform. Law-notes age like everything else; the numbers said so.
+
+Prose regions of TUNING already read whole at their births (notes
+A/B/C 292, reroll para 296, profile 288) — no graft-ripple
+suspects remained there beyond what those reads fixed. No edits
+owed: a clean verification is itself a keepable result. Four
+gates; terrain frozen; the vocabulary layer is certified.
+
