@@ -825,4 +825,27 @@ mod tests {
             "mesh drifted beyond 1 cm — a platform builds DIFFERENT terrain, investigate"
         );
     }
+
+    /// The prewarm's remaining main-thread bill: worker carving is
+    /// free, but CLAIMING it assetifies every chunk mesh on the
+    /// render thread. 512² default-continent census: if this ever
+    /// grows past seconds, the pop-in became the new freeze — this
+    /// assert names the exact culprit frame. (Islands 2048² runs in
+    /// the rebuild tests; 512² keeps this one census-cheap.)
+    #[test]
+    fn claim_frame_assetification_is_bounded() {
+        let (_c, chunks) = generate_and_mesh(2, 512);
+        assert!(!chunks.is_empty());
+        let t0 = std::time::Instant::now();
+        // Assets is a plain resource — no App scaffold needed for
+        // the timing (and the headless tests stay scaffold-free).
+        let mut meshes = Assets::<Mesh>::default();
+        let n = chunks
+            .into_iter()
+            .map(|ch| meshes.add(ch.builder.into_mesh()))
+            .count();
+        let ms = t0.elapsed().as_millis();
+        println!("claim-frame assetify: {n} chunks in {ms} ms");
+        assert!(ms < 3_000, "the pop-in became a freeze: {ms} ms");
+    }
 }
