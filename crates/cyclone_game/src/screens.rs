@@ -1474,7 +1474,7 @@ fn ingame_build(
                 // were the area (a 1000× unit lie).
                 let km = cont_size as f64 * 0.25 / 1000.0;
                 col.spawn(theme.small(format!(
-                    "CONTINENT {:.2} km² · 25 cm voxels · R rerolls terrain",
+                    "CONTINENT {:.2} km² · 25 cm voxels · Esc then R rerolls",
                     km * km
                 )));
             } else {
@@ -1491,11 +1491,26 @@ fn ingame_build(
         });
 }
 
-fn ingame_keys(actions: Res<Actions>, mut next: ResMut<NextState<AppState>>) {
+fn ingame_keys(
+    actions: Res<Actions>,
+    mut next: ResMut<NextState<AppState>>,
+    mut commands: Commands,
+) {
     if actions.just_pressed(Action::Back) {
         // Esc returns to the PREVIEW of the same world (CurrentWorld is
         // untouched, so no rebuild); Back/Escape on the preview quits to
-        // the menu. Reroll after escaping replaces the world.
+        // the menu. Round 187: the dev HUD's "R rerolls terrain" is
+        // made TRUE — the preview's own R handler discards whatever
+        // key arrived with it, so InGame Esc pre-arms a reroll here.
+        // No PendingGen is consumed until Generating runs, so quitting
+        // from the preview instead of pressing R simply abandons it
+        // (the menu never reads it).
+        if std::env::var("CYCLONE_CONTINENT").is_ok() {
+            commands.insert_resource(PendingGen {
+                seed: random_seed(),
+                auto: true,
+            });
+        }
         next.set(AppState::WorldPreview);
     }
 }
