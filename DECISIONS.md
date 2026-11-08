@@ -2728,3 +2728,25 @@ against 'does the reader still find the question in one breath?'
 A truth the pilot skips takes the whole ask-list's credibility
 down with it.
 
+## Round 291 — the tip badge subsumes the queue; the appendix pathology has a border
+
+Two instruments, both cheap, both read honestly. (1) The Actions
+page's run list fell in the display-truncated middle — unreadable
+— so the queue question went to a smaller oracle: shields.io's CI
+badge for the branch, which answered 'passing' in tiny bytes. By
+its own definition that is the LATEST run — and by the
+triage-by-descendant law that verdict subsumes #280-#282: the tip
+run builds the whole current tree (their code included), all-green
+only when every OS leg is green; any red behind a green descendant
+is infra noise by law. The queue question dissolved without
+page-scrolling. (2) The readability audit's appendix pathology —
+fifteen-line inline patches — got its BORDER checked: grepped the
+whole 271-line FIRST-FLIGHT for the accretion pattern; the ask-
+list was the only hotspot, already restructured round 290. The
+sweep's negative result is the finding: the doc's other dated
+words are labels, not burial.
+
+No pilot-facing change owed; ledger-only; four gates; terrain
+frozen; the green wall behind the frozen ground now reaches the
+tip itself.
+
