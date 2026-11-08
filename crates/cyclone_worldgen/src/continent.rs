@@ -107,8 +107,15 @@ fn ridged(x: f64, y: f64, freq: f64, oct: usize, seed: u64) -> f64 {
 /// One island's footprint at a world point: 1 at the core, eased to
 /// 0 at the coast (cosine profile — a round beach, no cliff edge).
 /// `r` in metres, `squish` stretches the blob so islands aren't circles.
-fn blob_field(dx: f64, dy: f64, r: f64, squish: f64) -> f64 {
-    let d = ((dx * dx) + (dy * dy) / (squish * squish)).sqrt();
+fn blob_field(dx: f64, dy: f64, r: f64, squish: f64, rot: f64) -> f64 {
+    // Rotation FIRST (round 257 pilot verdict: 'the islands are just
+    // hills' — the census agreed: squish only stretched x, so EVERY
+    // egg on EVERY map lay axis-aligned, one flock of same-tilt
+    // eggs). libm for the same A2.3 reason as the profile below.
+    let (ca, sa) = (libm::cos(rot), libm::sin(rot));
+    let rx = dx * ca + dy * sa;
+    let ry = (-dx * sa + dy * ca) / squish;
+    let d = (rx * rx + ry * ry).sqrt();
     if d >= r {
         0.0
     } else {
@@ -137,6 +144,12 @@ fn island_mask(wx: f64, wy: f64, seed: u64) -> f64 {
     let gx = (wx / spacing).floor() as i64;
     let gy = (wy / spacing).floor() as i64;
     let mut best = 0.0f64;
+    // Coast wobble (round 257): ±14 % radius modulation on a 120 m
+    // wavelength — headlands and coves, not eggs. World-space field
+    // shared by every stamp: it reads as weathering the whole
+    // archipelago has seen, and it adds ZERO new transcendental per
+    // column beyond the one fbm hoisted out of the stamp loop.
+    let wob = 1.0 + 0.28 * (fbm(wx / 120.0, wy / 120.0, 1.0, 2, seed ^ 0xC0A5) - 0.5);
     // 3×3 neighbourhood: footprints reach past their home cell.
     for oy in -1..=1 {
         for ox in -1..=1 {
@@ -156,7 +169,8 @@ fn island_mask(wx: f64, wy: f64, seed: u64) -> f64 {
             let cy = (hy as f64 + 0.5 + jy * 0.8) * spacing;
             let r = 90.0 + 110.0 * (((h2 >> 32) & 0xFF) as f64 / 255.0);
             let squish = 0.7 + 0.6 * (((h2 >> 20) & 0xFF) as f64 / 255.0);
-            let f = blob_field(wx - cx, wy - cy, r, squish);
+            let rot = (((h2 >> 8) & 0xFF) as f64 / 255.0) * std::f64::consts::TAU;
+            let f = blob_field(wx - cx, wy - cy, r * wob, squish, rot);
             // Sea floor 0.2 (< 0.5 → dry land); the island's own
             // core reaches ~1.0. Coast = where the blob profile
             // crosses 0.5 (cosine → a real beach slope, not a cliff).
@@ -221,10 +235,31 @@ pub fn elevation_m(x_m: f64, y_m: f64, seed: u64, cfg: &ContinentConfig) -> f64 
         + 35.0 * fbm(wx / 160.0, wy / 160.0, 1.0, 3, seed ^ 0xA11C)
         + (cfg.max_height_m as f64 - 80.0) * ridge * (0.05 + 0.95 * orogen);
     if cfg.islands {
-        // Island grammar: 0.5 is the SEA LINE inside the mask (the
-        // stamp's floor sits below it, the core above). Rescale so
-        // the coast has zero relief (beach) and the core full relief.
-        (2.0 * (land - 0.5) * (base + detail)).max(0.0)
+        // Island grammar v2 (round 257, pilot verdict: 'the islands
+        // are just hills, we need them to have more realistic designs,
+        // flat spots and things like that so then the game can
+        // happen'). v1 was p × base: a smooth dome — no benches, no
+        // landing ground. v2 is three belts from the sea line in:
+        //   0.00–0.18  SAND FLATS   0–6 m, smooth (the photo's ring,
+        //              landable by skids the moment you touch down)
+        //   0.18–1.00  FIVE BENCHES terraced treads with cliff risers
+        //              (quantised profile: each tread is flat GROUND,
+        //              the mesh draws the riser as a real cliff)
+        // Per-island tallness rides an fbm on the lattice wavelength
+        // (some low atolls, some ridges) without the mask needing to
+        // know which stamp owns the column.
+        let p = (2.0 * (land - 0.5)).max(0.0); // 0 sea line, 1 core
+        if p <= 0.0 {
+            0.0
+        } else if p < 0.18 {
+            p * (6.0 / 0.18)
+        } else {
+            let q = (p - 0.18) / 0.82; // interior fraction 0..1
+            let tall = 46.0 + 90.0 * fbm(wx / 300.0, wy / 300.0, 1.0, 2, seed ^ 0x7A1);
+            let k = (q * 5.0).floor().min(4.0); // treads 0..4
+            let tread = (k + 0.55) / 5.0; // mid-tread height fraction
+            6.0 + tread * tall + detail
+        }
     } else {
         (land * (base + detail)).max(0.0)
     }
@@ -638,6 +673,81 @@ mod tests {
                 "unset is OFF — classic world is the default planet"
             );
         }
+    }
+
+    /// The round-257 pilot ask, as arithmetic: 'flat spots ... so
+    /// then the game can happen'. A FLAT COLUMN stands above the
+    /// sand (h > 8 m: bench ground, not beach) with a CROSS probe
+    /// of ±3.75 m in eight directions every reading within 1.2 m of
+    /// its level — an ~8 m landing disk (helipad + clearance), a
+    /// scale where the DISCRIMINATION is honest: a bench tread
+    /// (~20 m wide by construction) passes, while v1's smooth dome
+    /// at ~0.8 m-per-m slope drops ~3 m across 8 m and cannot.
+    /// (A 1 m patch — the first draft of this probe — passes on
+    /// gentle SLOPES too: green ink that cannot go red is a
+    /// comment, and the census printing 92 % flat was the tell.)
+    #[test]
+    fn islands_have_flat_landing_ground() {
+        // 2048² = a 512 m map: the size/seed the scatters contract
+        // proves has ≥ 2 walkable islands. (First attempt ran at
+        // 1024² = 256 m — a window that can legitimately hold ONLY
+        // SEA; '0 flat of 0 high' was the test measuring its own
+        // typo, not the terrain's. Unit honesty over green ink.)
+        let cfg = ContinentConfig {
+            size: 2048,
+            islands: true,
+            ..Default::default()
+        };
+        let c = generate_continent(5, &cfg).unwrap();
+        let s = cfg.size as usize;
+        let v = cfg.voxel as f64;
+        let mut flat = 0usize;
+        let mut high = 0usize;
+        for y in 0..s - 3 {
+            for x in 0..s - 3 {
+                let h = c.heights[y * s + x] as f64 * v;
+                if h <= 8.0 {
+                    continue;
+                }
+                high += 1;
+                // 9-point cross: centre + 4 cardinal + 4 diagonal at
+                // ±15 columns (±3.75 m). Bounds the 8 m disk without
+                // scanning its whole interior.
+                let mut level = true;
+                'nbr: for (dy, dx) in [
+                    (0i32, 0i32),
+                    (0, 15),
+                    (0, -15),
+                    (15, 0),
+                    (-15, 0),
+                    (11, 11),
+                    (11, -11),
+                    (-11, 11),
+                    (-11, -11),
+                ] {
+                    let (yy, xx) = (y as i64 + dy as i64, x as i64 + dx as i64);
+                    if yy < 0 || xx < 0 || yy >= s as i64 || xx >= s as i64 {
+                        level = false;
+                        break 'nbr;
+                    }
+                    let hh = c.heights[yy as usize * s + xx as usize] as f64 * v;
+                    if (hh - h).abs() > 1.2 {
+                        level = false;
+                        break 'nbr;
+                    }
+                }
+                if level {
+                    flat += 1;
+                }
+            }
+        }
+        let ratio = flat as f64 / high.max(1) as f64;
+        println!("island flat census: {flat} flat of {high} high cols = {ratio:.3}");
+        assert!(flat > 20_000, "no bench ground at all: {flat} flat cols");
+        assert!(
+            ratio > 0.25,
+            "terraces too rare: {ratio:.3} of high land flat"
+        );
     }
 
     #[test]

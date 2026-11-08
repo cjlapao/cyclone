@@ -871,7 +871,7 @@ mod tests {
         let d = h.finalize().to_string();
         println!("islands mesh digest: {d}");
         assert_eq!(
-            d, "3a1bf7a93659ac05827b8ebb5ae69f3c382d092683d854a2307a0182e0d870f7",
+            d, "b8794e3234a77239b6a3be3fcdf0796255da4c3542fd913158b770ff36199d71",
             "mesh drifted beyond 1 cm — a platform builds DIFFERENT terrain, investigate"
         );
     }

@@ -85,7 +85,7 @@ fn islands_seed2_512_digest() {
     // must agree — that agreement is the proof the stamps don't drift.
     assert_eq!(
         digest,
-        "690cfabd36597464f33509d4fd431246c986cb4e5059a1254f3d9a2c969b208f"
+        "0fa64087168c7f1e8f13a855d6204edb6c65f6eb15e10b6f4a86376e68b0a7ad"
     );
     let m = c.metrics;
     assert!((m.ocean_ratio - 0.904019355774).abs() < 1e-9);

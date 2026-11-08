@@ -24,6 +24,26 @@ Optional before you start — tune the world knobs first:
 
 ## The terrain lab — voxel Earth (newest first)
 
+**Round 257 — your screenshot verdict: 'the islands are just hills,
+we need them to have more realistic designs, flat spots and things
+like that so then the game can happen.' Filed VERBATIM; shipped the
+same hour. The islands-on-continent path was eggs: axis-aligned
+squashed circles under a smooth cosine dome (no rotation, no
+benches, ~nothing landable above the sand). Now: a smooth 0–6 m
+SAND FLAT ring, then FIVE terraced benches — flat treads wide
+enough for a helipad, real cliff risers between them — up a
+per-island height of 46–136 m; plus per-island rotation and a
+±14 % coast wobble (headlands, coves, no more flock of same-tilt
+eggs). Arithmetic witness: 88k columns are the centre of a level
+8 m landing disk (v1's slopes cannot pass that probe). Classic
+archipelago untouched — your menu screenshot already showed its
+terraces; the canary proves the classic continent digest didn't
+flinch. Pull, rerun the islands line below, Esc-then-R a few
+times — the shape family is now: atolls to ridges, rotated,
+notched. If the benches read too like contour rings, that's a
+one-dial pile (TUNING's five new island rows).
+
+
 The archipelago is the GAME world; a separate dev world is the terrain
 SIMULATOR: a 1 km² voxel Earth at 25 cm voxels, flown with the free
 camera (WASD · Space up · Shift down · Ctrl boost, mouse look). It only

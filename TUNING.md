@@ -164,6 +164,17 @@ resolution.
 | "coast geometry too round" | warp amp 150 m / wavelength 350 m | 150/350 |
 | "want more ocean" | land mask smoothstep(0.44, 0.54) | midpoint 0.49 |
 | "detail looks like crumpled foil" | detail amp × 28 m | 1.0 m (was 2.2, the render said so) |
+| "islands are just hills" | bench profile: count `(q * 5.0)`, tread mid `(k + 0.55)` | 5 benches; pilot verdict round 257, witness `islands_have_flat_landing_ground` (88k flat cols of 256k high at pad scale) |
+| "islands too low / too tall" | tallness `46.0 + 90.0 * fbm` on 300 m | 46–136 m per island |
+| "sand flats too wide" | beach fraction `p < 0.18` (flats reach 6 m) | 0.18 |
+| "coast too egg-smooth" | wobble `0.28 * (fbm(wx / 120.0` → radius ±14 % | ±14 % at 120 m |
+| "eggs all point the same way" | rotation `(((h2 >> 8) & 0xFF) …) * …TAU` per stamp | was: NONE — every egg axis-aligned until round 257 |
+| "too many / too few islands" | keep-coin `if coin < 0.45` at SPACING 340 m | 55 % of lattice sites |
+
+(Island path round-257 measure: 6.2 s internal / 7.6 s wall at
+4000², release, Linux dev box — islands generate CHEAPER than the
+classic continent quoted above; the two paths share the noise kit,
+the mask math differs.)
 | "blocky under me" | CELL_VOX (render/cyclone_render) | 4 (1 m mesh cells at 25 cm voxels — the VOXEL was always 25 cm, the MESH CELL was the visible cube; sea stays one quad via sparse drop) |
 | "no rivers / too many rivers" | `CATCH` (carve_rivers, continent.rs) | 25k columns ≈ 1.6 km² of rain to earn a stream (3k over-carved a canyon — round-177 crater) |
 | "rivers too thin / too wide" | flood window `1 + acc/(4·CATCH)` cap | 1–17 cells (≈0.25–4 m) |

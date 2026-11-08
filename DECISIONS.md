@@ -1675,3 +1675,53 @@ carries a census; every law that can have teeth has a test. The
 engine is honest, green, and waiting — which is as far as an
 engine can be waited FOR; the rest is a cockpit.
 
+## Round 257 — the pilot is back; the terrain answer ships the same hour
+
+Two screenshots, one verdict, verbatim: 'so the islands are just
+hills, we need them to have more realistic designs, flat spots and
+things like that so then the game can happen.' The screenshots
+split the diagnosis: the CLASSIC archipelago (menu backdrop)
+already terraces — the pilot liked it well enough to screenshot;
+the CONTINENT-ISLANDS path (the HUD-quoted mode) renders eggs:
+axis-aligned squished circles (squish only stretched x — no
+rotation existed) under a smooth cosine dome. 'Flat spots' named,
+so the fix is landform arithmetic, not texture.
+
+Design: three belts from the sea line — sand flats 0–6 m smooth
+(the photo's ring, skid-landable), then 5 quantised benches (tread
+= flat GROUND by construction, riser = mesh cliff), per-island
+tallness 46–136 m on an fbm riding the lattice wavelength; stamps
+rotate per hash and wear a ±14 % world-space coast wobble (one
+hoisted fbm; zero new transcendentals per stamp). The same commit
+carries BOTH digest moves the law demands: worldgen islands seed
+digest 690cfabd→0fa64087, and the render cm-pin
+3a1bf7a9→b8794e32 — the cm-pin fired its designed warning ('a
+platform builds DIFFERENT terrain, investigate') and the
+investigation IS this entry: deliberate, sanctioned, noted. The
+classic continent digest did NOT move — untouched-branch control.
+
+Witness history, kept because each step taught the next: the first
+flat-probe used a 1 m patch and measured 92 % 'flat' — GREEN INK
+THAT CANNOT GO RED IS A COMMENT: gentle v1 slopes pass a 1 m
+tolerance trivially. Rescaled to an 8 m landing disk (9-point
+cross probe, helipad+clearance): 34.4 %, floors 20k cols / 0.25
+against measured 88k / 0.344 — v1's ~0.8 m/m dome slopes drop ~3 m
+across the probe and cannot pass. And the probe's FIRST typo was
+mine: size 1024 = a 256 m window that can legitimately contain
+only sea — '0 flat of 0 high' was the test measuring its own
+mistake; the scatters contract's 2048/seed-5 sample is what
+islands actually live in. Own eyes before claiming: 1 km hillshade
+rendered and inspected (5 islands, rotated, terraced, notched;
+6.2 s/7.6 s at 4000² — islands cheaper than classic).
+
+Open observations logged honestly: (1) mid-benches thin to
+contour-lines where domes steepen — visible in the render, one
+dial-pile away if the pilot hates it; (2) the pilot's screenshot
+shows dark rectangles around islands v1 rendered — hillshade (pure
+heightfield) has no such artifact, so it is a mesh/sea-shading
+observation; if it survives v2 on screen, a close-up shot pins
+it. (3) 'so the game can happen' — flat spots are now terrain
+fact; putting the actual pads/crates/refugees ON the islands is
+spec-03 Q1's answer ('which world hosts gameplay') wearing an ask
+— the next round after the pilot says the LOOK is right.
+
