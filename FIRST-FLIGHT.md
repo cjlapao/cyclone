@@ -71,7 +71,13 @@ CYCLONE_CONTINENT=1 CYCLONE_ISLANDS=1 cargo run -p cyclone --features dev
 
 What the islands build does for you before you fly: ~6–7 s one-time
 build (same-release census 2026-11-08: islands 6.4 s, mainland 9.1 s —
-the console notice now quotes the dial-matched number too), then the
+the console notice now quotes the dial-matched number too). PROFILE
+HONESTY: the commands above are `cargo run --features dev` = the dev
+profile, NOT release — its own gen alone measured 11.5 s (islands)
+/ 8.4 s (mainland) on MY box (2026-11-08); machines differ, no ratio
+is claimed across them, so budget roughly double the release census,
+or add --release for census speeds (the dev dylib trick ships in
+either profile). Then the
 spawn scan drops the camera over the
 FLAGSHIP island — highest ground in reach, so you start ON the big
 island looking down its beach ring, not at a sandbar. If a seed shows

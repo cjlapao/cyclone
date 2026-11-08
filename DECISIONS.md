@@ -2624,3 +2624,30 @@ FIRST-FLIGHT's TERRAIN-LAB box gained a seed note written to the
 pilot, dated, dial-stated. Four gates; terrain frozen — the
 pilot's world was looked at, not touched.
 
+## Round 288 — profile honesty: the pilot's typed command is a dev build, and my 6-7 s was born release
+
+The ask-list promises '~6-7 s one-time build' above commands that
+say `cargo run --features dev` — no --release. The dev profile is
+[opt-level 1 + deps 3] (era-tuned, not raw debug), but it is NOT
+the build the 6.4 s census ran on, and the census box wasn't
+this box. Measured, one throwaway run in the pilot's own profile
+(cargo test = [profile.dev]): islands gen ALONE 11.5 s, mainland
+8.4 s, debug_assertions true proven in the same line.
+
+Two units kept un-blended: release 6.4 (gen+mesh, pilot's box)
+vs dev 11.5 (gen only, my box) — no ratio across machines;
+FIRST-FLIGHT now carries both, labeled, tells the pilot to budget
+roughly double (arithmetic 11.5/6.4 ~ 1.8x from the measured
+endpoints) or add --release, and notes the dev dylib trick ships
+in either profile so --release costs nothing in overlay ability.
+The console notice itself was audited and NOT touched: it already
+signs its number 'release census' — units labeled, honest as
+printed — and its wording is flow-pinned anyway (:1744).
+
+Law, same species as the libm lesson, seen in reverse: a number
+born in one profile, for one machine, is a claim about that
+profile and machine; the command that prints it must not imply
+the other. The pilot's wait is now promised as a range they can
+choose from, witnessed on both sides. Probe deleted, residual
+diff READ empty; four gates; terrain frozen.
+
