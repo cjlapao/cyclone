@@ -26,14 +26,31 @@ struct FlowEnv {
 impl FlowEnv {
     fn acquire() -> Self {
         static FLOW_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
-        Self {
-            _lock: FLOW_LOCK.lock().unwrap_or_else(|e| e.into_inner()),
+        let _lock = FLOW_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+        // Settings writes sandboxed, matching the engine's
+        // settings_persist pattern: apply_settings saves on REAL
+        // change, and the nav tests make real changes — before this,
+        // a pilot running the suite overwrote their own settings.ron
+        // (mtime of ~/.config/rescue/settings.ron at a suite run
+        // proved it, round 236). XDG + HOME covers Linux AND macOS
+        // (directories crate reads both from env); Windows resolves
+        // AppData through the OS — no env override exists there, and
+        // only throwaway CI runners fly that leg, same as the engine
+        // test's comment concluded. Taken under the lock, restored
+        // on drop: a hermetic default is what tests should load.
+        let root = std::env::temp_dir().join(format!("cyclone-flow-cfg-{}", std::process::id()));
+        unsafe {
+            std::env::set_var("XDG_CONFIG_HOME", &root);
+            std::env::set_var("HOME", &root);
         }
+        Self { _lock }
     }
 }
 impl Drop for FlowEnv {
     fn drop(&mut self) {
         unsafe {
+            std::env::remove_var("XDG_CONFIG_HOME");
+            std::env::remove_var("HOME");
             std::env::remove_var("CYCLONE_CONTINENT");
             std::env::remove_var("CYCLONE_CONTINENT_SIZE");
             std::env::remove_var("CYCLONE_ISLANDS");
