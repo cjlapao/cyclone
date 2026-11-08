@@ -185,7 +185,9 @@ the dial table (relief floors, orogeny, snowline, cell size).
 ## What I need from you (dated: round 249, everything else waits on these)
 
 1. **Four boxes only eyes can check** — tick them in the specs when
-   the screen agrees: 00 (window opens on your OS), 01 (boot under
+   the screen agrees: 00 (window opens — the box asks Linux/macOS/
+   Windows; your machine is one honest third, CI compiles all three;
+   tick it with your OS named), 01 (boot under
    3 s), 02 (contact sheet shows CLEARLY DIFFERENT archipelagos — a real
    mix of archetypes; bonus question while you're there: do they
    look like your island photo?), 02 (foam reads as foam).
