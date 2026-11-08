@@ -1348,3 +1348,23 @@ build (first build has no previous world — same as the freeze's
 keeps the archipelago flying until pop — never a void, never a
 half-planet.
 
+## Round 207 — the env-race audit closes (and the auditor got audited)
+
+After the census/digest race (round 206), every CYCLONE_*/XDG writer
+in the workspace was inventoried and witnessed, not trusted:
+continent_mesh lib = ENV_LOCK (new); screens lib = ENV_LOCK (r188);
+flow = FlowEnv; continent_live = ENV_LOCK; b0004_trace &
+settings_persist = single-test binaries (process isolation does the
+locking); engine settings unit test = sole reader, witnessed by
+grep AND by reading tests 2/3 (pure ron strings, no env, no fs).
+Then the near-miss: the settings comment's 'restored on assert
+failure' looked like a happy-path lie from a grep (remove_var sat
+BELOW the body), and a patch was mid-air when reading the full
+test found catch_unwind wrapping every assert — the comment was
+TRUE, the restore unconditional, and the 'fix' would have added a
+Drop guard nobody needed. Doctrine holds: grep locates, only
+reading concludes — the same rule that catches product myths
+catches audit findings one level up. Zero code shipped that way;
+this entry is the diff. CI: fc776e5 (prewarm) and 3a4bad6 (flake
+fix) both GREEN on all three OSes.
+
