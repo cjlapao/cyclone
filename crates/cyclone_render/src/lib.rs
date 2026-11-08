@@ -43,6 +43,15 @@ pub fn continent_mode() -> Option<(u32, f32)> {
 pub struct ContinentLive(pub bool);
 
 /// Single-slot cache so Esc→Enter re-entry respawns meshes instantly
+/// Ownership for the R8 shoreline texture: it belongs to no entity
+/// (it is baked for a future WGSL material), so the rebuild sweep
+/// could not find it by walking despawned children — it lives here
+/// instead, and exactly one instance ever exists.
+#[derive(Resource)]
+struct ShoreOwn(bevy::asset::Handle<bevy::image::Image>);
+
+/// Rebuilt-planets cache, keyed by SEED: terrain chunks + sea mesh
+/// ride a reroll-free Esc→Enter→Esc→Enter cycle intact
 /// (assets survive the WorldRoot despawn; the 8 s build is once per
 /// SEED, not once per visit).
 #[derive(Resource)]
@@ -247,6 +256,8 @@ fn rebuild_world(
 
     mut wb: ResMut<cyclone_engine::WorldBounds>,
     mut built: Option<ResMut<ContinentBuilt>>,
+    old_assets: Query<(&Mesh3d, &MeshMaterial3d<StandardMaterial>), With<InWorld>>,
+    shore_prev: Option<ResMut<ShoreOwn>>,
 ) {
     let continent_env = continent_mode().is_some();
     // Dev knob (NOT a shipped product dial): `CYCLONE_CONTINENT_
@@ -316,6 +327,63 @@ fn rebuild_world(
     for e in &old {
         commands.entity(e).despawn();
     }
+    // THE ASSET SWEEP (round 216: measured +236 meshes over five
+    // rerolls, ~46/world, zero remove-sites in the repo — Bevy
+    // never GCs the asset server, and a pilot hour of Esc/R is a
+    // hundred rebuilds). Every mesh+material on the despawning
+    // world's children is superseded the instant the new build is
+    // chosen — EXCEPT what a FRESH cache will respawn (the Esc→
+    // Enter case: same handles must survive the menu beat). When
+    // the cache is stale, its own handles join the doomed set:
+    // the claim replaces them this very run, so keeping them was
+    // the leak hiding in 'we reuse via cache'.
+    {
+        use std::collections::HashSet; // AssetId<Mesh> paths below via prelude
+        let keep: HashSet<(AssetId<Mesh>, bevy::asset::AssetId<StandardMaterial>)> =
+            if cache_fresh_now {
+                if let Some(k) = cache.as_ref() {
+                    std::iter::once((k.sea.id(), k.mat.id()))
+                        .chain(k.entries.iter().map(|(_, h)| (h.id(), k.mat.id())))
+                        .collect()
+                } else {
+                    HashSet::new()
+                }
+            } else {
+                HashSet::new()
+            };
+        let mut doom_m: Vec<AssetId<Mesh>> = Vec::new();
+        let mut doom_t: Vec<bevy::asset::AssetId<StandardMaterial>> = Vec::new();
+        for (m, t) in &old_assets {
+            let pair = (m.id(), t.id());
+            if !keep.contains(&pair) {
+                doom_m.push(m.id());
+                doom_t.push(t.id());
+            }
+        }
+        if !cache_fresh_now {
+            if let Some(k) = cache.as_ref() {
+                // Stale cache's planet: unreferenced the moment the
+                // claim lands (this run), so it is doomed NOW.
+                doom_m.push(k.sea.id());
+                for (_, h) in &k.entries {
+                    doom_m.push(h.id());
+                }
+                doom_t.push(k.mat.id());
+            }
+        }
+        let uniq_m: std::collections::HashSet<_> = doom_m.into_iter().collect();
+        let uniq_t: std::collections::HashSet<_> = doom_t.into_iter().collect();
+        for id in uniq_m {
+            if !keep.iter().any(|(m, _)| *m == id) {
+                meshes.remove(id);
+            }
+        }
+        for id in uniq_t {
+            if !keep.iter().any(|(_, t)| *t == id) {
+                materials.remove(id);
+            }
+        }
+    }
 
     // Claim OUT HERE — inside the spawn closure `commands` is
     // already borrowed (round 195's lesson, applied preemptively).
@@ -344,8 +412,16 @@ fn rebuild_world(
         ..default()
     });
 
-    // Shoreline R8 texture for the future sea WGSL material (spec 02 B2).
-    let _shore = shore_texture(&map, &mut images);
+    // Shoreline R8 texture for the future sea WGSL material (spec 02
+    // B2). Owned now (ShoreOwn): referenced by no entity, an
+    // un-owned one leaks one texture per rebuild forever (the
+    // round-216 sweep). Exactly one exists; the last frame's is
+    // freed the frame the next is born.
+    if let Some(prev) = shore_prev {
+        images.remove(&prev.0);
+    }
+    let shore = shore_texture(&map, &mut images);
+    commands.insert_resource(ShoreOwn(shore));
     // Dev terrain-lab mode (round-155 pivot): CYCLONE_CONTINENT=1 swaps
     // the archipelago for the voxel-Earth heightfield. Same rig, same
     // materials, same rebuild path — a preview, not a fork.

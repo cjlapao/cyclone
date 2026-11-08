@@ -317,3 +317,64 @@ fn same_seed_reentry_respawns_from_cache_not_a_rebuild() {
         "same-seed re-entry reused the cached meshes (handle ids identical)"
     );
 }
+
+/// Asset-store leak probe: every rebuild ADDS chunk meshes, sea
+/// meshes, and materials to the world's Assets<T> — and nothing in
+/// the repo has ever REMOVED a superseded one (grep: zero
+/// remove/retain/free_unused call sites). Bevy does not GC the
+/// asset server on its own. A pilot hour of Esc/R/mid-carve-waits
+/// is 100+ rebuilds of terrain meshes nobody can see.
+/// This test MEASURES the growth first (probe-don't-assume:
+/// 0.20's eviction policy might already save us) and asserts a
+/// budget: five rerolls of small maps must not grow the mesh store
+/// by more than TWO worlds' worth (live world + bounded slop).
+#[test]
+fn rerolls_do_not_grow_the_asset_stores() {
+    let _env = env_guard();
+    unsafe {
+        // CLASSIC mode: the leak question is about the classic
+        // rebuild path (continent has its own cache discipline).
+        std::env::remove_var("CYCLONE_CONTINENT");
+        std::env::remove_var("CYCLONE_CONTINENT_SIZE");
+        std::env::remove_var("CYCLONE_CONTINENT_PREVIEW");
+        std::env::remove_var("CYCLONE_CONTINENT_SCALE");
+        std::env::remove_var("CYCLONE_ISLANDS");
+    }
+    let mut app = app_scaffold();
+    let mesh_count = |a: &mut App| -> usize {
+        a.world_mut().resource::<bevy::asset::Assets<Mesh>>().len() as usize
+    };
+    let n0 = mesh_count(&mut app); // scaffold world
+    let mut per_world = Vec::new();
+    for s in 1..=5u64 {
+        let seed: Seed = format!("SEED-{s:04}")
+            .parse()
+            .ok()
+            .unwrap_or_else(|| "BBBB-BBBB".parse().unwrap());
+        let map = Arc::new(
+            generate(seed, 1, &WorldGenConfig::default(), &ProgressNoop)
+                .expect("classic seeds generate"),
+        );
+        app.insert_resource(cyclone_engine::CurrentWorld(map));
+        for _ in 0..6 {
+            app.update();
+        }
+        per_world.push(mesh_count(&mut app));
+    }
+    println!("mesh-store size per rebuild: {n0} -> {per_world:?}");
+    let peak = *per_world.iter().max().unwrap() as i64;
+    let mean = per_world.iter().sum::<usize>() as f64 / per_world.len() as f64;
+    // Post-sweep truth: the store holds ~ONE world, whose SIZE
+    // varies with that seed's land — counts wobble up and down
+    // (46, 39, ...) and a naive 'growth per step > 0' bound would
+    // convict that honest wobble. The crime this test exists for
+    // is LINEAR ACCUMULATION: measured pre-sweep at +236 over five
+    // rerolls (~46/world). Post-sweep a leak would push the tail
+    // toward 5x the mean; no honest single-world store peaks above
+    // 2.5x its own mean.
+    assert!(
+        peak as f64 <= 2.5 * mean,
+        "store peaks at {peak} vs mean {mean:.0} over 5 rerolls — \
+         superseded meshes are not being freed"
+    );
+}

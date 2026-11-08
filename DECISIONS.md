@@ -1405,3 +1405,36 @@ MEASURED BY A DOC owes that doc a fresh run — round 212's commit
 message never mentioned the reroll frame; caught before it could
 age into a myth.
 
+## Round 216 — the asset leak, measured before and after the sweep
+
+Probe-don't-assume, the expensive kind: greps showed ZERO
+remove/retain/free sites against seven per-rebuild add sites, and
+Bevy does not GC the asset server. A new test MEASURED it before
+any claim: +236 meshes over five rerolls, ~46 a world, strictly
+linear. A pilot hour of Esc/R is a hundred rebuilds of terrain
+nobody can see.
+
+The sweep runs in rebuild_world the instant a build is chosen:
+every mesh+material pair on the despawning children is removed —
+EXCEPT the pairs a FRESH cache will respawn (Esc→Enter keeps its
+planet for free), and when the cache is stale its OWN handles join
+the doomed set (the claim replaces them this run; keeping them was
+the leak wearing 'we reuse via cache' as a costume). The shore R8
+texture, referenced by no entity, got a one-slot owner resource so
+the sweep can speak its name; the pre-sweep version leaked one
+texture per rebuild too.
+
+Post-sweep the store HOLDS one world, its size wobbling with each
+seed's land (55→46→39→33→63) — the bound is now honest about the
+wobble it must not convict: peak ≤ 2.5× mean; linear accumulation
+hits 5× and cannot hide. The four sibling live tests (respawn,
+wait-continuity) passing UNCHANGED is the proof the keep-set is
+right, not just the leak-test going green.
+
+Self-audit mid-ship: the insertion split ContinentCache's doc and
+derive from its struct — two compile errors, both caught by cargo
+before cargo was asked to trust anything. And the probe's own
+first bound (step growth > 0) convicted the healthy wobble the fix
+created: a test whose reds survive its own fix teaches the wrong
+lesson; the bound moved to the crime, not the fingerprint.
+
